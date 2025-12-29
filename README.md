@@ -1,87 +1,221 @@
-# Welcome to React Router!
+# KwentaMo - Food Business Costing Assistant
 
-A modern, production-ready template for building full-stack React applications using React Router.
+A modern web-based costing assistant designed for small food business owners in Cebu City and beyond.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## 🚀 Tech Stack
 
-## Features
+### Frontend
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- **React 19** - UI library
+- **Vite 7** - Build tool and dev server
+- **TypeScript** - Type safety
+- **React Router v7** - File-based routing
+- **Tailwind CSS 4** - Utility-first CSS framework
+- **ShadCN UI** - Accessible component library
+- **Zustand** - Lightweight state management
+- **Recharts** - Data visualization
+- **Lucide React** - Icon library
 
-## Getting Started
+### Development Tools
+
+- **Vite TSConfig Paths** - Path alias support
+- **Radix UI** - Headless UI primitives
+
+## 📁 Project Structure
+
+```
+kwenta-mo-app/
+├── app/
+│   ├── components/       # Reusable React components
+│   │   └── ui/          # ShadCN UI components
+│   ├── config/          # Application configuration
+│   ├── hooks/           # Custom React hooks
+│   ├── lib/             # Utility functions
+│   ├── routes/          # React Router routes
+│   ├── stores/          # Zustand state stores
+│   ├── types/           # TypeScript type definitions
+│   ├── app.css          # Global styles with Tailwind
+│   └── root.tsx         # Root component
+├── public/              # Static assets
+├── components.json      # ShadCN UI configuration
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+```
+
+## 🛠️ Setup Instructions
+
+### Prerequisites
+
+- Node.js 18+
+- npm or pnpm
 
 ### Installation
 
-Install the dependencies:
+1. **Install dependencies:**
+
+   ```bash
+   cd kwenta-mo-app
+   npm install
+   ```
+
+2. **Run development server:**
+
+   ```bash
+   npm run dev
+   ```
+
+3. **Build for production:**
+
+   ```bash
+   npm run build
+   ```
+
+4. **Preview production build:**
+   ```bash
+   npm start
+   ```
+
+## 📦 Key Features
+
+### 1. Business Profile Management
+
+- Track source of raw materials
+- Monitor employee count
+- Record average monthly sales
+- Business location tracking
+
+### 2. Ingredient Management
+
+- CRUD operations for ingredients
+- Stock level monitoring
+- Unit price tracking
+- Bulk upload via Excel/CSV
+
+### 3. Recipe & Costing
+
+- Recipe creation with ingredient mapping
+- Automatic cost calculation:
+  - Material costs
+  - Labor costs
+  - Overhead allocation
+- Profit margin analysis
+
+### 4. Operating Expenses
+
+- Category-based expense tracking
+- Frequency-based recording
+- Bulk data import
+
+### 5. Financial Reports
+
+- Cost of Goods Sold (COGS)
+- Income Statement
+- Expense Report
+- Profit Summary
+
+### 6. Dashboard & Visualizations
+
+- Real-time cost breakdowns
+- Profit vs. Cost comparisons
+- Sales trends with Recharts
+
+## 🎨 UI Components Available
+
+The project comes with pre-configured ShadCN UI components:
+
+- Button
+- Card
+- Input
+- Dialog
+- Dropdown Menu
+- Label
+- Select
+- Separator
+- Tabs
+
+Add more components using:
 
 ```bash
-npm install
+npx shadcn@latest add <component-name>
 ```
 
-### Development
+## 📊 State Management
 
-Start the development server with HMR:
+### Stores
 
-```bash
-npm run dev
+- `businessStore.ts` - Business profile state
+- `ingredientStore.ts` - Ingredient management state
+
+Stores use Zustand with:
+
+- DevTools integration (development)
+- LocalStorage persistence (where needed)
+
+## 🔧 Configuration
+
+### Application Config (`app/config/app.ts`)
+
+```typescript
+- API endpoints
+- Feature flags
+- Business defaults (currency, overhead rate)
+- Upload limits
+- Pagination settings
 ```
 
-Your application will be available at `http://localhost:5173`.
+### Path Aliases
 
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
+```typescript
+"~/*" → "./app/*"
 ```
 
-## Deployment
+## 🎯 Next Steps
 
-### Docker Deployment
+### Backend Integration
 
-To build and run using Docker:
+1. Set up NestJS backend
+2. Configure Supabase PostgreSQL
+3. Implement Prisma ORM
+4. Create REST API endpoints
 
-```bash
-docker build -t my-app .
+### Additional Features
 
-# Run the container
-docker run -p 3000:3000 my-app
+1. Authentication (Supabase Auth)
+2. File upload handling
+3. PDF report generation
+4. Real-time notifications
+5. Mobile PWA support
+
+## 📝 Environment Variables
+
+Create a `.env` file in the root:
+
+```env
+VITE_API_URL=http://localhost:3000/api
 ```
 
-The containerized application can be deployed to any platform that supports Docker, including:
+## 🤝 Contributing
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
+This is a capstone project for BSBA Financial Management students at University of Cebu.
 
-### DIY Deployment
+## 📄 License
 
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+Educational project - University of Cebu Main Campus
 
 ---
 
-Built with ❤️ using React Router.
+**Team Members:**
+
+- Monte De Ramos, Thomas
+- Rosales, Nicole Angela C.
+- Salgarino, Deseree
+- Tabares, Jehana T.
+- Torrefiel, Osha Dyna A.
+- Velarde, Khyle Arman L.
+- Vergara, Cyrhyl
+- Villarba, Cristine Joy
+- Villasis, Julimae
+- Zuniega, Glyle Glee O.
+
+**December 2025**
