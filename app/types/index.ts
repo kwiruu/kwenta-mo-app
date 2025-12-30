@@ -33,7 +33,18 @@ export interface Ingredient {
   updatedAt: Date;
 }
 
-export type IngredientUnit = "kg" | "g" | "pcs" | "L" | "mL" | "oz" | "lb";
+export type IngredientUnit =
+  | "kg"
+  | "g"
+  | "pcs"
+  | "L"
+  | "mL"
+  | "oz"
+  | "lb"
+  | "pack"
+  | "bottle"
+  | "can"
+  | "bundle";
 
 // Recipe Types
 export interface Recipe {
@@ -63,8 +74,10 @@ export interface OperatingExpense {
   name: string;
   category: ExpenseCategory;
   amount: number;
-  frequency: "monthly" | "weekly" | "daily" | "yearly";
-  dateRecorded: Date;
+  frequency: "monthly" | "weekly" | "daily" | "yearly" | "quarterly";
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type ExpenseCategory =
@@ -74,6 +87,9 @@ export type ExpenseCategory =
   | "marketing"
   | "supplies"
   | "maintenance"
+  | "equipment"
+  | "transportation"
+  | "permits"
   | "other";
 
 // Sales Types
