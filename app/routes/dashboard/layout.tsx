@@ -67,11 +67,7 @@ export default function DashboardLayout() {
           {/* Logo */}
           <div className="flex h-16 items-center justify-between px-5 border-b border-gray-100">
             <Link to="/dashboard" className="flex items-center">
-              <img
-                src="/app/assets/logo-text.svg"
-                alt="Kwenta MO"
-                className="h-10"
-              />
+              <img src="/logo-text.svg" alt="Kwenta MO" className="h-10" />
             </Link>
             <Button
               variant="ghost"

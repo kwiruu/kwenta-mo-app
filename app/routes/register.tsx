@@ -68,7 +68,7 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center">
             <img
-              src="/app/assets/logo-text.svg"
+              src="/logo-text.svg"
               alt="Kwenta MO"
               className="h-10 mx-auto"
             />
