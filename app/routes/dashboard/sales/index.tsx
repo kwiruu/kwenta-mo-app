@@ -179,7 +179,7 @@ export default function SalesIndex() {
             Track and manage your daily sales
           </p>
         </div>
-        <Button asChild>
+        <Button variant="green" asChild>
           <Link to="/dashboard/sales/new">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -228,7 +228,7 @@ export default function SalesIndex() {
           {(["all", "today", "week", "month"] as const).map((filter) => (
             <Button
               key={filter}
-              variant={dateFilter === filter ? "default" : "outline"}
+              variant={dateFilter === filter ? "green" : "outline"}
               size="sm"
               onClick={() => setDateFilter(filter)}
             >
@@ -322,7 +322,7 @@ export default function SalesIndex() {
                       <TableCell className="text-right">
                         {sale.costBreakdown ? (
                           <Badge
-                            variant={isProfitable ? "default" : "destructive"}
+                            variant={isProfitable ? "lightgreen" : "destructive"}
                           >
                             {formatCurrency(sale.costBreakdown.grossProfit)}
                           </Badge>

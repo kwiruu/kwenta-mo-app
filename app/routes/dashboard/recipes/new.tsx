@@ -319,7 +319,7 @@ export default function NewRecipe() {
                       }
                     />
                   </div>
-                  <Button type="button" onClick={addIngredient}>
+                  <Button type="button" onClick={addIngredient} variant="green">
                     Add
                   </Button>
                 </div>
@@ -550,7 +550,7 @@ export default function NewRecipe() {
 
             {/* Actions */}
             <div className="flex gap-2">
-              <Button type="submit" className="flex-1">
+              <Button type="submit" className="flex-1" variant="green">
                 Save Recipe
               </Button>
               <Button type="button" variant="outline" asChild>

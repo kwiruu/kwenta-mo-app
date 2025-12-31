@@ -113,7 +113,7 @@ export default function IngredientsListPage() {
               Bulk Upload
             </Link>
           </Button>
-          <Button className="bg-primary hover:bg-primary/90" asChild>
+          <Button variant="green" asChild>
             <Link to="/dashboard/ingredients/new">
               <Plus className="h-4 w-4 mr-2" />
               Add Ingredient
@@ -188,7 +188,7 @@ export default function IngredientsListPage() {
                       Upload File
                     </Link>
                   </Button>
-                  <Button className="bg-primary hover:bg-primary/90" asChild>
+                  <Button variant="green" asChild>
                     <Link to="/dashboard/ingredients/new">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Manually

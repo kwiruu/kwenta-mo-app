@@ -75,7 +75,7 @@ export default function RegisterPage() {
           </Link>
         </div>
 
-        <Card className="border-0 shadow-lg">
+        <Card className="border-0">
           <CardHeader className="space-y-1 text-center pb-2">
             <CardTitle className="text-2xl font-semibold text-gray-900">
               Create an account
@@ -171,6 +171,7 @@ export default function RegisterPage() {
                 type="submit"
                 className="w-full h-11"
                 disabled={isLoading}
+                variant="green"
               >
                 {isLoading ? "Creating account..." : "Create Account"}
               </Button>
