@@ -62,7 +62,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <Card className="border-0 shadow-lg">
+        <Card className="border-0">
           <CardHeader className="space-y-1 text-center pb-2">
             <CardTitle className="text-2xl font-semibold text-gray-900">
               Welcome back
@@ -125,6 +125,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full h-11"
+                variant="green"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Sign In"}

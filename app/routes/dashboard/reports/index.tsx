@@ -423,7 +423,7 @@ export default function ReportsIndex() {
             <Card>
               <CardContent className="pt-6">
                 <div
-                  className={`text-2xl font-bold ${incomeData.netIncome >= 0 ? "text-secondary" : "text-destructive"}`}
+                  className={`text-2xl font-bold ${incomeData.netIncome >= 0 ? "text-secondary-foreground" : "text-destructive"}`}
                 >
                   {formatCurrency(incomeData.netIncome)}
                 </div>
@@ -492,7 +492,7 @@ export default function ReportsIndex() {
               <div className="bg-secondary/10 rounded-lg p-4">
                 <div className="flex justify-between text-lg font-bold">
                   <span>Gross Profit</span>
-                  <span className="text-secondary">
+                  <span className="text-secondary-foreground">
                     {formatCurrency(incomeData.grossProfit)}
                   </span>
                 </div>
@@ -552,7 +552,7 @@ export default function ReportsIndex() {
                   <span
                     className={
                       incomeData.netIncome >= 0
-                        ? "text-secondary"
+                        ? "text-secondary-foreground"
                         : "text-destructive"
                     }
                   >
@@ -578,7 +578,7 @@ export default function ReportsIndex() {
             <Card>
               <CardContent className="pt-6">
                 <div
-                  className={`text-2xl font-bold ${totalProfit >= 0 ? "text-secondary" : "text-destructive"}`}
+                  className={`text-2xl font-bold ${totalProfit >= 0 ? "text-secondary-foreground" : "text-destructive"}`}
                 >
                   {formatCurrency(totalProfit)}
                 </div>
@@ -588,7 +588,7 @@ export default function ReportsIndex() {
             <Card>
               <CardContent className="pt-6">
                 <div
-                  className={`text-2xl font-bold ${totalProfit >= 0 ? "text-secondary" : "text-destructive"}`}
+                  className={`text-2xl font-bold ${totalProfit >= 0 ? "text-secondary-foreground" : "text-destructive"}`}
                 >
                   {((totalProfit / totalRevenue) * 100).toFixed(2)}%
                 </div>
@@ -597,7 +597,7 @@ export default function ReportsIndex() {
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-secondary">
+                <div className="text-2xl font-bold text-secondary-foreground">
                   {profitData.filter((r) => r.profit > 0).length}/
                   {profitData.length}
                 </div>
@@ -640,18 +640,18 @@ export default function ReportsIndex() {
                         {formatCurrency(row.cost)}
                       </TableCell>
                       <TableCell
-                        className={`text-right font-semibold ${row.profit >= 0 ? "text-secondary" : "text-destructive"}`}
+                        className={`text-right font-semibold ${row.profit >= 0 ? "text-secondary-foreground" : "text-destructive"}`}
                       >
                         {formatCurrency(row.profit)}
                       </TableCell>
                       <TableCell
-                        className={`text-right ${row.margin >= 0 ? "text-secondary" : "text-destructive"}`}
+                        className={`text-right ${row.margin >= 0 ? "text-secondary-foreground" : "text-destructive"}`}
                       >
                         {row.margin.toFixed(2)}%
                       </TableCell>
                       <TableCell className="text-center">
                         {row.margin >= 20 ? (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary/20 text-secondary">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary/20 text-secondary-foreground">
                             Healthy
                           </span>
                         ) : row.margin >= 0 ? (
@@ -767,7 +767,7 @@ export default function ReportsIndex() {
                       />
                     </svg>
                     <div>
-                      <p className="font-medium text-secondary">
+                      <p className="font-medium text-secondary-foreground">
                         All recipes are profitable!
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">

@@ -104,7 +104,7 @@ export default function BusinessProfilePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">
@@ -124,19 +124,8 @@ export default function BusinessProfilePage() {
       )}
 
       <form onSubmit={handleSubmit}>
-        <Card className="border shadow-none bg-white">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-900">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Building2 className="h-4 w-4 text-primary" />
-              </div>
-              Basic Information
-            </CardTitle>
-            <CardDescription className="text-gray-500">
-              Tell us about your food business
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div className="border shadow-none bg-white border-none">
+          <CardContent className="space-y-6 p-0">
             {/* Business Name */}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-gray-700">
@@ -283,16 +272,11 @@ export default function BusinessProfilePage() {
               </Select>
             </div>
           </CardContent>
-        </Card>
+        </div>
 
         {/* Submit Button */}
         <div className="flex justify-end mt-6">
-          <Button
-            type="submit"
-            disabled={isLoading}
-            size="lg"
-            className="bg-primary hover:bg-primary/90"
-          >
+          <Button type="submit" disabled={isLoading} size="lg" variant="green">
             {isLoading ? (
               "Saving..."
             ) : (

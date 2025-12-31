@@ -114,7 +114,7 @@ export default function RecipesIndex() {
             Manage your recipes and view cost breakdowns
           </p>
         </div>
-        <Button asChild>
+        <Button variant="green" asChild>
           <Link to="/dashboard/recipes/new">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -179,7 +179,7 @@ export default function RecipesIndex() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-secondary">
+            <div className="text-2xl font-bold text-secondary-foreground">
               {
                 displayRecipes.filter(
                   (r) => r.costBreakdown && r.costBreakdown.profitMargin > 0
@@ -219,7 +219,7 @@ export default function RecipesIndex() {
                       Prep time: {recipe.prepTimeMinutes} mins
                     </CardDescription>
                   </div>
-                  <Badge variant={recipe.isActive ? "default" : "secondary"}>
+                  <Badge variant={recipe.isActive ? "lightgreen" : "secondary"}>
                     {recipe.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </div>
@@ -250,7 +250,7 @@ export default function RecipesIndex() {
                       </span>
                       <span
                         className={`font-semibold ${
-                          isProfitable ? "text-secondary" : "text-destructive"
+                          isProfitable ? "text-secondary-foreground" : "text-destructive"
                         }`}
                       >
                         {formatCurrency(cost.grossProfit)}
@@ -262,7 +262,7 @@ export default function RecipesIndex() {
                       </span>
                       <span
                         className={`font-semibold ${
-                          isProfitable ? "text-secondary" : "text-destructive"
+                          isProfitable ? "text-secondary-foreground" : "text-destructive"
                         }`}
                       >
                         {cost.profitMargin.toFixed(2)}%
