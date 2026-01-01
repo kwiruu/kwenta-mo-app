@@ -19,9 +19,9 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { useExpenseStore } from "~/stores/expenseStore";
+import { useCreateExpense } from "~/hooks";
 import { APP_CONFIG } from "~/config/app";
-import type { ExpenseCategory } from "~/types";
+import type { ExpenseCategory } from "~/lib/api";
 
 export function meta() {
   return [
@@ -35,44 +35,44 @@ const expenseCategories: {
   label: string;
   description: string;
 }[] = [
-  { value: "rent", label: "Rent", description: "Stall or store rental" },
+  { value: "RENT", label: "Rent", description: "Stall or store rental" },
   {
-    value: "utilities",
+    value: "UTILITIES",
     label: "Utilities",
     description: "Electricity, water, gas",
   },
-  { value: "salaries", label: "Salaries", description: "Employee wages" },
+  { value: "LABOR", label: "Salaries", description: "Employee wages" },
   {
-    value: "equipment",
+    value: "EQUIPMENT",
     label: "Equipment",
     description: "Kitchen equipment, tools",
   },
   {
-    value: "maintenance",
+    value: "OTHER",
     label: "Maintenance",
     description: "Repairs, upkeep",
   },
   {
-    value: "marketing",
+    value: "MARKETING",
     label: "Marketing",
     description: "Advertising, promotions",
   },
   {
-    value: "supplies",
+    value: "PACKAGING",
     label: "Supplies",
     description: "Containers, packaging",
   },
   {
-    value: "transportation",
+    value: "TRANSPORTATION",
     label: "Transportation",
     description: "Delivery, commute",
   },
   {
-    value: "permits",
+    value: "OTHER",
     label: "Permits & Licenses",
     description: "Business permits, licenses",
   },
-  { value: "other", label: "Other", description: "Miscellaneous expenses" },
+  { value: "OTHER", label: "Other", description: "Miscellaneous expenses" },
 ];
 
 const frequencyOptions = [
@@ -85,23 +85,22 @@ const frequencyOptions = [
 
 export default function NewExpensePage() {
   const navigate = useNavigate();
-  const { addExpense } = useExpenseStore();
-  const [isLoading, setIsLoading] = useState(false);
+  const createExpenseMutation = useCreateExpense();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
-    name: "",
+    description: "",
     category: "" as ExpenseCategory,
     amount: "",
-    frequency: "monthly",
+    frequency: "MONTHLY",
     notes: "",
   });
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Expense name is required";
+    if (!formData.description.trim()) {
+      newErrors.description = "Expense description is required";
     }
     if (!formData.category) {
       newErrors.category = "Please select a category";
@@ -122,30 +121,18 @@ export default function NewExpensePage() {
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      addExpense({
-        name: formData.name.trim(),
+    createExpenseMutation.mutate(
+      {
         category: formData.category,
+        description: formData.description.trim(),
         amount: parseFloat(formData.amount),
-        frequency: formData.frequency as
-          | "daily"
-          | "weekly"
-          | "monthly"
-          | "quarterly"
-          | "yearly",
         notes: formData.notes.trim() || undefined,
-      });
-
-      navigate("/dashboard/expenses");
-    } catch (error) {
-      console.error("Error adding expense:", error);
-    } finally {
-      setIsLoading(false);
-    }
+      },
+      {
+        onSuccess: () => navigate("/dashboard/expenses"),
+        onError: (error) => console.error("Error adding expense:", error),
+      }
+    );
   };
 
   // Calculate monthly equivalent
@@ -210,22 +197,24 @@ export default function NewExpensePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Expense Name */}
+            {/* Expense Description */}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-700">
-                Expense Name *
+              <Label htmlFor="description" className="text-gray-700">
+                Expense Description *
               </Label>
               <Input
-                id="name"
+                id="description"
                 placeholder="e.g., Store Rent, Electricity Bill"
-                value={formData.name}
+                value={formData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({ ...formData, description: e.target.value })
                 }
-                className={errors.name ? "border-red-300" : "border-gray-200"}
+                className={
+                  errors.description ? "border-red-300" : "border-gray-200"
+                }
               />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name}</p>
+              {errors.description && (
+                <p className="text-sm text-red-500">{errors.description}</p>
               )}
             </div>
 
@@ -364,10 +353,10 @@ export default function NewExpensePage() {
           </Button>
           <Button
             type="submit"
-            disabled={isLoading}
+            disabled={createExpenseMutation.isPending}
             className="bg-primary hover:bg-primary/90"
           >
-            {isLoading ? (
+            {createExpenseMutation.isPending ? (
               "Saving..."
             ) : (
               <>

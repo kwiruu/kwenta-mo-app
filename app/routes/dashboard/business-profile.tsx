@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   Building2,
@@ -7,6 +7,8 @@ import {
   DollarSign,
   Package,
   Save,
+  Edit,
+  Lock,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -26,6 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { useUserProfile, useUpdateBusiness } from "~/hooks/useBusiness";
 import { useBusinessStore } from "~/stores/businessStore";
 import { APP_CONFIG } from "~/config/app";
 import type { BusinessType } from "~/types";
@@ -55,53 +58,119 @@ const rawMaterialSources = [
 
 export default function BusinessProfilePage() {
   const navigate = useNavigate();
-  const { currentBusiness, setCurrentBusiness } = useBusinessStore();
-  const [isLoading, setIsLoading] = useState(false);
+  const { setCurrentBusiness } = useBusinessStore();
+
+  // TanStack Query hooks
+  const { data: profile, isLoading: isLoadingProfile } = useUserProfile();
+  const updateBusinessMutation = useUpdateBusiness();
+
+  const business = profile?.business;
+  const [isEditing, setIsEditing] = useState(!business); // Auto-edit if no business
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: currentBusiness?.name || "",
-    type: currentBusiness?.type || ("" as BusinessType),
-    location: currentBusiness?.location || "",
-    employeeCount: currentBusiness?.employeeCount?.toString() || "",
-    avgMonthlySales: currentBusiness?.avgMonthlySales?.toString() || "",
-    rawMaterialSource: currentBusiness?.rawMaterialSource || "",
+    name: "",
+    type: "" as BusinessType,
+    location: "",
+    employeeCount: "",
+    avgMonthlySales: "",
+    rawMaterialSource: "",
   });
+
+  // Initialize form data when profile loads
+  useEffect(() => {
+    if (business) {
+      setFormData({
+        name: business.businessName || "",
+        type: (business.businessType || "") as BusinessType,
+        location: business.address || "",
+        employeeCount: business.employeeCount?.toString() || "",
+        avgMonthlySales: business.avgMonthlySales?.toString() || "",
+        rawMaterialSource: business.rawMaterialSource || "",
+      });
+      setIsEditing(false);
+    } else if (!isLoadingProfile) {
+      setIsEditing(true);
+    }
+  }, [business, isLoadingProfile]);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setSuccess(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    // Reset form to current business data
+    setFormData({
+      name: business?.businessName || "",
+      type: (business?.businessType || "") as BusinessType,
+      location: business?.address || "",
+      employeeCount: business?.employeeCount?.toString() || "",
+      avgMonthlySales: business?.avgMonthlySales?.toString() || "",
+      rawMaterialSource: business?.rawMaterialSource || "",
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setSuccess(false);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const result = await updateBusinessMutation.mutateAsync({
+        businessName: formData.name,
+        businessType: formData.type,
+        address: formData.location,
+        employeeCount: parseInt(formData.employeeCount) || undefined,
+        avgMonthlySales: parseFloat(formData.avgMonthlySales) || undefined,
+        rawMaterialSource: formData.rawMaterialSource || undefined,
+      });
 
-      const businessData = {
-        id: currentBusiness?.id || crypto.randomUUID(),
-        name: formData.name,
-        type: formData.type as BusinessType,
-        location: formData.location,
-        employeeCount: parseInt(formData.employeeCount) || 0,
-        avgMonthlySales: parseFloat(formData.avgMonthlySales) || 0,
-        rawMaterialSource: formData.rawMaterialSource,
-        createdAt: currentBusiness?.createdAt || new Date(),
-        updatedAt: new Date(),
-      };
+      // Update the Zustand store for header display
+      setCurrentBusiness({
+        id: result.id,
+        name: result.businessName,
+        type: result.businessType,
+        location: result.address,
+        employeeCount: result.employeeCount,
+        avgMonthlySales: result.avgMonthlySales,
+        rawMaterialSource: result.rawMaterialSource,
+        createdAt: new Date(result.createdAt),
+        updatedAt: new Date(result.updatedAt),
+      });
 
-      setCurrentBusiness(businessData);
       setSuccess(true);
+      setIsEditing(false);
 
       // If first time setup, redirect to dashboard
-      if (!currentBusiness) {
+      if (!business) {
         setTimeout(() => navigate("/dashboard"), 1500);
       }
     } catch (error) {
       console.error("Error saving business profile:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
+
+  const isLoading = updateBusinessMutation.isPending;
+
+  if (isLoadingProfile) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+        </div>
+        <div className="space-y-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -138,7 +207,8 @@ export default function BusinessProfilePage() {
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="border-gray-200 focus:border-primary focus:ring-primary"
+                className="border-gray-200 focus:border-primary focus:ring-primary disabled:opacity-60 disabled:bg-black/5 disabled:cursor-not-allowed"
+                disabled={!isEditing}
                 required
               />
             </div>
@@ -153,8 +223,9 @@ export default function BusinessProfilePage() {
                 onValueChange={(value) =>
                   setFormData({ ...formData, type: value as BusinessType })
                 }
+                disabled={!isEditing}
               >
-                <SelectTrigger>
+                <SelectTrigger className="disabled:opacity-60 disabled:bg-black/5 disabled:cursor-not-allowed">
                   <SelectValue placeholder="Select business type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -183,11 +254,12 @@ export default function BusinessProfilePage() {
                 onChange={(e) =>
                   setFormData({ ...formData, location: e.target.value })
                 }
-                className="border-gray-200 focus:border-primary focus:ring-primary"
+                className="border-gray-200 focus:border-primary focus:ring-primary disabled:opacity-60 disabled:bg-black/5 disabled:cursor-not-allowed"
+                disabled={!isEditing}
                 required
               />
               <p className="text-xs text-gray-400">
-                Enter your complete business address in Cebu City
+                Enter your complete business address
               </p>
             </div>
 
@@ -209,7 +281,8 @@ export default function BusinessProfilePage() {
                 onChange={(e) =>
                   setFormData({ ...formData, employeeCount: e.target.value })
                 }
-                className="border-gray-200 focus:border-primary focus:ring-primary"
+                className="border-gray-200 focus:border-primary focus:ring-primary disabled:opacity-60 disabled:bg-black/5 disabled:cursor-not-allowed"
+                disabled={!isEditing}
                 required
               />
               <p className="text-xs text-gray-400">
@@ -236,7 +309,8 @@ export default function BusinessProfilePage() {
                 onChange={(e) =>
                   setFormData({ ...formData, avgMonthlySales: e.target.value })
                 }
-                className="border-gray-200 focus:border-primary focus:ring-primary"
+                className="border-gray-200 focus:border-primary focus:ring-primary disabled:opacity-60 disabled:bg-black/5 disabled:cursor-not-allowed"
+                disabled={!isEditing}
                 required
               />
               <p className="text-xs text-gray-400">
@@ -258,8 +332,9 @@ export default function BusinessProfilePage() {
                 onValueChange={(value) =>
                   setFormData({ ...formData, rawMaterialSource: value })
                 }
+                disabled={!isEditing}
               >
-                <SelectTrigger className="border-gray-200">
+                <SelectTrigger className="border-gray-200 disabled:opacity-60 disabled:bg-black/5 disabled:cursor-not-allowed">
                   <SelectValue placeholder="Where do you get your ingredients?" />
                 </SelectTrigger>
                 <SelectContent>
@@ -274,18 +349,49 @@ export default function BusinessProfilePage() {
           </CardContent>
         </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-end mt-6">
-          <Button type="submit" disabled={isLoading} size="lg" variant="green">
-            {isLoading ? (
-              "Saving..."
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Business Profile
-              </>
-            )}
-          </Button>
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 mt-6">
+          {isEditing ? (
+            <>
+              {business && (
+                <Button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={isLoading}
+                  size="lg"
+                  variant="outline"
+                >
+                  Cancel
+                </Button>
+              )}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                size="lg"
+                variant="green"
+              >
+                {isLoading ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Business Profile
+                  </>
+                )}
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleEdit}
+              size="lg"
+              variant="outline"
+              className="border-greenz text-greenz hover:bg-greenz hover:text-white"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Business Profile
+            </Button>
+          )}
         </div>
       </form>
     </div>

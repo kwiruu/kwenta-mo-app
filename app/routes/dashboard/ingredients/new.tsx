@@ -18,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { useIngredientStore } from "~/stores/ingredientStore";
+import { useCreateIngredient } from "~/hooks";
 import { APP_CONFIG } from "~/config/app";
 import type { IngredientUnit } from "~/types";
 
@@ -47,8 +47,7 @@ const ingredientUnits: {
 
 export default function NewIngredientPage() {
   const navigate = useNavigate();
-  const { addIngredient } = useIngredientStore();
-  const [isLoading, setIsLoading] = useState(false);
+  const createIngredientMutation = useCreateIngredient();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
@@ -88,27 +87,20 @@ export default function NewIngredientPage() {
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      addIngredient({
+    createIngredientMutation.mutate(
+      {
         name: formData.name.trim(),
         unit: formData.unit,
-        pricePerUnit: parseFloat(formData.pricePerUnit),
+        costPerUnit: parseFloat(formData.pricePerUnit),
         currentStock: parseFloat(formData.currentStock),
         reorderLevel: parseFloat(formData.reorderLevel),
         supplier: formData.supplier.trim() || undefined,
-      });
-
-      navigate("/dashboard/ingredients");
-    } catch (error) {
-      console.error("Error adding ingredient:", error);
-    } finally {
-      setIsLoading(false);
-    }
+      },
+      {
+        onSuccess: () => navigate("/dashboard/ingredients"),
+        onError: (error) => console.error("Error adding ingredient:", error),
+      }
+    );
   };
 
   return (
@@ -314,10 +306,10 @@ export default function NewIngredientPage() {
           </Button>
           <Button
             type="submit"
-            disabled={isLoading}
+            disabled={createIngredientMutation.isPending}
             className="bg-primary hover:bg-primary/90"
           >
-            {isLoading ? (
+            {createIngredientMutation.isPending ? (
               "Saving..."
             ) : (
               <>

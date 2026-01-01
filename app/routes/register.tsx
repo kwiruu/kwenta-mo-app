@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { APP_CONFIG } from "~/config/app";
+import { useAuthStore } from "~/stores/authStore";
 
 export function meta() {
   return [
@@ -22,7 +23,16 @@ export function meta() {
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const {
+    signUp,
+    signInWithGoogle,
+    isAuthenticated,
+    isLoading: authLoading,
+    error: authError,
+    clearError,
+  } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -31,10 +41,26 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState("");
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Show auth errors
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+      clearError();
+    }
+  }, [authError, clearError]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setSuccessMessage("");
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
@@ -48,17 +74,34 @@ export default function RegisterPage() {
       return;
     }
 
-    // Simulate registration - replace with actual auth logic
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    const result = await signUp(
+      formData.email,
+      formData.password,
+      formData.name
+    );
 
-      // Navigate to business profile setup after registration
-      navigate("/dashboard/business-profile");
-    } catch (err) {
-      setError("Registration failed. Please try again.");
-    } finally {
-      setIsLoading(false);
+    if (result.success) {
+      if (result.message) {
+        // Email confirmation required
+        setSuccessMessage(result.message);
+      } else {
+        // Direct login (email confirmation disabled)
+        navigate("/dashboard/business-profile");
+      }
+    } else {
+      setError(result.message || "Registration failed. Please try again.");
     }
+
+    setIsLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError("");
+    const result = await signInWithGoogle();
+    if (!result.success) {
+      setError(result.message || "Google sign in failed");
+    }
+    // Redirect handled by Supabase OAuth
   };
 
   return (
@@ -89,6 +132,11 @@ export default function RegisterPage() {
               {error && (
                 <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
                   {error}
+                </div>
+              )}
+              {successMessage && (
+                <div className="p-3 text-sm text-green-600 bg-green-50 rounded-lg border border-green-100">
+                  {successMessage}
                 </div>
               )}
               <div className="space-y-2">
@@ -132,7 +180,7 @@ export default function RegisterPage() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="8+ characters"
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
@@ -152,7 +200,7 @@ export default function RegisterPage() {
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="8+ characters"
                   value={formData.confirmPassword}
                   onChange={(e) =>
                     setFormData({
@@ -181,6 +229,8 @@ export default function RegisterPage() {
                 type="button"
                 variant="outline"
                 className="w-full h-11 border-gray-200 hover:bg-gray-50 mb-4"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading || authLoading}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path

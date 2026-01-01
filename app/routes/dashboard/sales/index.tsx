@@ -18,10 +18,13 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { useSalesStore } from "~/stores/salesStore";
+import { useSales, useSalesStats, useDeleteSale } from "~/hooks";
+import type { Sale } from "~/lib/api";
 
 export default function SalesIndex() {
-  const { sales, deleteSale } = useSalesStore();
+  const { data: sales = [], isLoading } = useSales();
+  const { data: stats } = useSalesStats();
+  const deleteSaleMutation = useDeleteSale();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState<
     "all" | "today" | "week" | "month"
@@ -44,101 +47,19 @@ export default function SalesIndex() {
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this sale record?")) {
-      await deleteSale(id);
+      deleteSaleMutation.mutate(id);
     }
   };
 
-  // Mock data for UI display
-  const mockSales = [
-    {
-      id: "1",
-      businessId: "1",
-      recipeId: "1",
-      recipeName: "Chicken Adobo",
-      quantitySold: 15,
-      unitPrice: 120,
-      totalAmount: 1800,
-      dateSold: new Date(),
-      costBreakdown: {
-        materialCost: 675,
-        laborCost: 900,
-        overheadCost: 101.25,
-        totalCost: 1676.25,
-        grossProfit: 123.75,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "2",
-      businessId: "1",
-      recipeId: "2",
-      recipeName: "Sinigang na Baboy",
-      quantitySold: 8,
-      unitPrice: 150,
-      totalAmount: 1200,
-      dateSold: new Date(Date.now() - 86400000),
-      costBreakdown: {
-        materialCost: 440,
-        laborCost: 640,
-        overheadCost: 66,
-        totalCost: 1146,
-        grossProfit: 54,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "3",
-      businessId: "1",
-      recipeId: "1",
-      recipeName: "Chicken Adobo",
-      quantitySold: 20,
-      unitPrice: 120,
-      totalAmount: 2400,
-      dateSold: new Date(Date.now() - 86400000 * 2),
-      costBreakdown: {
-        materialCost: 900,
-        laborCost: 1200,
-        overheadCost: 135,
-        totalCost: 2235,
-        grossProfit: 165,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "4",
-      businessId: "1",
-      recipeId: "3",
-      recipeName: "Kare-Kare",
-      quantitySold: 5,
-      unitPrice: 200,
-      totalAmount: 1000,
-      dateSold: new Date(Date.now() - 86400000 * 3),
-      costBreakdown: {
-        materialCost: 425,
-        laborCost: 600,
-        overheadCost: 63.75,
-        totalCost: 1088.75,
-        grossProfit: -88.75,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
-
-  const displaySales = sales.length > 0 ? sales : mockSales;
-
   // Filter by search and date
-  const filteredSales = displaySales.filter((sale) => {
-    const matchesSearch = sale.recipeName
+  const filteredSales = sales.filter((sale) => {
+    const matchesSearch = sale.recipe?.name
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase());
 
     if (dateFilter === "all") return matchesSearch;
 
-    const saleDate = new Date(sale.dateSold);
+    const saleDate = new Date(sale.saleDate);
     const now = new Date();
 
     if (dateFilter === "today") {
@@ -158,16 +79,25 @@ export default function SalesIndex() {
     return matchesSearch;
   });
 
-  // Calculate totals
-  const totalRevenue = filteredSales.reduce((sum, s) => sum + s.totalAmount, 0);
-  const totalProfit = filteredSales.reduce(
-    (sum, s) => sum + (s.costBreakdown?.grossProfit || 0),
-    0
-  );
-  const totalQuantity = filteredSales.reduce(
-    (sum, s) => sum + s.quantitySold,
-    0
-  );
+  // Use stats if available, otherwise calculate from filtered sales
+  const totalRevenue =
+    stats?.totalRevenue ??
+    filteredSales.reduce((sum, s) => sum + s.totalPrice, 0);
+  const totalProfit =
+    stats?.totalProfit ?? filteredSales.reduce((sum, s) => sum + s.profit, 0);
+  const totalQuantity = filteredSales.reduce((sum, s) => sum + s.quantity, 0);
+
+  // Show loading state
+  if (isLoading && sales.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
+          <p className="mt-4 text-gray-500">Loading sales...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -297,38 +227,31 @@ export default function SalesIndex() {
               </TableHeader>
               <TableBody>
                 {filteredSales.map((sale) => {
-                  const isProfitable =
-                    (sale.costBreakdown?.grossProfit || 0) >= 0;
+                  const isProfitable = sale.profit >= 0;
                   return (
                     <TableRow key={sale.id}>
                       <TableCell className="font-medium">
-                        {formatDate(sale.dateSold)}
+                        {formatDate(sale.saleDate)}
                       </TableCell>
-                      <TableCell>{sale.recipeName}</TableCell>
+                      <TableCell>{sale.recipe?.name ?? "—"}</TableCell>
                       <TableCell className="text-center">
-                        {sale.quantitySold}
+                        {sale.quantity}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(sale.unitPrice)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(sale.totalAmount)}
+                        {formatCurrency(sale.totalPrice)}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground">
-                        {sale.costBreakdown
-                          ? formatCurrency(sale.costBreakdown.totalCost)
-                          : "—"}
+                        {formatCurrency(sale.costOfGoods)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {sale.costBreakdown ? (
-                          <Badge
-                            variant={isProfitable ? "lightgreen" : "destructive"}
-                          >
-                            {formatCurrency(sale.costBreakdown.grossProfit)}
-                          </Badge>
-                        ) : (
-                          "—"
-                        )}
+                        <Badge
+                          variant={isProfitable ? "lightgreen" : "destructive"}
+                        >
+                          {formatCurrency(sale.profit)}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Button

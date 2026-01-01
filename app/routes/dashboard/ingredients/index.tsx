@@ -27,9 +27,9 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { useIngredientStore } from "~/stores/ingredientStore";
+import { useIngredients, useDeleteIngredient } from "~/hooks";
 import { APP_CONFIG } from "~/config/app";
-import type { Ingredient } from "~/types";
+import type { Ingredient } from "~/lib/api";
 
 export function meta() {
   return [
@@ -40,7 +40,8 @@ export function meta() {
 
 export default function IngredientsListPage() {
   const navigate = useNavigate();
-  const { ingredients, deleteIngredient } = useIngredientStore();
+  const { data: ingredients = [], isLoading } = useIngredients();
+  const deleteIngredientMutation = useDeleteIngredient();
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
@@ -49,7 +50,7 @@ export default function IngredientsListPage() {
   );
 
   const lowStockItems = ingredients.filter(
-    (i) => i.currentStock <= i.reorderLevel
+    (i) => Number(i.currentStock) <= Number(i.reorderLevel)
   );
 
   const formatCurrency = (amount: number) => {
@@ -59,9 +60,9 @@ export default function IngredientsListPage() {
     }).format(amount);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (deleteConfirm === id) {
-      deleteIngredient(id);
+      deleteIngredientMutation.mutate(id);
       setDeleteConfirm(null);
     } else {
       setDeleteConfirm(id);
@@ -71,14 +72,17 @@ export default function IngredientsListPage() {
   };
 
   const getStockStatus = (ingredient: Ingredient) => {
-    if (ingredient.currentStock <= 0) {
+    const currentStock = Number(ingredient.currentStock);
+    const reorderLevel = Number(ingredient.reorderLevel);
+
+    if (currentStock <= 0) {
       return (
         <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
           Out of Stock
         </Badge>
       );
     }
-    if (ingredient.currentStock <= ingredient.reorderLevel) {
+    if (currentStock <= reorderLevel) {
       return (
         <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
           Low Stock
@@ -86,11 +90,23 @@ export default function IngredientsListPage() {
       );
     }
     return (
-      <Badge className="bg-secondary/10 text-secondary hover:bg-secondary/10 border-0">
+      <Badge className="bg-lightgreenz/10 text-lightgreenz hover:bg-secondary/10 border-0">
         In Stock
       </Badge>
     );
   };
+
+  // Show loading state
+  if (isLoading && ingredients.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
+          <p className="mt-4 text-gray-500">Loading ingredients...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -234,7 +250,7 @@ export default function IngredientsListPage() {
                       {ingredient.unit}
                     </TableCell>
                     <TableCell className="text-right text-gray-900">
-                      {formatCurrency(ingredient.pricePerUnit)}
+                      {formatCurrency(ingredient.costPerUnit)}
                     </TableCell>
                     <TableCell className="text-right text-gray-900">
                       {ingredient.currentStock} {ingredient.unit}

@@ -10,8 +10,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useRecipeStore } from "~/stores/recipeStore";
-import { useIngredientStore } from "~/stores/ingredientStore";
+import { useRecipe, useUpdateRecipe, useIngredients } from "~/hooks";
 
 interface RecipeIngredientInput {
   ingredientId: string;
@@ -27,8 +26,11 @@ export default function EditRecipe() {
   const [searchParams] = useSearchParams();
   const recipeId = searchParams.get("id");
 
-  const { recipes, updateRecipe, getRecipeById } = useRecipeStore();
-  const { ingredients } = useIngredientStore();
+  const { data: recipe, isLoading: isLoadingRecipe } = useRecipe(
+    recipeId || ""
+  );
+  const updateRecipeMutation = useUpdateRecipe();
+  const { data: ingredients = [] } = useIngredients();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -43,76 +45,40 @@ export default function EditRecipe() {
   >([]);
   const [selectedIngredientId, setSelectedIngredientId] = useState("");
   const [ingredientQuantity, setIngredientQuantity] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock ingredients for UI display
-  const mockIngredients = [
-    { id: "1", name: "Chicken", pricePerUnit: 180, unit: "kg" },
-    { id: "2", name: "Soy Sauce", pricePerUnit: 35, unit: "bottle" },
-    { id: "3", name: "Vinegar", pricePerUnit: 25, unit: "bottle" },
-    { id: "4", name: "Garlic", pricePerUnit: 20, unit: "head" },
-    { id: "5", name: "Bay Leaves", pricePerUnit: 15, unit: "pack" },
-    { id: "6", name: "Peppercorns", pricePerUnit: 30, unit: "pack" },
-    { id: "7", name: "Cooking Oil", pricePerUnit: 85, unit: "liter" },
-    { id: "8", name: "Rice", pricePerUnit: 55, unit: "kg" },
-  ];
+  // Use ingredients from API, map to display format
+  const displayIngredients = ingredients.map((i) => ({
+    id: i.id,
+    name: i.name,
+    pricePerUnit: i.costPerUnit,
+    unit: i.unit,
+  }));
 
-  const displayIngredients =
-    ingredients.length > 0 ? ingredients : mockIngredients;
-
+  // Load recipe data when it's fetched
   useEffect(() => {
-    // TODO: Replace with API call to fetch recipe by ID
-    if (recipeId) {
-      const recipe = getRecipeById(recipeId);
-      if (recipe) {
-        setFormData({
-          name: recipe.name,
-          sellingPrice: recipe.sellingPrice,
-          prepTimeMinutes: recipe.prepTimeMinutes,
-          laborRatePerHour: recipe.laborRatePerHour,
-          isActive: recipe.isActive,
-        });
-        // Load existing ingredients
-        // setRecipeIngredients(recipe.ingredients.map(...));
-      } else {
-        // Mock data for UI preview
-        setFormData({
-          name: "Chicken Adobo",
-          sellingPrice: 120,
-          prepTimeMinutes: 45,
-          laborRatePerHour: 80,
-          isActive: true,
-        });
-        setRecipeIngredients([
-          {
-            ingredientId: "1",
-            ingredientName: "Chicken",
-            quantityRequired: 0.5,
-            unit: "kg",
-            unitCost: 180,
-            totalCost: 90,
-          },
-          {
-            ingredientId: "2",
-            ingredientName: "Soy Sauce",
-            quantityRequired: 0.25,
-            unit: "bottle",
-            unitCost: 35,
-            totalCost: 8.75,
-          },
-          {
-            ingredientId: "3",
-            ingredientName: "Vinegar",
-            quantityRequired: 0.2,
-            unit: "bottle",
-            unitCost: 25,
-            totalCost: 5,
-          },
-        ]);
+    if (recipe) {
+      setFormData({
+        name: recipe.name,
+        sellingPrice: recipe.sellingPrice,
+        prepTimeMinutes: recipe.preparationTime || 0,
+        laborRatePerHour: 80,
+        isActive: true,
+      });
+      // Load existing ingredients
+      if (recipe.ingredients) {
+        setRecipeIngredients(
+          recipe.ingredients.map((ri) => ({
+            ingredientId: ri.ingredientId,
+            ingredientName: ri.ingredient?.name || "Unknown",
+            quantityRequired: ri.quantity,
+            unit: ri.ingredient?.unit || "",
+            unitCost: ri.ingredient?.costPerUnit || 0,
+            totalCost: ri.quantity * (ri.ingredient?.costPerUnit || 0),
+          }))
+        );
       }
     }
-    setIsLoading(false);
-  }, [recipeId, getRecipeById]);
+  }, [recipe]);
 
   const addIngredient = () => {
     if (!selectedIngredientId || ingredientQuantity <= 0) return;
@@ -200,32 +166,27 @@ export default function EditRecipe() {
 
     if (!recipeId) return;
 
-    // TODO: Replace with API call
-    await updateRecipe(recipeId, {
-      ...formData,
-      ingredients: recipeIngredients.map((ri) => ({
-        id: crypto.randomUUID(),
-        recipeId: recipeId,
-        ingredientId: ri.ingredientId,
-        quantityRequired: ri.quantityRequired,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })),
-      costBreakdown: {
-        materialCost,
-        laborCost,
-        overheadAllocation,
-        totalCost,
-        sellingPrice: formData.sellingPrice,
-        grossProfit,
-        profitMargin,
+    updateRecipeMutation.mutate(
+      {
+        id: recipeId,
+        data: {
+          name: formData.name,
+          sellingPrice: formData.sellingPrice,
+          preparationTime: formData.prepTimeMinutes,
+          ingredients: recipeIngredients.map((ri) => ({
+            ingredientId: ri.ingredientId,
+            quantity: ri.quantityRequired,
+          })),
+        },
       },
-    });
-
-    navigate("/dashboard/recipes");
+      {
+        onSuccess: () => navigate("/dashboard/recipes"),
+        onError: (error) => console.error("Error updating recipe:", error),
+      }
+    );
   };
 
-  if (isLoading) {
+  if (isLoadingRecipe) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

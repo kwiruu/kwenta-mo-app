@@ -9,13 +9,13 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Badge } from "~/components/ui/badge";
-import { useRecipeStore } from "~/stores/recipeStore";
-import { useIngredientStore } from "~/stores/ingredientStore";
+import { useRecipes, useDeleteRecipe } from "~/hooks";
 import { useState } from "react";
+import type { Recipe } from "~/lib/api";
 
 export default function RecipesIndex() {
-  const { recipes, deleteRecipe, calculateCost } = useRecipeStore();
-  const { ingredients } = useIngredientStore();
+  const { data: recipes = [], isLoading } = useRecipes();
+  const deleteRecipeMutation = useDeleteRecipe();
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredRecipes = recipes.filter((recipe) =>
@@ -31,78 +31,21 @@ export default function RecipesIndex() {
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this recipe?")) {
-      await deleteRecipe(id);
+      deleteRecipeMutation.mutate(id);
     }
   };
 
-  // Mock data for UI display
-  const mockRecipes = [
-    {
-      id: "1",
-      businessId: "1",
-      name: "Chicken Adobo",
-      sellingPrice: 120,
-      prepTimeMinutes: 45,
-      laborRatePerHour: 80,
-      isActive: true,
-      ingredients: [],
-      costBreakdown: {
-        materialCost: 45,
-        laborCost: 60,
-        overheadAllocation: 6.75,
-        totalCost: 111.75,
-        sellingPrice: 120,
-        grossProfit: 8.25,
-        profitMargin: 6.88,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "2",
-      businessId: "1",
-      name: "Sinigang na Baboy",
-      sellingPrice: 150,
-      prepTimeMinutes: 60,
-      laborRatePerHour: 80,
-      isActive: true,
-      ingredients: [],
-      costBreakdown: {
-        materialCost: 55,
-        laborCost: 80,
-        overheadAllocation: 8.25,
-        totalCost: 143.25,
-        sellingPrice: 150,
-        grossProfit: 6.75,
-        profitMargin: 4.5,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "3",
-      businessId: "1",
-      name: "Kare-Kare",
-      sellingPrice: 200,
-      prepTimeMinutes: 90,
-      laborRatePerHour: 80,
-      isActive: false,
-      ingredients: [],
-      costBreakdown: {
-        materialCost: 85,
-        laborCost: 120,
-        overheadAllocation: 12.75,
-        totalCost: 217.75,
-        sellingPrice: 200,
-        grossProfit: -17.75,
-        profitMargin: -8.88,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
-
-  const displayRecipes = recipes.length > 0 ? filteredRecipes : mockRecipes;
+  // Show loading state
+  if (isLoading && recipes.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
+          <p className="mt-4 text-gray-500">Loading recipes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -162,174 +105,110 @@ export default function RecipesIndex() {
       </div>
 
       {/* Stats Summary */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{displayRecipes.length}</div>
+            <div className="text-2xl font-bold">{filteredRecipes.length}</div>
             <p className="text-xs text-muted-foreground">Total Recipes</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">
-              {displayRecipes.filter((r) => r.isActive).length}
+              {filteredRecipes.filter((r) => r.ingredients.length > 0).length}
             </div>
-            <p className="text-xs text-muted-foreground">Active Recipes</p>
+            <p className="text-xs text-muted-foreground">With Ingredients</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-secondary-foreground">
-              {
-                displayRecipes.filter(
-                  (r) => r.costBreakdown && r.costBreakdown.profitMargin > 0
-                ).length
-              }
+            <div className="text-2xl font-bold">
+              {filteredRecipes.reduce(
+                (sum, r) => sum + r.ingredients.length,
+                0
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">Profitable</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-destructive">
-              {
-                displayRecipes.filter(
-                  (r) => r.costBreakdown && r.costBreakdown.profitMargin < 0
-                ).length
-              }
-            </div>
-            <p className="text-xs text-muted-foreground">Needs Review</p>
+            <p className="text-xs text-muted-foreground">
+              Total Ingredients Used
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Recipe Cards Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {displayRecipes.map((recipe) => {
-          const cost = recipe.costBreakdown;
-          const isProfitable = cost && cost.profitMargin > 0;
-
-          return (
-            <Card key={recipe.id} className="overflow-hidden">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{recipe.name}</CardTitle>
-                    <CardDescription>
-                      Prep time: {recipe.prepTimeMinutes} mins
-                    </CardDescription>
-                  </div>
-                  <Badge variant={recipe.isActive ? "lightgreen" : "secondary"}>
-                    {recipe.isActive ? "Active" : "Inactive"}
-                  </Badge>
+        {filteredRecipes.map((recipe) => (
+          <Card key={recipe.id} className="overflow-hidden">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-lg">{recipe.name}</CardTitle>
+                  <CardDescription>
+                    {recipe.description || `${recipe.servings} serving(s)`}
+                  </CardDescription>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Pricing Info */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Selling Price</p>
-                    <p className="font-semibold text-lg">
-                      {formatCurrency(recipe.sellingPrice)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Total Cost</p>
-                    <p className="font-semibold text-lg">
-                      {cost ? formatCurrency(cost.totalCost) : "—"}
-                    </p>
-                  </div>
+                <Badge variant="lightgreen">
+                  {recipe.ingredients.length} ingredients
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Pricing Info */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Selling Price</p>
+                  <p className="font-semibold text-lg">
+                    {formatCurrency(recipe.sellingPrice)}
+                  </p>
                 </div>
+                <div>
+                  <p className="text-muted-foreground">Servings</p>
+                  <p className="font-semibold text-lg">{recipe.servings}</p>
+                </div>
+              </div>
 
-                {/* Profit Info */}
-                {cost && (
-                  <div className="rounded-lg bg-muted/50 p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Gross Profit
-                      </span>
-                      <span
-                        className={`font-semibold ${
-                          isProfitable ? "text-secondary-foreground" : "text-destructive"
-                        }`}
-                      >
-                        {formatCurrency(cost.grossProfit)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-sm text-muted-foreground">
-                        Profit Margin
-                      </span>
-                      <span
-                        className={`font-semibold ${
-                          isProfitable ? "text-secondary-foreground" : "text-destructive"
-                        }`}
-                      >
-                        {cost.profitMargin.toFixed(2)}%
-                      </span>
-                    </div>
-                  </div>
-                )}
+              {/* Prep Time */}
+              {recipe.preparationTime && (
+                <div className="text-sm text-muted-foreground">
+                  Prep time: {recipe.preparationTime} mins
+                </div>
+              )}
 
-                {/* Cost Breakdown Mini */}
-                {cost && (
-                  <div className="space-y-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Materials</span>
-                      <span>{formatCurrency(cost.materialCost)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Labor</span>
-                      <span>{formatCurrency(cost.laborCost)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Overhead</span>
-                      <span>{formatCurrency(cost.overheadAllocation)}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    asChild
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" size="sm" className="flex-1" asChild>
+                  <Link to={`/dashboard/recipes/edit?id=${recipe.id}`}>
+                    Edit
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  onClick={() => handleDelete(recipe.id)}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <Link to={`/dashboard/recipes/edit?id=${recipe.id}`}>
-                      Edit
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    onClick={() => handleDelete(recipe.id)}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {displayRecipes.length === 0 && (
+      {filteredRecipes.length === 0 && (
         <Card className="p-12 text-center">
           <div className="mx-auto max-w-md">
             <svg

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { APP_CONFIG } from "~/config/app";
+import { useAuthStore } from "~/stores/authStore";
 
 export function meta() {
   return [
@@ -22,6 +23,14 @@ export function meta() {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const {
+    signIn,
+    signInWithGoogle,
+    isAuthenticated,
+    isLoading: authLoading,
+    error: authError,
+    clearError,
+  } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -29,23 +38,44 @@ export default function LoginPage() {
   });
   const [error, setError] = useState("");
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Show auth errors
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+      clearError();
+    }
+  }, [authError, clearError]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // Simulate login - replace with actual auth logic
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    const result = await signIn(formData.email, formData.password);
 
-      // For now, just navigate to dashboard
-      // TODO: Implement actual authentication with Supabase
+    if (result.success) {
       navigate("/dashboard");
-    } catch (err) {
-      setError("Invalid email or password");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(result.message || "Invalid email or password");
     }
+
+    setIsLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError("");
+    const result = await signInWithGoogle();
+    if (!result.success) {
+      setError(result.message || "Google sign in failed");
+    }
+    // Redirect handled by Supabase OAuth
   };
 
   return (
@@ -130,12 +160,14 @@ export default function LoginPage() {
               >
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
-              
+
               {/* Google Sign In */}
               <Button
                 type="button"
                 variant="outline"
                 className="w-full h-11 border-gray-200 hover:bg-gray-50 mb-4"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading || authLoading}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path

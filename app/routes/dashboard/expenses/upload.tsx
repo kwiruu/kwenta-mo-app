@@ -27,9 +27,9 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { useExpenseStore } from "~/stores/expenseStore";
+import { useCreateBulkExpenses } from "~/hooks";
 import { APP_CONFIG } from "~/config/app";
-import type { ExpenseCategory } from "~/types";
+import type { ExpenseCategory } from "~/lib/api";
 
 export function meta() {
   return [
@@ -52,36 +52,34 @@ interface ParsedExpense {
 }
 
 const validCategories: ExpenseCategory[] = [
-  "rent",
-  "utilities",
-  "salaries",
-  "equipment",
-  "maintenance",
-  "marketing",
-  "supplies",
-  "transportation",
-  "permits",
-  "other",
+  "RENT",
+  "UTILITIES",
+  "LABOR",
+  "EQUIPMENT",
+  "MARKETING",
+  "PACKAGING",
+  "TRANSPORTATION",
+  "INGREDIENTS",
+  "OTHER",
 ];
 
 const categoryLabels: Record<ExpenseCategory, string> = {
-  rent: "Rent",
-  utilities: "Utilities",
-  salaries: "Salaries",
-  equipment: "Equipment",
-  maintenance: "Maintenance",
-  marketing: "Marketing",
-  supplies: "Supplies",
-  transportation: "Transportation",
-  permits: "Permits",
-  other: "Other",
+  RENT: "Rent",
+  UTILITIES: "Utilities",
+  LABOR: "Salaries",
+  EQUIPMENT: "Equipment",
+  MARKETING: "Marketing",
+  PACKAGING: "Supplies",
+  TRANSPORTATION: "Transportation",
+  INGREDIENTS: "Ingredients",
+  OTHER: "Other",
 };
 
 const validFrequencies = ["daily", "weekly", "monthly", "quarterly", "yearly"];
 
 export default function ExpensesUploadPage() {
   const navigate = useNavigate();
-  const { addExpense } = useExpenseStore();
+  const createBulkExpensesMutation = useCreateBulkExpenses();
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -197,27 +195,39 @@ export default function ExpensesUploadPage() {
 
     setIsLoading(true);
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Map frontend category to API category
+    const categoryMap: Record<string, ExpenseCategory> = {
+      rent: "RENT",
+      utilities: "UTILITIES",
+      salaries: "LABOR",
+      equipment: "EQUIPMENT",
+      maintenance: "OTHER",
+      marketing: "MARKETING",
+      supplies: "PACKAGING",
+      transportation: "TRANSPORTATION",
+      permits: "OTHER",
+      other: "OTHER",
+    };
 
-      validItems.forEach((item) => {
-        addExpense({
-          name: item.name,
-          category: item.category,
-          amount: item.amount,
-          frequency: item.frequency,
-          notes: item.notes,
-        });
-      });
-
-      setUploadSuccess(true);
-      setTimeout(() => navigate("/dashboard/expenses"), 1500);
-    } catch (error) {
-      console.error("Import error:", error);
-      setUploadError("Failed to import expenses");
-    } finally {
-      setIsLoading(false);
-    }
+    createBulkExpensesMutation.mutate(
+      validItems.map((item) => ({
+        description: item.name,
+        category: categoryMap[item.category] || ("OTHER" as ExpenseCategory),
+        amount: item.amount,
+        notes: item.notes,
+      })),
+      {
+        onSuccess: () => {
+          setUploadSuccess(true);
+          setTimeout(() => navigate("/dashboard/expenses"), 1500);
+        },
+        onError: (error) => {
+          console.error("Import error:", error);
+          setUploadError("Failed to import expenses");
+          setIsLoading(false);
+        },
+      }
+    );
   };
 
   const downloadTemplate = () => {

@@ -18,6 +18,14 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { reportsApi } from "~/lib/api";
+import {
+  useCOGSReport,
+  useIncomeStatement,
+  useProfitSummary,
+  useExpenses,
+  useExpenseStats,
+} from "~/hooks";
 
 type ReportType = "cogs" | "expense" | "income" | "profit";
 
@@ -30,6 +38,25 @@ export default function ReportsIndex() {
     end: new Date().toISOString().split("T")[0],
   });
 
+  // Use TanStack Query hooks for all report data
+  const { data: cogsReport, isLoading: cogsLoading } = useCOGSReport(
+    dateRange.start,
+    dateRange.end
+  );
+  const { data: incomeStatement, isLoading: incomeLoading } =
+    useIncomeStatement(dateRange.start, dateRange.end);
+  const { data: profitSummary, isLoading: profitLoading } = useProfitSummary(
+    dateRange.start,
+    dateRange.end
+  );
+  const { data: expenses = [] } = useExpenses({
+    startDate: dateRange.start,
+    endDate: dateRange.end,
+  });
+  const { data: stats } = useExpenseStats(dateRange.start, dateRange.end);
+
+  const isLoading = cogsLoading || incomeLoading || profitLoading;
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PH", {
       style: "currency",
@@ -37,104 +64,49 @@ export default function ReportsIndex() {
     }).format(amount);
   };
 
-  const handleExportPDF = () => {
-    // TODO: Implement PDF export with backend API
-    alert("PDF export will be implemented with backend integration.");
+  const handleExportCSV = async (
+    type: "sales" | "expenses" | "ingredients"
+  ) => {
+    try {
+      const csv = await reportsApi.exportCSV(
+        type,
+        dateRange.start,
+        dateRange.end
+      );
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${type}-report-${dateRange.start}-to-${dateRange.end}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export CSV:", error);
+      alert("Failed to export CSV. Please try again.");
+    }
   };
 
-  // Mock data for COGS Report
-  const cogsData = [
-    {
-      recipe: "Chicken Adobo",
-      quantitySold: 150,
-      materialCost: 6750,
-      laborCost: 9000,
-      overheadCost: 1012.5,
-      totalCOGS: 16762.5,
-    },
-    {
-      recipe: "Sinigang na Baboy",
-      quantitySold: 80,
-      materialCost: 4400,
-      laborCost: 6400,
-      overheadCost: 660,
-      totalCOGS: 11460,
-    },
-    {
-      recipe: "Kare-Kare",
-      quantitySold: 45,
-      materialCost: 3825,
-      laborCost: 5400,
-      overheadCost: 573.75,
-      totalCOGS: 9798.75,
-    },
-  ];
+  // Derived data from API responses
+  const cogsData = cogsReport?.byRecipe ?? [];
+  const expenseData = stats?.byCategory ?? [];
+  const profitData = profitSummary?.recipes ?? [];
 
-  // Mock data for Expense Report
-  const expenseData = [
-    { category: "Rent", amount: 15000 },
-    { category: "Utilities (Electric)", amount: 3500 },
-    { category: "Utilities (Water)", amount: 800 },
-    { category: "Supplies", amount: 2500 },
-    { category: "Marketing", amount: 1500 },
-    { category: "Maintenance", amount: 1000 },
-    { category: "Miscellaneous", amount: 500 },
-  ];
+  const totalCOGS = cogsReport?.summary.totalCOGS ?? 0;
+  const totalExpenses = stats?.total ?? 0;
+  const totalProfit = profitSummary?.totals.profit ?? 0;
+  const totalRevenue = profitSummary?.totals.revenue ?? 0;
 
-  // Mock data for Income Statement
-  const incomeData = {
-    revenue: {
-      sales: 52500,
-      otherIncome: 500,
-      totalRevenue: 53000,
-    },
-    cogs: {
-      materials: 14975,
-      labor: 20800,
-      overhead: 2246.25,
-      totalCOGS: 38021.25,
-    },
-    grossProfit: 14978.75,
-    operatingExpenses: {
-      rent: 15000,
-      utilities: 4300,
-      supplies: 2500,
-      marketing: 1500,
-      other: 1500,
-      total: 24800,
-    },
-    netIncome: -9821.25,
-  };
-
-  // Mock data for Profit Summary
-  const profitData = [
-    {
-      recipe: "Chicken Adobo",
-      revenue: 18000,
-      cost: 16762.5,
-      profit: 1237.5,
-      margin: 6.88,
-    },
-    {
-      recipe: "Sinigang na Baboy",
-      revenue: 12000,
-      cost: 11460,
-      profit: 540,
-      margin: 4.5,
-    },
-    {
-      recipe: "Kare-Kare",
-      revenue: 9000,
-      cost: 9798.75,
-      profit: -798.75,
-      margin: -8.88,
-    },
-  ];
-
-  const totalCOGS = cogsData.reduce((sum, r) => sum + r.totalCOGS, 0);
-  const totalExpenses = expenseData.reduce((sum, e) => sum + e.amount, 0);
-  const totalProfit = profitData.reduce((sum, r) => sum + r.profit, 0);
-  const totalRevenue = profitData.reduce((sum, r) => sum + r.revenue, 0);
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
+          <p className="mt-4 text-gray-500">Loading reports...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -146,23 +118,14 @@ export default function ReportsIndex() {
             Financial reports and business analytics
           </p>
         </div>
-        <Button variant="green" onClick={handleExportPDF}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="mr-2 h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          Export PDF
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => handleExportCSV("sales")}>
+            Export Sales
+          </Button>
+          <Button variant="outline" onClick={() => handleExportCSV("expenses")}>
+            Export Expenses
+          </Button>
+        </div>
       </div>
 
       {/* Date Range Filter */}
@@ -238,31 +201,25 @@ export default function ReportsIndex() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-2xl font-bold">
-                  {formatCurrency(
-                    cogsData.reduce((sum, r) => sum + r.materialCost, 0)
-                  )}
+                  {formatCurrency(cogsReport?.summary.totalRevenue ?? 0)}
                 </div>
-                <p className="text-xs text-muted-foreground">Material Costs</p>
+                <p className="text-xs text-muted-foreground">Total Revenue</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
                 <div className="text-2xl font-bold">
-                  {formatCurrency(
-                    cogsData.reduce((sum, r) => sum + r.laborCost, 0)
-                  )}
+                  {formatCurrency(cogsReport?.summary.grossProfit ?? 0)}
                 </div>
-                <p className="text-xs text-muted-foreground">Labor Costs</p>
+                <p className="text-xs text-muted-foreground">Gross Profit</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
                 <div className="text-2xl font-bold">
-                  {formatCurrency(
-                    cogsData.reduce((sum, r) => sum + r.overheadCost, 0)
-                  )}
+                  {(cogsReport?.summary.grossProfitMargin ?? 0).toFixed(1)}%
                 </div>
-                <p className="text-xs text-muted-foreground">Overhead Costs</p>
+                <p className="text-xs text-muted-foreground">Gross Margin</p>
               </CardContent>
             </Card>
           </div>
@@ -280,32 +237,28 @@ export default function ReportsIndex() {
                   <TableRow>
                     <TableHead>Recipe</TableHead>
                     <TableHead className="text-center">Qty Sold</TableHead>
-                    <TableHead className="text-right">Materials</TableHead>
-                    <TableHead className="text-right">Labor</TableHead>
-                    <TableHead className="text-right">Overhead</TableHead>
-                    <TableHead className="text-right">Total COGS</TableHead>
+                    <TableHead className="text-right">Revenue</TableHead>
+                    <TableHead className="text-right">COGS</TableHead>
+                    <TableHead className="text-right">Profit</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {cogsData.map((row, idx) => (
                     <TableRow key={idx}>
                       <TableCell className="font-medium">
-                        {row.recipe}
+                        {row.recipeName}
                       </TableCell>
                       <TableCell className="text-center">
-                        {row.quantitySold}
+                        {row.quantity}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(row.materialCost)}
+                        {formatCurrency(row.revenue)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(row.laborCost)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(row.overheadCost)}
+                        {formatCurrency(row.cogs)}
                       </TableCell>
                       <TableCell className="text-right font-semibold">
-                        {formatCurrency(row.totalCOGS)}
+                        {formatCurrency(row.profit)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -397,7 +350,7 @@ export default function ReportsIndex() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-2xl font-bold">
-                  {formatCurrency(incomeData.revenue.totalRevenue)}
+                  {formatCurrency(incomeStatement?.revenue.totalRevenue ?? 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">Total Revenue</p>
               </CardContent>
@@ -405,7 +358,7 @@ export default function ReportsIndex() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-2xl font-bold">
-                  {formatCurrency(incomeData.cogs.totalCOGS)}
+                  {formatCurrency(incomeStatement?.costOfGoodsSold ?? 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Cost of Goods Sold
@@ -415,7 +368,7 @@ export default function ReportsIndex() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-2xl font-bold text-primary">
-                  {formatCurrency(incomeData.grossProfit)}
+                  {formatCurrency(incomeStatement?.grossProfit ?? 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">Gross Profit</p>
               </CardContent>
@@ -423,11 +376,11 @@ export default function ReportsIndex() {
             <Card>
               <CardContent className="pt-6">
                 <div
-                  className={`text-2xl font-bold ${incomeData.netIncome >= 0 ? "text-secondary-foreground" : "text-destructive"}`}
+                  className={`text-2xl font-bold ${(incomeStatement?.netProfit ?? 0) >= 0 ? "text-secondary-foreground" : "text-destructive"}`}
                 >
-                  {formatCurrency(incomeData.netIncome)}
+                  {formatCurrency(incomeStatement?.netProfit ?? 0)}
                 </div>
-                <p className="text-xs text-muted-foreground">Net Income</p>
+                <p className="text-xs text-muted-foreground">Net Profit</p>
               </CardContent>
             </Card>
           </div>
@@ -446,18 +399,16 @@ export default function ReportsIndex() {
                 <div className="space-y-2 pl-4">
                   <div className="flex justify-between">
                     <span>Sales Revenue</span>
-                    <span>{formatCurrency(incomeData.revenue.sales)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Other Income</span>
                     <span>
-                      {formatCurrency(incomeData.revenue.otherIncome)}
+                      {formatCurrency(incomeStatement?.revenue.sales ?? 0)}
                     </span>
                   </div>
                   <div className="flex justify-between font-semibold border-t pt-2">
                     <span>Total Revenue</span>
                     <span>
-                      {formatCurrency(incomeData.revenue.totalRevenue)}
+                      {formatCurrency(
+                        incomeStatement?.revenue.totalRevenue ?? 0
+                      )}
                     </span>
                   </div>
                 </div>
@@ -469,21 +420,11 @@ export default function ReportsIndex() {
                   Cost of Goods Sold
                 </h3>
                 <div className="space-y-2 pl-4">
-                  <div className="flex justify-between">
-                    <span>Direct Materials</span>
-                    <span>{formatCurrency(incomeData.cogs.materials)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Direct Labor</span>
-                    <span>{formatCurrency(incomeData.cogs.labor)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Manufacturing Overhead</span>
-                    <span>{formatCurrency(incomeData.cogs.overhead)}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold border-t pt-2">
+                  <div className="flex justify-between font-semibold">
                     <span>Total COGS</span>
-                    <span>{formatCurrency(incomeData.cogs.totalCOGS)}</span>
+                    <span>
+                      {formatCurrency(incomeStatement?.costOfGoodsSold ?? 0)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -493,7 +434,7 @@ export default function ReportsIndex() {
                 <div className="flex justify-between text-lg font-bold">
                   <span>Gross Profit</span>
                   <span className="text-secondary-foreground">
-                    {formatCurrency(incomeData.grossProfit)}
+                    {formatCurrency(incomeStatement?.grossProfit ?? 0)}
                   </span>
                 </div>
               </div>
@@ -504,59 +445,45 @@ export default function ReportsIndex() {
                   Operating Expenses
                 </h3>
                 <div className="space-y-2 pl-4">
-                  <div className="flex justify-between">
-                    <span>Rent</span>
-                    <span>
-                      {formatCurrency(incomeData.operatingExpenses.rent)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Utilities</span>
-                    <span>
-                      {formatCurrency(incomeData.operatingExpenses.utilities)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Supplies</span>
-                    <span>
-                      {formatCurrency(incomeData.operatingExpenses.supplies)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Marketing</span>
-                    <span>
-                      {formatCurrency(incomeData.operatingExpenses.marketing)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Other Expenses</span>
-                    <span>
-                      {formatCurrency(incomeData.operatingExpenses.other)}
-                    </span>
-                  </div>
+                  {incomeStatement?.operatingExpenses.breakdown.map(
+                    (item, idx) => (
+                      <div key={idx} className="flex justify-between">
+                        <span>{item.category}</span>
+                        <span>{formatCurrency(item.amount)}</span>
+                      </div>
+                    )
+                  )}
                   <div className="flex justify-between font-semibold border-t pt-2">
                     <span>Total Operating Expenses</span>
                     <span>
-                      {formatCurrency(incomeData.operatingExpenses.total)}
+                      {formatCurrency(
+                        incomeStatement?.operatingExpenses.total ?? 0
+                      )}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Net Income */}
+              {/* Net Profit */}
               <div
-                className={`rounded-lg p-4 ${incomeData.netIncome >= 0 ? "bg-secondary/10" : "bg-destructive/10"}`}
+                className={`rounded-lg p-4 ${(incomeStatement?.netProfit ?? 0) >= 0 ? "bg-secondary/10" : "bg-destructive/10"}`}
               >
                 <div className="flex justify-between text-xl font-bold">
-                  <span>Net Income</span>
+                  <span>Net Profit</span>
                   <span
                     className={
-                      incomeData.netIncome >= 0
+                      (incomeStatement?.netProfit ?? 0) >= 0
                         ? "text-secondary-foreground"
                         : "text-destructive"
                     }
                   >
-                    {formatCurrency(incomeData.netIncome)}
+                    {formatCurrency(incomeStatement?.netProfit ?? 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm mt-2 text-muted-foreground">
+                  <span>Net Profit Margin</span>
+                  <span>
+                    {(incomeStatement?.netProfitMargin ?? 0).toFixed(2)}%
                   </span>
                 </div>
               </div>
@@ -631,13 +558,13 @@ export default function ReportsIndex() {
                   {profitData.map((row, idx) => (
                     <TableRow key={idx}>
                       <TableCell className="font-medium">
-                        {row.recipe}
+                        {row.recipeName}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(row.revenue)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(row.cost)}
+                        {formatCurrency(row.costOfGoods)}
                       </TableCell>
                       <TableCell
                         className={`text-right font-semibold ${row.profit >= 0 ? "text-secondary-foreground" : "text-destructive"}`}
@@ -645,16 +572,16 @@ export default function ReportsIndex() {
                         {formatCurrency(row.profit)}
                       </TableCell>
                       <TableCell
-                        className={`text-right ${row.margin >= 0 ? "text-secondary-foreground" : "text-destructive"}`}
+                        className={`text-right ${row.profitMargin >= 0 ? "text-secondary-foreground" : "text-destructive"}`}
                       >
-                        {row.margin.toFixed(2)}%
+                        {row.profitMargin.toFixed(2)}%
                       </TableCell>
                       <TableCell className="text-center">
-                        {row.margin >= 20 ? (
+                        {row.profitMargin >= 20 ? (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary/20 text-secondary-foreground">
                             Healthy
                           </span>
-                        ) : row.margin >= 0 ? (
+                        ) : row.profitMargin >= 0 ? (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                             Low
                           </span>
@@ -682,7 +609,7 @@ export default function ReportsIndex() {
             <CardContent>
               <div className="space-y-4">
                 {profitData
-                  .filter((r) => r.margin < 0)
+                  .filter((r) => r.profitMargin < 0)
                   .map((recipe, idx) => (
                     <div
                       key={idx}
@@ -704,7 +631,7 @@ export default function ReportsIndex() {
                       </svg>
                       <div>
                         <p className="font-medium text-destructive">
-                          {recipe.recipe} is operating at a loss
+                          {recipe.recipeName} is operating at a loss
                         </p>
                         <p className="text-sm text-muted-foreground mt-1">
                           Consider increasing the selling price by at least{" "}
@@ -717,7 +644,7 @@ export default function ReportsIndex() {
                   ))}
 
                 {profitData
-                  .filter((r) => r.margin >= 0 && r.margin < 20)
+                  .filter((r) => r.profitMargin >= 0 && r.profitMargin < 20)
                   .map((recipe, idx) => (
                     <div
                       key={idx}
@@ -739,18 +666,18 @@ export default function ReportsIndex() {
                       </svg>
                       <div>
                         <p className="font-medium text-yellow-800">
-                          {recipe.recipe} has a low profit margin
+                          {recipe.recipeName} has a low profit margin
                         </p>
                         <p className="text-sm text-yellow-700 mt-1">
-                          With only {recipe.margin.toFixed(2)}% margin, consider
-                          optimizing costs or adjusting pricing to achieve a
-                          healthier 20%+ margin.
+                          With only {recipe.profitMargin.toFixed(2)}% margin,
+                          consider optimizing costs or adjusting pricing to
+                          achieve a healthier 20%+ margin.
                         </p>
                       </div>
                     </div>
                   ))}
 
-                {profitData.every((r) => r.margin >= 20) && (
+                {profitData.every((r) => r.profitMargin >= 20) && (
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/10 border border-secondary/20">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
