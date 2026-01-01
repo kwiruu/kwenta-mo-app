@@ -25,6 +25,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  Target,
 } from "lucide-react";
 
 export function meta({}: Route.MetaArgs) {
@@ -360,7 +361,8 @@ export default function Home() {
                 className="text-gray-600 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Features </a>
+                Features{" "}
+              </a>
               <a
                 href="#how-it-works"
                 className="text-gray-600 py-2"
@@ -397,11 +399,7 @@ export default function Home() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-          {/* Background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
-          <div className="absolute top-20 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-72 h-72 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
+        <section className="relative pt-32 pb-20 px-6 overflow-hidden bg-gradient-to-br from-lightgreenz/10 via-white to-greenz/5">
 
           {/* Food Images */}
           <div className="absolute left-0 top-1/2 -translate-y-1/2 hidden lg:block animate-in fade-in slide-in-from-left duration-1000 delay-700">
@@ -420,11 +418,7 @@ export default function Home() {
           </div>
 
           <div className="container mx-auto max-w-5xl text-center relative z-10">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-primary text-sm font-medium mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <Zap className="h-4 w-4" />
-              Built for Filipino Food Entrepreneurs
-            </div>
+            {/* Badge */}<div className="h-20"></div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-gray-900 mb-6 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
               Smart Costing for Your
@@ -465,7 +459,7 @@ export default function Home() {
                 <span>Secure & Private</span>
               </div>
               <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
+                <Target className="h-5 w-5 text-primary" />
                 <span>Free to Start</span>
               </div>
               <div className="flex items-center gap-2">
@@ -477,7 +471,7 @@ export default function Home() {
         </section>
 
         {/* Stats Section */}
-        <section className="py-16 px-6 border-y bg-gray-50/50">
+        <section className="py-16 px-6 border-y">
           <div className="container mx-auto max-w-5xl">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {stats.map((stat, index) => (
@@ -485,7 +479,7 @@ export default function Home() {
                   <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
                     <AnimatedCounter end={stat.value} suffix={stat.suffix} />
                   </div>
-                  <div className="text-sm text-gray-500">{stat.label}</div>
+                  <div className="text-sm text-primary/90 font-medium">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -493,7 +487,7 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-20 px-6 scroll-mt-20">
+        <section id="features" className="py-20 px-6 scroll-mt-20 bg-gradient-to-b from-white via-lightgreenz/5 to-white">
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4">
@@ -535,7 +529,7 @@ export default function Home() {
         {/* How It Works Section */}
         <section
           id="how-it-works"
-          className="py-20 px-6 bg-gray-50/50 scroll-mt-20"
+          className="py-20 px-6 bg-gradient-to-br from-greenz/10 via-midgreenz/10 to-lightgreenz/10 scroll-mt-20"
         >
           <div className="container mx-auto max-w-5xl">
             <div className="text-center mb-16">
@@ -570,7 +564,7 @@ export default function Home() {
         </section>
 
         {/* Testimonials Section */}
-        <section className="py-20 px-6">
+        <section className="py-20 px-6 ">
           <div className="container mx-auto max-w-5xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4">
@@ -583,10 +577,10 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="border border-gray-100 shadow-none">
+              <Card className="border-2 border-greenz/20 shadow-lg hover:shadow-xl hover:border-greenz/40 transition-all bg-white">
                 <CardContent className="pt-6 text-center">
-                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <ChefHat className="h-8 w-8 text-primary" />
+                  <div className="h-16 w-16 rounded-full bg-greenz flex items-center justify-center mx-auto mb-4">
+                    <ChefHat className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">
                     Early Access
@@ -596,10 +590,10 @@ export default function Home() {
                   </p>
                 </CardContent>
               </Card>
-              <Card className="border border-gray-100 shadow-none">
+              <Card className="border-2 border-midgreenz/20 shadow-lg hover:shadow-xl hover:border-midgreenz/40 transition-all bg-white">
                 <CardContent className="pt-6 text-center">
-                  <div className="h-16 w-16 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-4">
-                    <TrendingUp className="h-8 w-8 text-lightgreenz" />
+                  <div className="h-16 w-16 rounded-full bg-midgreenz flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">
                     Shape the Product
@@ -609,10 +603,10 @@ export default function Home() {
                   </p>
                 </CardContent>
               </Card>
-              <Card className="border border-gray-100 shadow-none">
+              <Card className="border-2 border-lightgreenz/20 shadow-lg hover:shadow-xl hover:border-lightgreenz/40 transition-all bg-white">
                 <CardContent className="pt-6 text-center">
-                  <div className="h-16 w-16 rounded-full bg-greenz/10 flex items-center justify-center mx-auto mb-4">
-                    <Star className="h-8 w-8 text-greenz" />
+                  <div className="h-16 w-16 rounded-full bg-lightgreenz flex items-center justify-center mx-auto mb-4">
+                    <Star className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">
                     Exclusive Benefits
@@ -627,7 +621,7 @@ export default function Home() {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-20 px-6 bg-gray-50/50 scroll-mt-20">
+        {/* <section id="pricing" className="py-20 px-6 bg-gray-50/50 scroll-mt-20">
           <div className="container mx-auto max-w-5xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4">
@@ -694,10 +688,10 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* FAQ Section */}
-        <section id="faq" className="py-20 px-6 scroll-mt-20">
+        <section id="faq" className="py-20 px-6 scroll-mt-20 bg-gradient-to-b from-white to-greenz/5">
           <div className="container mx-auto max-w-2xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4">
@@ -721,12 +715,12 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 px-6">
+        <section className="py-20 px-6 bg-gradient-to-br from-greenz/5 to-lightgreenz/10">
           <div className="container mx-auto max-w-4xl">
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary/80 p-12 text-center">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-greenz via-midgreenz to-lightgreenz p-12 text-center shadow-2xl">
               {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/20 rounded-full blur-3xl" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-lightgreenz/30 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-greenz/30 rounded-full blur-3xl" />
 
               <div className="relative">
                 <h2 className="text-3xl md:text-4xl font-semibold text-white mb-4">
@@ -739,7 +733,7 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
                     size="lg"
-                    className="bg-white text-primary hover:bg-white/90 text-base px-8 h-12"
+                    className="bg-white text-greenz hover:bg-white/90 text-base px-8 h-12 font-semibold shadow-lg"
                     asChild
                   >
                     <Link to="/register">

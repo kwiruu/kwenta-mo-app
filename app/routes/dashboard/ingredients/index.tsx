@@ -201,7 +201,7 @@ export default function IngredientsListPage() {
             <Table>
               <TableHeader>
                 <TableRow className="border-gray-100 hover:bg-transparent">
-                  <TableHead className="text-gray-500 font-medium">
+                  <TableHead className="text-gray-500 font-medium pl-4">
                     Name
                   </TableHead>
                   <TableHead className="text-gray-500 font-medium">
@@ -219,7 +219,7 @@ export default function IngredientsListPage() {
                   <TableHead className="text-gray-500 font-medium">
                     Supplier
                   </TableHead>
-                  <TableHead className="text-right text-gray-500 font-medium">
+                  <TableHead className="text-right text-gray-500 font-medium pr-4">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -227,7 +227,7 @@ export default function IngredientsListPage() {
               <TableBody>
                 {filteredIngredients.map((ingredient) => (
                   <TableRow key={ingredient.id} className="border-gray-100">
-                    <TableCell className="font-medium text-gray-900">
+                    <TableCell className="font-medium text-gray-900 pl-4">
                       {ingredient.name}
                     </TableCell>
                     <TableCell className="text-gray-500">
@@ -243,7 +243,7 @@ export default function IngredientsListPage() {
                     <TableCell className="text-gray-500">
                       {ingredient.supplier || "—"}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right ">
                       <div className="flex justify-end gap-1">
                         <Button
                           variant="ghost"
