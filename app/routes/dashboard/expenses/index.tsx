@@ -276,7 +276,7 @@ export default function ExpensesListPage() {
             <Table>
               <TableHeader>
                 <TableRow className="border-gray-100 hover:bg-transparent">
-                  <TableHead className="text-gray-500 font-medium">
+                  <TableHead className="text-gray-500 font-medium pl-4">
                     Name
                   </TableHead>
                   <TableHead className="text-gray-500 font-medium">
@@ -291,7 +291,7 @@ export default function ExpensesListPage() {
                   <TableHead className="text-right text-gray-500 font-medium">
                     Monthly Cost
                   </TableHead>
-                  <TableHead className="text-right text-gray-500 font-medium">
+                  <TableHead className="text-right text-gray-500 font-medium pr-4">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -317,7 +317,7 @@ export default function ExpensesListPage() {
 
                   return (
                     <TableRow key={expense.id} className="border-gray-100">
-                      <TableCell className="font-medium text-gray-900">
+                      <TableCell className="font-medium text-gray-900 pl-4">
                         {expense.name}
                       </TableCell>
                       <TableCell>

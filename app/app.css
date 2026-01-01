@@ -5,6 +5,7 @@
   --color-greenz-foreground: oklch(1 0 0);
   --color-lightgreenz: oklch(0.728 0.188 163.221);
   --color-lightgreenz-foreground: oklch(1 0 0);
+  --color-midgreenz: oklch(0.585 0.1133 172);
   --color-background: oklch(1 0 0);
   --color-foreground: oklch(0.228 0.013 255.508);
   --color-card: oklch(1 0 0);

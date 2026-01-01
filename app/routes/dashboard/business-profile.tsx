@@ -116,8 +116,8 @@ export default function BusinessProfilePage() {
       </div>
 
       {success && (
-        <div className="p-4 bg-secondary/10 border border-secondary/20 rounded-lg">
-          <p className="text-secondary font-medium">
+        <div className="p-4 bg-lightgreenz/10 border border-secondary/20 rounded-lg">
+          <p className="text-greenz font-medium">
             ✓ Business profile saved successfully!
           </p>
         </div>

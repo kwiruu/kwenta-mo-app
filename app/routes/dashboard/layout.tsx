@@ -151,7 +151,7 @@ export default function DashboardLayout() {
           </Button>
           <div className="flex-1" />
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">Welcome back!</span>
+            <span className="text-sm text-gray-500">Mary's Food Stall</span>
           </div>
         </header>
 

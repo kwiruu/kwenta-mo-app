@@ -146,7 +146,7 @@ export default function ReportsIndex() {
             Financial reports and business analytics
           </p>
         </div>
-        <Button onClick={handleExportPDF}>
+        <Button variant="green" onClick={handleExportPDF}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="mr-2 h-4 w-4"
