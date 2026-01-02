@@ -1,11 +1,14 @@
 import { getAccessToken } from "./supabase";
 
-// Determine API URL based on environment variable
-const useProduction = import.meta.env.VITE_USE_PRODUCTION_API === "true";
+// Determine API URL - use production API if VITE_USE_PRODUCTION_API is true OR if we're not on localhost
+const isLocalhost = typeof window !== "undefined" && window.location.hostname === "localhost";
+const useProduction = import.meta.env.VITE_USE_PRODUCTION_API === "true" || !isLocalhost;
 const API_URL = useProduction
   ? import.meta.env.VITE_API_URL_PRODUCTION ||
     "https://kwenta-mo-api.onrender.com/api"
   : import.meta.env.VITE_API_URL_LOCAL || "http://localhost:3000/api";
+
+console.log("API URL:", API_URL, "isLocalhost:", isLocalhost, "useProduction:", useProduction);
 
 const REQUEST_TIMEOUT = 15000; // 15 seconds timeout
 
