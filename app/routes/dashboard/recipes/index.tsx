@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   Card,
   CardContent,
@@ -39,9 +40,11 @@ export default function RecipesIndex() {
   if (isLoading && recipes.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
-          <p className="mt-4 text-gray-500">Loading recipes...</p>
+        <div className="text-center pt-20">
+          <div className="h-64 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
+          <p className="-mt-12 text-gray-500">Loading recipes...</p>
         </div>
       </div>
     );
@@ -158,7 +161,7 @@ export default function RecipesIndex() {
                 <div>
                   <p className="text-muted-foreground">Selling Price</p>
                   <p className="font-semibold text-lg">
-                    {formatCurrency(recipe.sellingPrice)}
+                    {formatCurrency(Number(recipe.sellingPrice))}
                   </p>
                 </div>
                 <div>

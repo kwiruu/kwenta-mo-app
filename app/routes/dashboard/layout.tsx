@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   LayoutDashboard,
   Package,
@@ -90,7 +91,9 @@ export default function DashboardLayout() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
+          <div className="w-32 h-32 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
           <p className="mt-4 text-gray-500">Loading...</p>
         </div>
       </div>

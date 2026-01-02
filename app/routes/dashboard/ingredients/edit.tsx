@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { ArrowLeft, Package, Save, Trash2 } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -84,7 +85,9 @@ export default function EditIngredientPage() {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
+          <div className="w-32 h-32 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
           <p className="mt-4 text-gray-500">Loading ingredient...</p>
         </div>
       </div>
@@ -262,27 +265,24 @@ export default function EditIngredientPage() {
                 <Label htmlFor="unit" className="text-gray-700">
                   Unit of Measurement *
                 </Label>
-                <Select
+                <select
+                  id="unit"
                   value={formData.unit}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, unit: value as IngredientUnit })
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      unit: e.target.value as IngredientUnit,
+                    })
                   }
+                  className={`flex h-10 w-full rounded-md border ${errors.unit ? "border-red-300" : "border-gray-200"} bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}
                 >
-                  <SelectTrigger
-                    className={
-                      errors.unit ? "border-red-300" : "border-gray-200"
-                    }
-                  >
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ingredientUnits.map((unit) => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {unit.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="">Select unit</option>
+                  {ingredientUnits.map((unit) => (
+                    <option key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </option>
+                  ))}
+                </select>
                 {errors.unit && (
                   <p className="text-sm text-red-500">{errors.unit}</p>
                 )}

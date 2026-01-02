@@ -447,7 +447,9 @@ export default function NewRecipe() {
                     <span>Gross Profit</span>
                     <span
                       className={
-                        grossProfit >= 0 ? "text-secondary" : "text-destructive"
+                        grossProfit >= 0
+                          ? "text-lightgreenz"
+                          : "text-destructive"
                       }
                     >
                       {formatCurrency(grossProfit)}
@@ -458,7 +460,7 @@ export default function NewRecipe() {
                     <span
                       className={
                         profitMargin >= 0
-                          ? "text-secondary"
+                          ? "text-lightgreenz"
                           : "text-destructive"
                       }
                     >
@@ -473,7 +475,7 @@ export default function NewRecipe() {
                     Margin Status
                   </div>
                   {profitMargin >= 20 ? (
-                    <div className="flex items-center gap-2 text-secondary">
+                    <div className="flex items-center gap-2 text-greenz">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"

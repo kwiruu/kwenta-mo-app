@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { useState, useEffect } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   Card,
   CardContent,
@@ -189,7 +190,12 @@ export default function EditRecipe() {
   if (isLoadingRecipe) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="text-center">
+          <div className="w-32 h-32 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
+          <p className="mt-4 text-gray-500">Loading recipe...</p>
+        </div>
       </div>
     );
   }

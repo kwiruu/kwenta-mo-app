@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Plus, Search, Upload, Edit, Trash2, Receipt } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -69,7 +70,7 @@ export default function ExpensesListPage() {
   );
 
   const totalExpenses =
-    stats?.total ?? expenses.reduce((sum, e) => sum + e.amount, 0);
+    stats?.total ?? expenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PH", {
@@ -98,16 +99,18 @@ export default function ExpensesListPage() {
 
   // Get largest category from stats
   const largestCategory = stats?.byCategory?.length
-    ? stats.byCategory.sort((a, b) => b.amount - a.amount)[0]
+    ? stats.byCategory.sort((a, b) => Number(b.amount) - Number(a.amount))[0]
     : null;
 
   // Show loading state
   if (isLoading && expenses.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
-          <p className="mt-4 text-gray-500">Loading expenses...</p>
+        <div className="text-center pt-20">
+          <div className="h-64 mx-auto">
+            <DotLottieReact src="/assets/file_search.lottie" loop autoplay />
+          </div>
+          <p className="-mt-12 text-gray-500">Loading expenses...</p>
         </div>
       </div>
     );
@@ -189,7 +192,7 @@ export default function ExpensesListPage() {
           <CardContent>
             <p className="text-xs text-gray-400">
               {largestCategory
-                ? formatCurrency(largestCategory.amount)
+                ? formatCurrency(Number(largestCategory.amount))
                 : "No expenses yet"}
             </p>
           </CardContent>
@@ -275,7 +278,7 @@ export default function ExpensesListPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right text-gray-900">
-                      {formatCurrency(expense.amount)}
+                      {formatCurrency(Number(expense.amount))}
                     </TableCell>
                     <TableCell className="text-gray-500">
                       {formatDate(expense.expenseDate)}

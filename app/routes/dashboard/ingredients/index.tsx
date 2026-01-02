@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   Plus,
   Search,
@@ -100,9 +101,11 @@ export default function IngredientsListPage() {
   if (isLoading && ingredients.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
-          <p className="mt-4 text-gray-500">Loading ingredients...</p>
+        <div className="text-center pt-20">
+          <div className="h-64 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
+          <p className="-mt-12 text-gray-500">Loading ingredients...</p>
         </div>
       </div>
     );

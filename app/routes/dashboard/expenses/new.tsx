@@ -76,11 +76,11 @@ const expenseCategories: {
 ];
 
 const frequencyOptions = [
-  { value: "daily", label: "Daily", multiplier: "×30 = monthly" },
-  { value: "weekly", label: "Weekly", multiplier: "×4 = monthly" },
-  { value: "monthly", label: "Monthly", multiplier: "" },
-  { value: "quarterly", label: "Quarterly", multiplier: "÷3 = monthly" },
-  { value: "yearly", label: "Yearly", multiplier: "÷12 = monthly" },
+  { value: "DAILY", label: "Daily", multiplier: "×30 = monthly" },
+  { value: "WEEKLY", label: "Weekly", multiplier: "×4 = monthly" },
+  { value: "MONTHLY", label: "Monthly", multiplier: "" },
+  { value: "QUARTERLY", label: "Quarterly", multiplier: "÷3 = monthly" },
+  { value: "YEARLY", label: "Yearly", multiplier: "÷12 = monthly" },
 ];
 
 export default function NewExpensePage() {
@@ -93,6 +93,7 @@ export default function NewExpensePage() {
     category: "" as ExpenseCategory,
     amount: "",
     frequency: "MONTHLY",
+    expenseDate: new Date().toISOString().split("T")[0],
     notes: "",
   });
 
@@ -126,6 +127,13 @@ export default function NewExpensePage() {
         category: formData.category,
         description: formData.description.trim(),
         amount: parseFloat(formData.amount),
+        frequency: formData.frequency as
+          | "DAILY"
+          | "WEEKLY"
+          | "MONTHLY"
+          | "QUARTERLY"
+          | "YEARLY",
+        expenseDate: formData.expenseDate,
         notes: formData.notes.trim() || undefined,
       },
       {
@@ -139,15 +147,15 @@ export default function NewExpensePage() {
   const calculateMonthly = () => {
     const amount = parseFloat(formData.amount) || 0;
     switch (formData.frequency) {
-      case "daily":
+      case "DAILY":
         return amount * 30;
-      case "weekly":
+      case "WEEKLY":
         return amount * 4;
-      case "monthly":
+      case "MONTHLY":
         return amount;
-      case "quarterly":
+      case "QUARTERLY":
         return amount / 3;
-      case "yearly":
+      case "YEARLY":
         return amount / 12;
       default:
         return amount;
@@ -254,8 +262,8 @@ export default function NewExpensePage() {
               )}
             </div>
 
-            {/* Amount and Frequency Row */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* Amount, Frequency and Date Row */}
+            <div className="grid gap-4 sm:grid-cols-3">
               {/* Amount */}
               <div className="space-y-2">
                 <Label htmlFor="amount" className="text-gray-700">
@@ -309,6 +317,22 @@ export default function NewExpensePage() {
                 {errors.frequency && (
                   <p className="text-sm text-red-500">{errors.frequency}</p>
                 )}
+              </div>
+
+              {/* Expense Date */}
+              <div className="space-y-2">
+                <Label htmlFor="expenseDate" className="text-gray-700">
+                  Date *
+                </Label>
+                <Input
+                  id="expenseDate"
+                  type="date"
+                  value={formData.expenseDate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, expenseDate: e.target.value })
+                  }
+                  className="border-gray-200"
+                />
               </div>
             </div>
 

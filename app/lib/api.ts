@@ -343,11 +343,19 @@ export type ExpenseCategory =
   | "PACKAGING"
   | "OTHER";
 
+export type ExpenseFrequency =
+  | "DAILY"
+  | "WEEKLY"
+  | "MONTHLY"
+  | "QUARTERLY"
+  | "YEARLY";
+
 export interface Expense {
   id: string;
   category: ExpenseCategory;
   description: string;
   amount: number;
+  frequency: ExpenseFrequency;
   expenseDate: string;
   notes?: string;
 }
@@ -356,6 +364,7 @@ export interface CreateExpenseDto {
   category: ExpenseCategory;
   description: string;
   amount: number;
+  frequency?: ExpenseFrequency;
   expenseDate?: string;
   notes?: string;
 }
@@ -509,5 +518,31 @@ export const reportsApi = {
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
     return api.get(`/reports/export/csv?${params.toString()}`);
+  },
+  exportExcel: async (
+    type: "sales" | "expenses",
+    startDate?: string,
+    endDate?: string
+  ): Promise<Blob> => {
+    const params = new URLSearchParams();
+    params.append("type", type);
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
+    const token = await getAccessToken();
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}/reports/export/excel?${params.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to export Excel file");
+    }
+
+    return response.blob();
   },
 };

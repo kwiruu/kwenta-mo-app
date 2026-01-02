@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   Card,
   CardContent,
@@ -86,6 +87,25 @@ export default function ReportsIndex() {
     }
   };
 
+  const handleExportExcel = async (type: "sales" | "expenses") => {
+    try {
+      const blob = await reportsApi.exportExcel(
+        type,
+        dateRange.start,
+        dateRange.end
+      );
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${type}-report-${dateRange.start}-to-${dateRange.end}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export Excel:", error);
+      alert("Failed to export Excel. Please try again.");
+    }
+  };
+
   // Derived data from API responses
   const cogsData = cogsReport?.byRecipe ?? [];
   const expenseData = stats?.byCategory ?? [];
@@ -100,9 +120,11 @@ export default function ReportsIndex() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
-          <p className="mt-4 text-gray-500">Loading reports...</p>
+        <div className="text-center pt-20">
+          <div className="h-64 mx-auto">
+            <DotLottieReact src="/assets/file_search.lottie" loop autoplay />
+          </div>
+          <p className="-mt-12 text-gray-500">Loading reports...</p>
         </div>
       </div>
     );
@@ -119,10 +141,13 @@ export default function ReportsIndex() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => handleExportCSV("sales")}>
+          <Button variant="outline" onClick={() => handleExportExcel("sales")}>
             Export Sales
           </Button>
-          <Button variant="outline" onClick={() => handleExportCSV("expenses")}>
+          <Button
+            variant="outline"
+            onClick={() => handleExportExcel("expenses")}
+          >
             Export Expenses
           </Button>
         </div>
@@ -318,26 +343,46 @@ export default function ReportsIndex() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {expenseData.map((expense, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell className="font-medium">
-                        {expense.category}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(expense.amount)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {((expense.amount / totalExpenses) * 100).toFixed(1)}%
+                  {expenseData.length > 0 ? (
+                    <>
+                      {expenseData.map((expense, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell className="font-medium">
+                            {expense.category}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(Number(expense.amount))}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {(
+                              (Number(expense.amount) / totalExpenses) *
+                              100
+                            ).toFixed(1)}
+                            %
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/50">
+                        <TableCell className="font-bold">Total</TableCell>
+                        <TableCell className="text-right font-bold">
+                          {formatCurrency(totalExpenses)}
+                        </TableCell>
+                        <TableCell className="text-right font-bold">
+                          100%
+                        </TableCell>
+                      </TableRow>
+                    </>
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={3}
+                        className="text-center py-8 text-muted-foreground"
+                      >
+                        No expense data available for this period. Add expenses
+                        to see the breakdown.
                       </TableCell>
                     </TableRow>
-                  ))}
-                  <TableRow className="bg-muted/50">
-                    <TableCell className="font-bold">Total</TableCell>
-                    <TableCell className="text-right font-bold">
-                      {formatCurrency(totalExpenses)}
-                    </TableCell>
-                    <TableCell className="text-right font-bold">100%</TableCell>
-                  </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -678,10 +723,10 @@ export default function ReportsIndex() {
                   ))}
 
                 {profitData.every((r) => r.profitMargin >= 20) && (
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/10 border border-secondary/20">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-lightgreenz/10 border border-lightgreenz/20">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-secondary mt-0.5"
+                      className="h-5 w-5 text-lightgreenz mt-0.5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

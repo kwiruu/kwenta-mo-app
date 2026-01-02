@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { ArrowLeft, Receipt, Save, Trash2 } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -43,11 +44,11 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
 ];
 
 const frequencyOptions = [
-  { value: "daily", label: "Daily" },
-  { value: "weekly", label: "Weekly" },
-  { value: "monthly", label: "Monthly" },
-  { value: "quarterly", label: "Quarterly" },
-  { value: "yearly", label: "Yearly" },
+  { value: "DAILY", label: "Daily" },
+  { value: "WEEKLY", label: "Weekly" },
+  { value: "MONTHLY", label: "Monthly" },
+  { value: "QUARTERLY", label: "Quarterly" },
+  { value: "YEARLY", label: "Yearly" },
 ];
 
 export default function EditExpensePage() {
@@ -63,6 +64,7 @@ export default function EditExpensePage() {
     description: "",
     category: "" as ExpenseCategory,
     amount: "",
+    expenseDate: new Date().toISOString().split("T")[0],
     frequency: "MONTHLY",
     notes: "",
   });
@@ -74,7 +76,8 @@ export default function EditExpensePage() {
         description: expense.description,
         category: expense.category,
         amount: expense.amount.toString(),
-        frequency: "MONTHLY",
+        frequency: expense.frequency || "MONTHLY",
+        expenseDate: new Date(expense.expenseDate).toISOString().split("T")[0],
         notes: expense.notes || "",
       });
     }
@@ -85,7 +88,9 @@ export default function EditExpensePage() {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
+          <div className="w-32 h-32 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
           <p className="mt-4 text-gray-500">Loading expense...</p>
         </div>
       </div>
@@ -148,6 +153,13 @@ export default function EditExpensePage() {
           category: formData.category,
           description: formData.description.trim(),
           amount: parseFloat(formData.amount),
+          frequency: formData.frequency as
+            | "DAILY"
+            | "WEEKLY"
+            | "MONTHLY"
+            | "QUARTERLY"
+            | "YEARLY",
+          expenseDate: formData.expenseDate,
           notes: formData.notes.trim() || undefined,
         },
       },
@@ -169,15 +181,15 @@ export default function EditExpensePage() {
   const calculateMonthly = () => {
     const amount = parseFloat(formData.amount) || 0;
     switch (formData.frequency) {
-      case "daily":
+      case "DAILY":
         return amount * 30;
-      case "weekly":
+      case "WEEKLY":
         return amount * 4;
-      case "monthly":
+      case "MONTHLY":
         return amount;
-      case "quarterly":
+      case "QUARTERLY":
         return amount / 3;
-      case "yearly":
+      case "YEARLY":
         return amount / 12;
       default:
         return amount;
@@ -310,8 +322,8 @@ export default function EditExpensePage() {
               )}
             </div>
 
-            {/* Amount and Frequency Row */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* Amount, Frequency and Date Row */}
+            <div className="grid gap-4 sm:grid-cols-3">
               {/* Amount */}
               <div className="space-y-2">
                 <Label htmlFor="amount" className="text-gray-700">
@@ -365,6 +377,22 @@ export default function EditExpensePage() {
                 {errors.frequency && (
                   <p className="text-sm text-red-500">{errors.frequency}</p>
                 )}
+              </div>
+
+              {/* Expense Date */}
+              <div className="space-y-2">
+                <Label htmlFor="expenseDate" className="text-gray-700">
+                  Date *
+                </Label>
+                <Input
+                  id="expenseDate"
+                  type="date"
+                  value={formData.expenseDate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, expenseDate: e.target.value })
+                  }
+                  className="border-gray-200"
+                />
               </div>
             </div>
 

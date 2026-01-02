@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { useState } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   TrendingUp,
   TrendingDown,
@@ -113,9 +114,11 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-greenz mx-auto"></div>
-          <p className="mt-4 text-gray-500">Loading dashboard...</p>
+        <div className="text-center pt-20">
+          <div className="h-64 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
+          <p className="-mt-12 text-gray-500">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -217,7 +220,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-gray-900">
-              {kpiData.profitMargin}%
+              {kpiData.profitMargin.toFixed(2)}%
             </div>
             <p className="text-xs mt-2">
               {kpiData.profitMargin > 20 ? (
