@@ -1,6 +1,12 @@
 import { getAccessToken } from "./supabase";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+// Determine API URL based on environment variable
+const useProduction = import.meta.env.VITE_USE_PRODUCTION_API === "true";
+const API_URL = useProduction
+  ? import.meta.env.VITE_API_URL_PRODUCTION ||
+    "https://kwenta-mo-api.onrender.com/api"
+  : import.meta.env.VITE_API_URL_LOCAL || "http://localhost:3000/api";
+
 const REQUEST_TIMEOUT = 15000; // 15 seconds timeout
 
 interface RequestOptions extends RequestInit {
