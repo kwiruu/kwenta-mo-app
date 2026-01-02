@@ -1,14 +1,37 @@
 import { getAccessToken } from "./supabase";
 
-// Determine API URL - use production API if VITE_USE_PRODUCTION_API is true OR if we're not on localhost
-const isLocalhost = typeof window !== "undefined" && window.location.hostname === "localhost";
-const useProduction = import.meta.env.VITE_USE_PRODUCTION_API === "true" || !isLocalhost;
-const API_URL = useProduction
-  ? import.meta.env.VITE_API_URL_PRODUCTION ||
-    "https://kwenta-mo-api.onrender.com/api"
-  : import.meta.env.VITE_API_URL_LOCAL || "http://localhost:3000/api";
+// API URLs
+const LOCAL_API = "http://localhost:3000/api";
+const PRODUCTION_API = "https://kwenta-mo-api.onrender.com/api";
 
-console.log("API URL:", API_URL, "isLocalhost:", isLocalhost, "useProduction:", useProduction);
+// Function to get API URL at runtime
+function getApiUrl(): string {
+  // Check environment variable first
+  const envUseProduction = import.meta.env.VITE_USE_PRODUCTION_API;
+  
+  if (envUseProduction === "true") {
+    return import.meta.env.VITE_API_URL_PRODUCTION || PRODUCTION_API;
+  }
+  
+  if (envUseProduction === "false") {
+    return import.meta.env.VITE_API_URL_LOCAL || LOCAL_API;
+  }
+  
+  // Auto-detect based on hostname (runtime check)
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return import.meta.env.VITE_API_URL_LOCAL || LOCAL_API;
+    }
+  }
+  
+  // Default to production
+  return import.meta.env.VITE_API_URL_PRODUCTION || PRODUCTION_API;
+}
+
+const API_URL = getApiUrl();
+
+console.log("API URL:", API_URL);
 
 const REQUEST_TIMEOUT = 15000; // 15 seconds timeout
 
