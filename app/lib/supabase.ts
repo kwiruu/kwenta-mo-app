@@ -33,12 +33,13 @@ supabase.auth.onAuthStateChange((event, session) => {
 
 // Auth helper functions
 export const signUp = async (email: string, password: string, name: string) => {
+  const redirectUrl = import.meta.env.VITE_APP_URL || window.location.origin;
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { name },
-      emailRedirectTo: `${window.location.origin}/login`,
+      emailRedirectTo: `${redirectUrl}/login`,
     },
   });
   return { data, error };
@@ -53,10 +54,11 @@ export const signIn = async (email: string, password: string) => {
 };
 
 export const signInWithGoogle = async () => {
+  const redirectUrl = import.meta.env.VITE_APP_URL || window.location.origin;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/dashboard`,
+      redirectTo: `${redirectUrl}/dashboard`,
     },
   });
   return { data, error };
