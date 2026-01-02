@@ -8,15 +8,15 @@ const PRODUCTION_API = "https://kwenta-mo-api.onrender.com/api";
 function getApiUrl(): string {
   // Check environment variable first
   const envUseProduction = import.meta.env.VITE_USE_PRODUCTION_API;
-  
+
   if (envUseProduction === "true") {
     return import.meta.env.VITE_API_URL_PRODUCTION || PRODUCTION_API;
   }
-  
+
   if (envUseProduction === "false") {
     return import.meta.env.VITE_API_URL_LOCAL || LOCAL_API;
   }
-  
+
   // Auto-detect based on hostname (runtime check)
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
@@ -24,7 +24,7 @@ function getApiUrl(): string {
       return import.meta.env.VITE_API_URL_LOCAL || LOCAL_API;
     }
   }
-  
+
   // Default to production
   return import.meta.env.VITE_API_URL_PRODUCTION || PRODUCTION_API;
 }
