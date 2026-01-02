@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { ArrowLeft, Package, Save, Trash2 } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -18,7 +19,11 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { useIngredientStore } from "~/stores/ingredientStore";
+import {
+  useIngredient,
+  useUpdateIngredient,
+  useDeleteIngredient,
+} from "~/hooks";
 import { APP_CONFIG } from "~/config/app";
 import type { IngredientUnit } from "~/types";
 
@@ -44,13 +49,13 @@ const ingredientUnits: { value: IngredientUnit; label: string }[] = [
 export default function EditIngredientPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { ingredients, updateIngredient, deleteIngredient } =
-    useIngredientStore();
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: ingredient, isLoading: isLoadingIngredient } = useIngredient(
+    id!
+  );
+  const updateIngredientMutation = useUpdateIngredient();
+  const deleteIngredientMutation = useDeleteIngredient();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const ingredient = ingredients.find((i) => i.id === id);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -61,19 +66,33 @@ export default function EditIngredientPage() {
     supplier: "",
   });
 
-  // Load ingredient data when component mounts
+  // Load ingredient data when it's fetched
   useEffect(() => {
     if (ingredient) {
       setFormData({
         name: ingredient.name,
-        unit: ingredient.unit,
-        pricePerUnit: ingredient.pricePerUnit.toString(),
+        unit: ingredient.unit as IngredientUnit,
+        pricePerUnit: ingredient.costPerUnit.toString(),
         currentStock: ingredient.currentStock.toString(),
         reorderLevel: ingredient.reorderLevel.toString(),
         supplier: ingredient.supplier || "",
       });
     }
   }, [ingredient]);
+
+  // Show loading state
+  if (isLoadingIngredient) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="w-32 h-32 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
+          <p className="mt-4 text-gray-500">Loading ingredient...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Redirect if ingredient not found
   if (!ingredient) {
@@ -128,37 +147,30 @@ export default function EditIngredientPage() {
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      updateIngredient(id!, {
-        name: formData.name.trim(),
-        unit: formData.unit,
-        pricePerUnit: parseFloat(formData.pricePerUnit),
-        currentStock: parseFloat(formData.currentStock),
-        reorderLevel: parseFloat(formData.reorderLevel),
-        supplier: formData.supplier.trim() || undefined,
-      });
-
-      navigate("/dashboard/ingredients");
-    } catch (error) {
-      console.error("Error updating ingredient:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    updateIngredientMutation.mutate(
+      {
+        id: id!,
+        data: {
+          name: formData.name.trim(),
+          unit: formData.unit,
+          costPerUnit: parseFloat(formData.pricePerUnit),
+          currentStock: parseFloat(formData.currentStock),
+          reorderLevel: parseFloat(formData.reorderLevel),
+          supplier: formData.supplier.trim() || undefined,
+        },
+      },
+      {
+        onSuccess: () => navigate("/dashboard/ingredients"),
+        onError: (error) => console.error("Error updating ingredient:", error),
+      }
+    );
   };
 
   const handleDelete = async () => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      deleteIngredient(id!);
-      navigate("/dashboard/ingredients");
-    } catch (error) {
-      console.error("Error deleting ingredient:", error);
-    }
+    deleteIngredientMutation.mutate(id!, {
+      onSuccess: () => navigate("/dashboard/ingredients"),
+      onError: (error) => console.error("Error deleting ingredient:", error),
+    });
   };
 
   return (
@@ -253,27 +265,24 @@ export default function EditIngredientPage() {
                 <Label htmlFor="unit" className="text-gray-700">
                   Unit of Measurement *
                 </Label>
-                <Select
+                <select
+                  id="unit"
                   value={formData.unit}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, unit: value as IngredientUnit })
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      unit: e.target.value as IngredientUnit,
+                    })
                   }
+                  className={`flex h-10 w-full rounded-md border ${errors.unit ? "border-red-300" : "border-gray-200"} bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}
                 >
-                  <SelectTrigger
-                    className={
-                      errors.unit ? "border-red-300" : "border-gray-200"
-                    }
-                  >
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ingredientUnits.map((unit) => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {unit.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="">Select unit</option>
+                  {ingredientUnits.map((unit) => (
+                    <option key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </option>
+                  ))}
+                </select>
                 {errors.unit && (
                   <p className="text-sm text-red-500">{errors.unit}</p>
                 )}
@@ -385,10 +394,10 @@ export default function EditIngredientPage() {
           </Button>
           <Button
             type="submit"
-            disabled={isLoading}
+            disabled={updateIngredientMutation.isPending}
             className="bg-primary hover:bg-primary/90"
           >
-            {isLoading ? (
+            {updateIngredientMutation.isPending ? (
               "Saving..."
             ) : (
               <>

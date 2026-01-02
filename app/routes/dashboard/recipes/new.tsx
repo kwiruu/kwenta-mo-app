@@ -10,8 +10,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useRecipeStore } from "~/stores/recipeStore";
-import { useIngredientStore } from "~/stores/ingredientStore";
+import { useCreateRecipe, useIngredients } from "~/hooks";
 
 interface RecipeIngredientInput {
   ingredientId: string;
@@ -24,8 +23,8 @@ interface RecipeIngredientInput {
 
 export default function NewRecipe() {
   const navigate = useNavigate();
-  const { addRecipe } = useRecipeStore();
-  const { ingredients } = useIngredientStore();
+  const createRecipeMutation = useCreateRecipe();
+  const { data: ingredients = [] } = useIngredients();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -41,20 +40,13 @@ export default function NewRecipe() {
   const [selectedIngredientId, setSelectedIngredientId] = useState("");
   const [ingredientQuantity, setIngredientQuantity] = useState(0);
 
-  // Mock ingredients for UI display
-  const mockIngredients = [
-    { id: "1", name: "Chicken", pricePerUnit: 180, unit: "kg" },
-    { id: "2", name: "Soy Sauce", pricePerUnit: 35, unit: "bottle" },
-    { id: "3", name: "Vinegar", pricePerUnit: 25, unit: "bottle" },
-    { id: "4", name: "Garlic", pricePerUnit: 20, unit: "head" },
-    { id: "5", name: "Bay Leaves", pricePerUnit: 15, unit: "pack" },
-    { id: "6", name: "Peppercorns", pricePerUnit: 30, unit: "pack" },
-    { id: "7", name: "Cooking Oil", pricePerUnit: 85, unit: "liter" },
-    { id: "8", name: "Rice", pricePerUnit: 55, unit: "kg" },
-  ];
-
-  const displayIngredients =
-    ingredients.length > 0 ? ingredients : mockIngredients;
+  // Use ingredients from API, map to display format
+  const displayIngredients = ingredients.map((i) => ({
+    id: i.id,
+    name: i.name,
+    pricePerUnit: i.costPerUnit,
+    unit: i.unit,
+  }));
 
   const addIngredient = () => {
     if (!selectedIngredientId || ingredientQuantity <= 0) return;
@@ -141,30 +133,21 @@ export default function NewRecipe() {
       return;
     }
 
-    // TODO: Replace with API call
-    await addRecipe({
-      ...formData,
-      businessId: "1", // Will come from auth context
-      ingredients: recipeIngredients.map((ri) => ({
-        id: crypto.randomUUID(),
-        recipeId: "",
-        ingredientId: ri.ingredientId,
-        quantityRequired: ri.quantityRequired,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })),
-      costBreakdown: {
-        materialCost,
-        laborCost,
-        overheadAllocation,
-        totalCost,
+    createRecipeMutation.mutate(
+      {
+        name: formData.name,
         sellingPrice: formData.sellingPrice,
-        grossProfit,
-        profitMargin,
+        preparationTime: formData.prepTimeMinutes,
+        ingredients: recipeIngredients.map((ri) => ({
+          ingredientId: ri.ingredientId,
+          quantity: ri.quantityRequired,
+        })),
       },
-    });
-
-    navigate("/dashboard/recipes");
+      {
+        onSuccess: () => navigate("/dashboard/recipes"),
+        onError: (error) => console.error("Error adding recipe:", error),
+      }
+    );
   };
 
   return (
@@ -464,7 +447,9 @@ export default function NewRecipe() {
                     <span>Gross Profit</span>
                     <span
                       className={
-                        grossProfit >= 0 ? "text-secondary" : "text-destructive"
+                        grossProfit >= 0
+                          ? "text-lightgreenz"
+                          : "text-destructive"
                       }
                     >
                       {formatCurrency(grossProfit)}
@@ -475,7 +460,7 @@ export default function NewRecipe() {
                     <span
                       className={
                         profitMargin >= 0
-                          ? "text-secondary"
+                          ? "text-lightgreenz"
                           : "text-destructive"
                       }
                     >
@@ -490,7 +475,7 @@ export default function NewRecipe() {
                     Margin Status
                   </div>
                   {profitMargin >= 20 ? (
-                    <div className="flex items-center gap-2 text-secondary">
+                    <div className="flex items-center gap-2 text-greenz">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"

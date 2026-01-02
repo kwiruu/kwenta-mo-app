@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { ArrowLeft, Receipt, Save, Trash2 } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -19,9 +20,9 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { useExpenseStore } from "~/stores/expenseStore";
+import { useExpense, useUpdateExpense, useDeleteExpense } from "~/hooks";
 import { APP_CONFIG } from "~/config/app";
-import type { ExpenseCategory } from "~/types";
+import type { ExpenseCategory } from "~/lib/api";
 
 export function meta() {
   return [
@@ -31,41 +32,40 @@ export function meta() {
 }
 
 const expenseCategories: { value: ExpenseCategory; label: string }[] = [
-  { value: "rent", label: "Rent" },
-  { value: "utilities", label: "Utilities" },
-  { value: "salaries", label: "Salaries" },
-  { value: "equipment", label: "Equipment" },
-  { value: "maintenance", label: "Maintenance" },
-  { value: "marketing", label: "Marketing" },
-  { value: "supplies", label: "Supplies" },
-  { value: "transportation", label: "Transportation" },
-  { value: "permits", label: "Permits & Licenses" },
-  { value: "other", label: "Other" },
+  { value: "RENT", label: "Rent" },
+  { value: "UTILITIES", label: "Utilities" },
+  { value: "LABOR", label: "Salaries" },
+  { value: "EQUIPMENT", label: "Equipment" },
+  { value: "MARKETING", label: "Marketing" },
+  { value: "PACKAGING", label: "Supplies" },
+  { value: "TRANSPORTATION", label: "Transportation" },
+  { value: "INGREDIENTS", label: "Ingredients" },
+  { value: "OTHER", label: "Other" },
 ];
 
 const frequencyOptions = [
-  { value: "daily", label: "Daily" },
-  { value: "weekly", label: "Weekly" },
-  { value: "monthly", label: "Monthly" },
-  { value: "quarterly", label: "Quarterly" },
-  { value: "yearly", label: "Yearly" },
+  { value: "DAILY", label: "Daily" },
+  { value: "WEEKLY", label: "Weekly" },
+  { value: "MONTHLY", label: "Monthly" },
+  { value: "QUARTERLY", label: "Quarterly" },
+  { value: "YEARLY", label: "Yearly" },
 ];
 
 export default function EditExpensePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { expenses, updateExpense, deleteExpense } = useExpenseStore();
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: expense, isLoading: isLoadingExpense } = useExpense(id!);
+  const updateExpenseMutation = useUpdateExpense();
+  const deleteExpenseMutation = useDeleteExpense();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const expense = expenses.find((e) => e.id === id);
-
   const [formData, setFormData] = useState({
-    name: "",
+    description: "",
     category: "" as ExpenseCategory,
     amount: "",
-    frequency: "monthly",
+    expenseDate: new Date().toISOString().split("T")[0],
+    frequency: "MONTHLY",
     notes: "",
   });
 
@@ -73,14 +73,29 @@ export default function EditExpensePage() {
   useEffect(() => {
     if (expense) {
       setFormData({
-        name: expense.name,
+        description: expense.description,
         category: expense.category,
         amount: expense.amount.toString(),
-        frequency: expense.frequency,
+        frequency: expense.frequency || "MONTHLY",
+        expenseDate: new Date(expense.expenseDate).toISOString().split("T")[0],
         notes: expense.notes || "",
       });
     }
   }, [expense]);
+
+  // Show loading state
+  if (isLoadingExpense) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="w-32 h-32 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
+          <p className="mt-4 text-gray-500">Loading expense...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Redirect if expense not found
   if (!expense) {
@@ -109,8 +124,8 @@ export default function EditExpensePage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Expense name is required";
+    if (!formData.description.trim()) {
+      newErrors.description = "Expense description is required";
     }
     if (!formData.category) {
       newErrors.category = "Please select a category";
@@ -131,55 +146,50 @@ export default function EditExpensePage() {
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      updateExpense(id!, {
-        name: formData.name.trim(),
-        category: formData.category,
-        amount: parseFloat(formData.amount),
-        frequency: formData.frequency as
-          | "daily"
-          | "weekly"
-          | "monthly"
-          | "quarterly"
-          | "yearly",
-        notes: formData.notes.trim() || undefined,
-      });
-
-      navigate("/dashboard/expenses");
-    } catch (error) {
-      console.error("Error updating expense:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    updateExpenseMutation.mutate(
+      {
+        id: id!,
+        data: {
+          category: formData.category,
+          description: formData.description.trim(),
+          amount: parseFloat(formData.amount),
+          frequency: formData.frequency as
+            | "DAILY"
+            | "WEEKLY"
+            | "MONTHLY"
+            | "QUARTERLY"
+            | "YEARLY",
+          expenseDate: formData.expenseDate,
+          notes: formData.notes.trim() || undefined,
+        },
+      },
+      {
+        onSuccess: () => navigate("/dashboard/expenses"),
+        onError: (error) => console.error("Error updating expense:", error),
+      }
+    );
   };
 
   const handleDelete = async () => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      deleteExpense(id!);
-      navigate("/dashboard/expenses");
-    } catch (error) {
-      console.error("Error deleting expense:", error);
-    }
+    deleteExpenseMutation.mutate(id!, {
+      onSuccess: () => navigate("/dashboard/expenses"),
+      onError: (error) => console.error("Error deleting expense:", error),
+    });
   };
 
   // Calculate monthly equivalent
   const calculateMonthly = () => {
     const amount = parseFloat(formData.amount) || 0;
     switch (formData.frequency) {
-      case "daily":
+      case "DAILY":
         return amount * 30;
-      case "weekly":
+      case "WEEKLY":
         return amount * 4;
-      case "monthly":
+      case "MONTHLY":
         return amount;
-      case "quarterly":
+      case "QUARTERLY":
         return amount / 3;
-      case "yearly":
+      case "YEARLY":
         return amount / 12;
       default:
         return amount;
@@ -212,7 +222,7 @@ export default function EditExpensePage() {
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Edit Expense</h1>
           <p className="text-gray-500 mt-1">
-            Update the details for {expense.name}
+            Update the details for {expense.description}
           </p>
         </div>
         {!showDeleteConfirm ? (
@@ -257,22 +267,24 @@ export default function EditExpensePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Expense Name */}
+            {/* Expense Description */}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-700">
-                Expense Name *
+              <Label htmlFor="description" className="text-gray-700">
+                Expense Description *
               </Label>
               <Input
-                id="name"
+                id="description"
                 placeholder="e.g., Store Rent, Electricity Bill"
-                value={formData.name}
+                value={formData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({ ...formData, description: e.target.value })
                 }
-                className={errors.name ? "border-red-300" : "border-gray-200"}
+                className={
+                  errors.description ? "border-red-300" : "border-gray-200"
+                }
               />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name}</p>
+              {errors.description && (
+                <p className="text-sm text-red-500">{errors.description}</p>
               )}
             </div>
 
@@ -310,8 +322,8 @@ export default function EditExpensePage() {
               )}
             </div>
 
-            {/* Amount and Frequency Row */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* Amount, Frequency and Date Row */}
+            <div className="grid gap-4 sm:grid-cols-3">
               {/* Amount */}
               <div className="space-y-2">
                 <Label htmlFor="amount" className="text-gray-700">
@@ -366,6 +378,22 @@ export default function EditExpensePage() {
                   <p className="text-sm text-red-500">{errors.frequency}</p>
                 )}
               </div>
+
+              {/* Expense Date */}
+              <div className="space-y-2">
+                <Label htmlFor="expenseDate" className="text-gray-700">
+                  Date *
+                </Label>
+                <Input
+                  id="expenseDate"
+                  type="date"
+                  value={formData.expenseDate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, expenseDate: e.target.value })
+                  }
+                  className="border-gray-200"
+                />
+              </div>
             </div>
 
             {/* Monthly Equivalent Preview */}
@@ -409,10 +437,10 @@ export default function EditExpensePage() {
           </Button>
           <Button
             type="submit"
-            disabled={isLoading}
+            disabled={updateExpenseMutation.isPending}
             className="bg-primary hover:bg-primary/90"
           >
-            {isLoading ? (
+            {updateExpenseMutation.isPending ? (
               "Saving..."
             ) : (
               <>

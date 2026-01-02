@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   LayoutDashboard,
   Package,
@@ -12,11 +13,16 @@ import {
   ChefHat,
   ShoppingCart,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { cn } from "~/lib/utils";
 import { APP_CONFIG } from "~/config/app";
+import { clearTokenCache } from "~/lib/supabase";
+import { useAuthStore } from "~/stores/authStore";
+import { useBusinessStore } from "~/stores/businessStore";
+import { useUserProfile } from "~/hooks/useBusiness";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -39,12 +45,65 @@ const secondaryNavigation = [
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, isAuthenticated, isLoading, signOut } = useAuthStore();
+  const { currentBusiness, setCurrentBusiness } = useBusinessStore();
 
-  const handleLogout = () => {
-    // TODO: Implement logout logic
+  // Fetch profile from API
+  const { data: profile } = useUserProfile();
+
+  // Sync API data with store for header display
+  useEffect(() => {
+    if (profile?.business && !currentBusiness) {
+      setCurrentBusiness({
+        id: profile.business.id,
+        name: profile.business.businessName,
+        type: profile.business.businessType,
+        location: profile.business.address,
+        employeeCount: profile.business.employeeCount,
+        avgMonthlySales: profile.business.avgMonthlySales,
+        rawMaterialSource: profile.business.rawMaterialSource,
+        createdAt: new Date(profile.business.createdAt),
+        updatedAt: new Date(profile.business.updatedAt),
+      });
+    }
+  }, [profile, currentBusiness, setCurrentBusiness]);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
+  const handleLogout = async () => {
+    // Clear all cached data
+    clearTokenCache();
+    queryClient.clear();
+    setCurrentBusiness(null as any);
+    await signOut();
     navigate("/login");
   };
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-32 h-32 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
+          <p className="mt-4 text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -151,7 +210,14 @@ export default function DashboardLayout() {
           </Button>
           <div className="flex-1" />
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">Mary's Food Stall</span>
+            <div className="text-right">
+              <span className="text-sm font-medium text-gray-900">
+                {currentBusiness?.name || user?.email || "My Business"}
+              </span>
+              {currentBusiness?.name && (
+                <p className="text-xs text-gray-500">{user?.email}</p>
+              )}
+            </div>
           </div>
         </header>
 

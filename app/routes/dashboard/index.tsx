@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { useState } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   TrendingUp,
   TrendingDown,
@@ -18,11 +19,15 @@ import {
 } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { APP_CONFIG } from "~/config/app";
 import {
-  LineChart,
-  Line,
+  useIngredients,
+  useSales,
+  useDashboardSummary,
+  useChartData,
+} from "~/hooks";
+import {
   AreaChart,
   Area,
   XAxis,
@@ -39,73 +44,6 @@ export function meta() {
   ];
 }
 
-// Mock data - will be replaced with real data from stores/API
-const kpiData = {
-  totalRevenue: 125000,
-  totalExpenses: 78500,
-  grossProfit: 46500,
-  profitMargin: 37.2,
-  revenueChange: 12.5,
-  expenseChange: -5.3,
-};
-
-// Chart data
-const dailyData = [
-  { name: "Mon", revenue: 4200, expenses: 2400 },
-  { name: "Tue", revenue: 5100, expenses: 2800 },
-  { name: "Wed", revenue: 4800, expenses: 2600 },
-  { name: "Thu", revenue: 6200, expenses: 3200 },
-  { name: "Fri", revenue: 7800, expenses: 4100 },
-  { name: "Sat", revenue: 9500, expenses: 4800 },
-  { name: "Sun", revenue: 8200, expenses: 4300 },
-];
-
-const weeklyData = [
-  { name: "Week 1", revenue: 28500, expenses: 18200 },
-  { name: "Week 2", revenue: 32100, expenses: 19800 },
-  { name: "Week 3", revenue: 29800, expenses: 18900 },
-  { name: "Week 4", revenue: 34600, expenses: 21600 },
-];
-
-const monthlyData = [
-  { name: "Jan", revenue: 95000, expenses: 62000 },
-  { name: "Feb", revenue: 102000, expenses: 68000 },
-  { name: "Mar", revenue: 118000, expenses: 74000 },
-  { name: "Apr", revenue: 108000, expenses: 71000 },
-  { name: "May", revenue: 115000, expenses: 76000 },
-  { name: "Jun", revenue: 125000, expenses: 78500 },
-];
-
-const lowStockItems = [
-  { id: "1", name: "Chicken", currentStock: 5, reorderLevel: 10, unit: "kg" },
-  { id: "2", name: "Cooking Oil", currentStock: 2, reorderLevel: 5, unit: "L" },
-  { id: "3", name: "Onion", currentStock: 3, reorderLevel: 8, unit: "kg" },
-];
-
-const recentSales = [
-  {
-    id: "1",
-    product: "Chicken Adobo",
-    quantity: 15,
-    total: 6750,
-    date: "Today",
-  },
-  {
-    id: "2",
-    product: "Sinigang na Baboy",
-    quantity: 12,
-    total: 5400,
-    date: "Today",
-  },
-  {
-    id: "3",
-    product: "Fried Chicken",
-    quantity: 20,
-    total: 4000,
-    date: "Yesterday",
-  },
-];
-
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-PH", {
     style: "currency",
@@ -118,18 +56,73 @@ export default function DashboardPage() {
     "daily" | "weekly" | "monthly"
   >("daily");
 
-  const getChartData = () => {
+  // Use TanStack Query hooks - data is cached and shared across components
+  const { data: ingredients = [], isLoading: ingredientsLoading } =
+    useIngredients();
+  const { data: sales = [], isLoading: salesLoading } = useSales();
+  const { data: dashboardData, isLoading: dashboardLoading } =
+    useDashboardSummary();
+
+  // Fetch all chart periods on load so switching is instant
+  const { data: dailyChart, isLoading: dailyLoading } = useChartData("daily");
+  const { data: weeklyChart, isLoading: weeklyLoading } =
+    useChartData("weekly");
+  const { data: monthlyChart, isLoading: monthlyLoading } =
+    useChartData("monthly");
+
+  const isLoading =
+    ingredientsLoading || salesLoading || dashboardLoading || dailyLoading;
+
+  // Get chart data based on selected period (no refetch needed)
+  const chartData = (() => {
     switch (selectedPeriod) {
       case "daily":
-        return dailyData;
+        return dailyChart?.data ?? [];
       case "weekly":
-        return weeklyData;
+        return weeklyChart?.data ?? [];
       case "monthly":
-        return monthlyData;
+        return monthlyChart?.data ?? [];
       default:
-        return dailyData;
+        return [];
     }
+  })();
+
+  // Get low stock items from ingredients
+  const lowStockItems = ingredients
+    .filter((i) => i.currentStock <= i.reorderLevel)
+    .slice(0, 5);
+
+  // Get recent sales
+  const recentSales = sales.slice(0, 5);
+
+  // KPI data from API or defaults
+  const kpiData = {
+    totalRevenue: dashboardData?.currentMonth.revenue ?? 0,
+    totalExpenses: dashboardData?.currentMonth.expenses ?? 0,
+    grossProfit: dashboardData?.currentMonth.grossProfit ?? 0,
+    netProfit: dashboardData?.currentMonth.netProfit ?? 0,
+    profitMargin: dashboardData?.currentMonth.revenue
+      ? (dashboardData.currentMonth.grossProfit /
+          dashboardData.currentMonth.revenue) *
+        100
+      : 0,
+    revenueChange: dashboardData?.changes.revenue ?? 0,
+    expenseChange: dashboardData?.changes.expenses ?? 0,
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center pt-20">
+          <div className="h-64 mx-auto">
+            <DotLottieReact src="/assets/loading.lottie" loop autoplay />
+          </div>
+          <p className="-mt-12 text-gray-500">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -227,7 +220,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-gray-900">
-              {kpiData.profitMargin}%
+              {kpiData.profitMargin.toFixed(2)}%
             </div>
             <p className="text-xs mt-2">
               {kpiData.profitMargin > 20 ? (
@@ -277,7 +270,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={getChartData()}>
+                <AreaChart data={chartData}>
                   <defs>
                     <linearGradient
                       id="colorRevenue"
@@ -333,8 +326,10 @@ export default function DashboardPage() {
                       border: "1px solid #e5e7eb",
                       borderRadius: "8px",
                     }}
-                    formatter={(value: number) => [
-                      `₱${value.toLocaleString()}`,
+                    formatter={(value: number | string | undefined) => [
+                      value !== undefined
+                        ? `₱${Number(value).toLocaleString()}`
+                        : "",
                       "",
                     ]}
                     labelStyle={{ color: "#374151", fontWeight: 600 }}
@@ -506,14 +501,15 @@ export default function DashboardPage() {
                   >
                     <div>
                       <p className="font-medium text-gray-900">
-                        {sale.product}
+                        {sale.recipe?.name ?? "Unknown Recipe"}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {sale.quantity} units • {sale.date}
+                        {sale.quantity} units •{" "}
+                        {new Date(sale.saleDate).toLocaleDateString()}
                       </p>
                     </div>
                     <span className="font-semibold text-lightgreenz">
-                      {formatCurrency(sale.total)}
+                      {formatCurrency(sale.totalPrice)}
                     </span>
                   </div>
                 ))}

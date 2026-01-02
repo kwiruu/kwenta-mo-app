@@ -1,69 +1,112 @@
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
-import type { Business } from "~/types";
+import { devtools } from "zustand/middleware";
+import { usersApi, ApiError } from "~/lib/api";
+
+interface Business {
+  id: string;
+  name: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  laborCostPercentage: number;
+  overheadPercentage: number;
+  defaultProfitMargin: number;
+}
+
+interface UserProfile {
+  id: string;
+  supabaseUserId: string;
+  email: string;
+  name?: string;
+  business?: Business;
+}
+
+interface CurrentBusiness {
+  id: string;
+  name: string;
+  type?: string;
+  location?: string;
+  employeeCount?: number;
+  avgMonthlySales?: number;
+  rawMaterialSource?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 interface BusinessState {
-  currentBusiness: Business | null;
-  businesses: Business[];
+  profile: UserProfile | null;
+  business: Business | null;
+  currentBusiness: CurrentBusiness | null;
   isLoading: boolean;
   error: string | null;
 
   // Actions
-  setCurrentBusiness: (business: Business | null) => void;
-  setBusinesses: (businesses: Business[]) => void;
-  addBusiness: (business: Business) => void;
-  updateBusiness: (id: string, updates: Partial<Business>) => void;
-  deleteBusiness: (id: string) => void;
-  setLoading: (isLoading: boolean) => void;
+  fetchProfile: () => Promise<UserProfile | null>;
+  updateBusiness: (data: {
+    name?: string;
+    description?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    laborCostPercentage?: number;
+    overheadPercentage?: number;
+    defaultProfitMargin?: number;
+  }) => Promise<Business | null>;
+  setCurrentBusiness: (business: CurrentBusiness) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
 }
 
 export const useBusinessStore = create<BusinessState>()(
   devtools(
-    persist(
-      (set) => ({
-        currentBusiness: null,
-        businesses: [],
-        isLoading: false,
-        error: null,
+    (set, get) => ({
+      profile: null,
+      business: null,
+      currentBusiness: null,
+      isLoading: false,
+      error: null,
 
-        setCurrentBusiness: (business) => set({ currentBusiness: business }),
+      fetchProfile: async () => {
+        try {
+          set({ isLoading: true, error: null });
+          const profile = (await usersApi.getProfile()) as UserProfile;
+          set({
+            profile,
+            business: profile.business || null,
+            isLoading: false,
+          });
+          return profile;
+        } catch (error) {
+          const message =
+            error instanceof ApiError
+              ? error.message
+              : "Failed to fetch profile";
+          set({ error: message, isLoading: false });
+          return null;
+        }
+      },
 
-        setBusinesses: (businesses) => set({ businesses }),
+      updateBusiness: async (data) => {
+        try {
+          set({ isLoading: true, error: null });
+          const business = (await usersApi.updateBusiness(data)) as Business;
+          set({ business, isLoading: false });
+          return business;
+        } catch (error) {
+          const message =
+            error instanceof ApiError
+              ? error.message
+              : "Failed to update business";
+          set({ error: message, isLoading: false });
+          return null;
+        }
+      },
 
-        addBusiness: (business) =>
-          set((state) => ({
-            businesses: [...state.businesses, business],
-          })),
-
-        updateBusiness: (id, updates) =>
-          set((state) => ({
-            businesses: state.businesses.map((b) =>
-              b.id === id ? { ...b, ...updates } : b
-            ),
-            currentBusiness:
-              state.currentBusiness?.id === id
-                ? { ...state.currentBusiness, ...updates }
-                : state.currentBusiness,
-          })),
-
-        deleteBusiness: (id) =>
-          set((state) => ({
-            businesses: state.businesses.filter((b) => b.id !== id),
-            currentBusiness:
-              state.currentBusiness?.id === id ? null : state.currentBusiness,
-          })),
-
-        setLoading: (isLoading) => set({ isLoading }),
-
-        setError: (error) => set({ error }),
-
-        clearError: () => set({ error: null }),
-      }),
-      {
-        name: "kwentamo-business-storage",
-      }
-    )
+      setCurrentBusiness: (business) => set({ currentBusiness: business }),
+      setError: (error) => set({ error }),
+      clearError: () => set({ error: null }),
+    }),
+    { name: "BusinessStore" }
   )
 );

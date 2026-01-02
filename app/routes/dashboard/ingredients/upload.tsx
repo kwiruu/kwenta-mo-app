@@ -27,7 +27,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { useIngredientStore } from "~/stores/ingredientStore";
+import { useCreateBulkIngredients } from "~/hooks";
 import { APP_CONFIG } from "~/config/app";
 import type { IngredientUnit } from "~/types";
 
@@ -66,7 +66,7 @@ const validUnits: IngredientUnit[] = [
 
 export default function IngredientsUploadPage() {
   const navigate = useNavigate();
-  const { addIngredient } = useIngredientStore();
+  const createBulkIngredientsMutation = useCreateBulkIngredients();
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -185,29 +185,27 @@ export default function IngredientsUploadPage() {
 
     setIsLoading(true);
 
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      validItems.forEach((item) => {
-        addIngredient({
-          name: item.name,
-          unit: item.unit,
-          pricePerUnit: item.pricePerUnit,
-          currentStock: item.currentStock,
-          reorderLevel: item.reorderLevel,
-          supplier: item.supplier,
-        });
-      });
-
-      setUploadSuccess(true);
-      setTimeout(() => navigate("/dashboard/ingredients"), 1500);
-    } catch (error) {
-      console.error("Import error:", error);
-      setUploadError("Failed to import ingredients");
-    } finally {
-      setIsLoading(false);
-    }
+    createBulkIngredientsMutation.mutate(
+      validItems.map((item) => ({
+        name: item.name,
+        unit: item.unit,
+        costPerUnit: item.pricePerUnit,
+        currentStock: item.currentStock,
+        reorderLevel: item.reorderLevel,
+        supplier: item.supplier,
+      })),
+      {
+        onSuccess: () => {
+          setUploadSuccess(true);
+          setTimeout(() => navigate("/dashboard/ingredients"), 1500);
+        },
+        onError: (error) => {
+          console.error("Import error:", error);
+          setUploadError("Failed to import ingredients");
+          setIsLoading(false);
+        },
+      }
+    );
   };
 
   const downloadTemplate = () => {
