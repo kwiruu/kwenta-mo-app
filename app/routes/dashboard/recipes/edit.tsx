@@ -11,7 +11,12 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useRecipe, useUpdateRecipe, useIngredients } from "~/hooks";
+import {
+  useRecipe,
+  useUpdateRecipe,
+  usePurchases,
+  useActivePeriod,
+} from "~/hooks";
 
 interface RecipeIngredientInput {
   ingredientId: string;
@@ -31,7 +36,11 @@ export default function EditRecipe() {
     recipeId || ""
   );
   const updateRecipeMutation = useUpdateRecipe();
-  const { data: ingredients = [] } = useIngredients();
+  const { data: activePeriod } = useActivePeriod();
+  const { data: purchases = [] } = usePurchases({
+    periodId: activePeriod?.id,
+    status: "PURCHASED",
+  });
 
   const [formData, setFormData] = useState({
     name: "",
@@ -47,13 +56,38 @@ export default function EditRecipe() {
   const [selectedIngredientId, setSelectedIngredientId] = useState("");
   const [ingredientQuantity, setIngredientQuantity] = useState(0);
 
-  // Use ingredients from API, map to display format
-  const displayIngredients = ingredients.map((i) => ({
-    id: i.id,
-    name: i.name,
-    pricePerUnit: i.costPerUnit,
-    unit: i.unit,
-  }));
+  // Group purchased items by item name and calculate average cost
+  const displayIngredients = purchases.reduce(
+    (acc, purchase) => {
+      const itemName = purchase.name || "Unknown";
+      const existing = acc.find((item) => item.name === itemName);
+      if (existing) {
+        // Average the costs if multiple purchases of same item
+        const totalQty = existing.totalQuantity + Number(purchase.quantity);
+        existing.pricePerUnit =
+          (existing.pricePerUnit * existing.totalQuantity +
+            Number(purchase.unitCost) * Number(purchase.quantity)) /
+          totalQty;
+        existing.totalQuantity = totalQty;
+      } else {
+        acc.push({
+          id: purchase.id,
+          name: itemName,
+          pricePerUnit: Number(purchase.unitCost),
+          unit: purchase.unit || "unit",
+          totalQuantity: Number(purchase.quantity),
+        });
+      }
+      return acc;
+    },
+    [] as Array<{
+      id: string;
+      name: string;
+      pricePerUnit: number;
+      unit: string;
+      totalQuantity: number;
+    }>
+  );
 
   // Load recipe data when it's fetched
   useEffect(() => {
@@ -65,16 +99,18 @@ export default function EditRecipe() {
         laborRatePerHour: 80,
         isActive: true,
       });
-      // Load existing ingredients
-      if (recipe.ingredients) {
+      // Load existing items
+      const items = recipe.items || recipe.ingredients || [];
+      if (items.length > 0) {
         setRecipeIngredients(
-          recipe.ingredients.map((ri) => ({
-            ingredientId: ri.ingredientId,
-            ingredientName: ri.ingredient?.name || "Unknown",
-            quantityRequired: ri.quantity,
-            unit: ri.ingredient?.unit || "",
-            unitCost: ri.ingredient?.costPerUnit || 0,
-            totalCost: ri.quantity * (ri.ingredient?.costPerUnit || 0),
+          items.map((ri) => ({
+            ingredientId: ri.purchaseId,
+            ingredientName: ri.purchase?.name || "Unknown",
+            quantityRequired: Number(ri.quantity),
+            unit: ri.purchase?.unit || ri.unit || "",
+            unitCost: Number(ri.purchase?.unitCost) || 0,
+            totalCost:
+              Number(ri.quantity) * (Number(ri.purchase?.unitCost) || 0),
           }))
         );
       }

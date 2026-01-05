@@ -118,22 +118,24 @@ export default function RecipesIndex() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">
-              {filteredRecipes.filter((r) => r.ingredients.length > 0).length}
+              {
+                filteredRecipes.filter(
+                  (r) => (r.items || r.ingredients || []).length > 0
+                ).length
+              }
             </div>
-            <p className="text-xs text-muted-foreground">With Ingredients</p>
+            <p className="text-xs text-muted-foreground">With Items</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">
               {filteredRecipes.reduce(
-                (sum, r) => sum + r.ingredients.length,
+                (sum, r) => sum + (r.items || r.ingredients || []).length,
                 0
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Total Ingredients Used
-            </p>
+            <p className="text-xs text-muted-foreground">Total Items Used</p>
           </CardContent>
         </Card>
       </div>
@@ -151,7 +153,7 @@ export default function RecipesIndex() {
                   </CardDescription>
                 </div>
                 <Badge variant="lightgreen">
-                  {recipe.ingredients.length} ingredients
+                  {(recipe.items || recipe.ingredients || []).length} items
                 </Badge>
               </div>
             </CardHeader>

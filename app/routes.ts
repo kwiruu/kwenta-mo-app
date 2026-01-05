@@ -40,6 +40,13 @@ export default [
     route("dashboard/sales", "routes/dashboard/sales/index.tsx"),
     route("dashboard/sales/new", "routes/dashboard/sales/new.tsx"),
     route("dashboard/sales/edit/:id", "routes/dashboard/sales/edit.tsx"),
+    // Purchases
+    route("dashboard/purchases", "routes/dashboard/purchases/index.tsx"),
+    route("dashboard/purchases/new", "routes/dashboard/purchases/new.tsx"),
+    // Inventory
+    route("dashboard/inventory", "routes/dashboard/inventory/index.tsx"),
+    route("dashboard/inventory/new", "routes/dashboard/inventory/new.tsx"),
+    route("dashboard/inventory/:id", "routes/dashboard/inventory/period.tsx"),
     // Reports
     route("dashboard/reports", "routes/dashboard/reports/index.tsx"),
   ]),

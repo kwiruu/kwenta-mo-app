@@ -26,6 +26,7 @@ import {
   useSales,
   useDashboardSummary,
   useChartData,
+  useLowStockAlerts,
 } from "~/hooks";
 import {
   AreaChart,
@@ -62,6 +63,8 @@ export default function DashboardPage() {
   const { data: sales = [], isLoading: salesLoading } = useSales();
   const { data: dashboardData, isLoading: dashboardLoading } =
     useDashboardSummary();
+  const { data: lowStockItems = [], isLoading: lowStockLoading } =
+    useLowStockAlerts();
 
   // Fetch all chart periods on load so switching is instant
   const { data: dailyChart, isLoading: dailyLoading } = useChartData("daily");
@@ -71,7 +74,11 @@ export default function DashboardPage() {
     useChartData("monthly");
 
   const isLoading =
-    ingredientsLoading || salesLoading || dashboardLoading || dailyLoading;
+    ingredientsLoading ||
+    salesLoading ||
+    dashboardLoading ||
+    dailyLoading ||
+    lowStockLoading;
 
   // Get chart data based on selected period (no refetch needed)
   const chartData = (() => {
@@ -86,11 +93,6 @@ export default function DashboardPage() {
         return [];
     }
   })();
-
-  // Get low stock items from ingredients
-  const lowStockItems = ingredients
-    .filter((i) => i.currentStock <= i.reorderLevel)
-    .slice(0, 5);
 
   // Get recent sales
   const recentSales = sales.slice(0, 5);

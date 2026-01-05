@@ -10,7 +10,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useCreateRecipe, useIngredients } from "~/hooks";
+import { useCreateRecipe, usePurchases, useActivePeriod } from "~/hooks";
 
 interface RecipeIngredientInput {
   ingredientId: string;
@@ -24,7 +24,11 @@ interface RecipeIngredientInput {
 export default function NewRecipe() {
   const navigate = useNavigate();
   const createRecipeMutation = useCreateRecipe();
-  const { data: ingredients = [] } = useIngredients();
+  const { data: activePeriod } = useActivePeriod();
+  const { data: purchases = [] } = usePurchases({
+    periodId: activePeriod?.id,
+    status: "PURCHASED",
+  });
 
   const [formData, setFormData] = useState({
     name: "",
@@ -40,13 +44,38 @@ export default function NewRecipe() {
   const [selectedIngredientId, setSelectedIngredientId] = useState("");
   const [ingredientQuantity, setIngredientQuantity] = useState(0);
 
-  // Use ingredients from API, map to display format
-  const displayIngredients = ingredients.map((i) => ({
-    id: i.id,
-    name: i.name,
-    pricePerUnit: i.costPerUnit,
-    unit: i.unit,
-  }));
+  // Group purchased items by item name and calculate average cost
+  const displayIngredients = purchases.reduce(
+    (acc, purchase) => {
+      const itemName = purchase.name || "Unknown";
+      const existing = acc.find((item) => item.name === itemName);
+      if (existing) {
+        // Average the costs if multiple purchases of same item
+        const totalQty = existing.totalQuantity + Number(purchase.quantity);
+        existing.pricePerUnit =
+          (existing.pricePerUnit * existing.totalQuantity +
+            Number(purchase.unitCost) * Number(purchase.quantity)) /
+          totalQty;
+        existing.totalQuantity = totalQty;
+      } else {
+        acc.push({
+          id: purchase.id,
+          name: itemName,
+          pricePerUnit: Number(purchase.unitCost),
+          unit: purchase.unit || "unit",
+          totalQuantity: Number(purchase.quantity),
+        });
+      }
+      return acc;
+    },
+    [] as Array<{
+      id: string;
+      name: string;
+      pricePerUnit: number;
+      unit: string;
+      totalQuantity: number;
+    }>
+  );
 
   const addIngredient = () => {
     if (!selectedIngredientId || ingredientQuantity <= 0) return;
@@ -295,7 +324,7 @@ export default function NewRecipe() {
                     <Input
                       type="number"
                       min="0"
-                      step="0.01"
+                      step="1"
                       value={ingredientQuantity || ""}
                       onChange={(e) =>
                         setIngredientQuantity(parseFloat(e.target.value) || 0)

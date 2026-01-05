@@ -2,7 +2,6 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   LayoutDashboard,
-  Package,
   Receipt,
   Building2,
   FileText,
@@ -12,6 +11,7 @@ import {
   X,
   ChefHat,
   ShoppingCart,
+  Warehouse,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,8 +31,8 @@ const navigation = [
     href: "/dashboard/business-profile",
     icon: Building2,
   },
-  { name: "Ingredients", href: "/dashboard/ingredients", icon: Package },
   { name: "Recipes", href: "/dashboard/recipes", icon: ChefHat },
+  { name: "Inventory", href: "/dashboard/inventory", icon: Warehouse },
   { name: "Expenses", href: "/dashboard/expenses", icon: Receipt },
   { name: "Sales", href: "/dashboard/sales", icon: ShoppingCart },
   { name: "Reports", href: "/dashboard/reports", icon: FileText },
