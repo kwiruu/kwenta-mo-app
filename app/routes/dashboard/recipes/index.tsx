@@ -110,30 +110,98 @@ export default function RecipesIndex() {
       {/* Stats Summary */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{filteredRecipes.length}</div>
-            <p className="text-xs text-muted-foreground">Total Recipes</p>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="lucide lucide-cooking-pot-icon lucide-cooking-pot"
+                  className="h-5 w-5 text-green-500"
+                >
+                  <path d="M2 12h20" />
+                  <path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" />
+                  <path d="m4 8 16-4" />
+                  <path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Total Recipes</p>
+                <p className="text-xl font-semibold text-gray-900">
+                  {filteredRecipes.length}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold">
-              {filteredRecipes.filter((r) => r.ingredients.length > 0).length}
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-blue-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">With Items</p>
+                <p className="text-xl font-semibold text-gray-900">
+                  {
+                    filteredRecipes.filter(
+                      (r) => (r.items || r.ingredients || []).length > 0
+                    ).length
+                  }
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">With Ingredients</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold">
-              {filteredRecipes.reduce(
-                (sum, r) => sum + r.ingredients.length,
-                0
-              )}
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-purple-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Total Items Used</p>
+                <p className="text-xl font-semibold text-gray-900">
+                  {filteredRecipes.reduce(
+                    (sum, r) => sum + (r.items || r.ingredients || []).length,
+                    0
+                  )}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Total Ingredients Used
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -151,7 +219,7 @@ export default function RecipesIndex() {
                   </CardDescription>
                 </div>
                 <Badge variant="lightgreen">
-                  {recipe.ingredients.length} ingredients
+                  {(recipe.items || recipe.ingredients || []).length} items
                 </Badge>
               </div>
             </CardHeader>
@@ -187,7 +255,7 @@ export default function RecipesIndex() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  className="text-destructive hover:bg-destructive hover:text-white"
                   onClick={() => handleDelete(recipe.id)}
                 >
                   <svg

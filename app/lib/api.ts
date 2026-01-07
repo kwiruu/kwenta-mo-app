@@ -212,58 +212,43 @@ export const usersApi = {
     api.put("/users/business", data),
 };
 
-// ============ INGREDIENTS API ============
-export interface Ingredient {
-  id: string;
-  name: string;
-  category?: string;
-  unit: string;
-  costPerUnit: number;
-  currentStock: number;
-  reorderLevel: number;
-  supplier?: string;
-  notes?: string;
-}
+// ============ INGREDIENTS API (LEGACY - use purchasesApi) ============
+// For backwards compatibility, we alias Ingredient to Purchase
+export type Ingredient = Purchase;
+export type CreateIngredientDto = CreatePurchaseDto;
 
-export interface CreateIngredientDto {
-  name: string;
-  category?: string;
-  unit: string;
-  costPerUnit: number;
-  currentStock?: number;
-  reorderLevel?: number;
-  supplier?: string;
-  notes?: string;
-}
-
+// Legacy ingredients API - redirects to purchases
 export const ingredientsApi = {
-  getAll: (search?: string, category?: string): Promise<Ingredient[]> => {
-    const params = new URLSearchParams();
-    if (search) params.append("search", search);
-    if (category) params.append("category", category);
-    const query = params.toString();
-    return api.get(`/ingredients${query ? `?${query}` : ""}`);
+  getAll: (_search?: string, _category?: string): Promise<Ingredient[]> => {
+    return purchasesApi.getAll();
   },
-  getById: (id: string): Promise<Ingredient> => api.get(`/ingredients/${id}`),
+  getById: (id: string): Promise<Ingredient> => purchasesApi.getById(id),
   create: (data: CreateIngredientDto): Promise<Ingredient> =>
-    api.post("/ingredients", data),
+    purchasesApi.create({
+      ...data,
+      itemType: data.itemType || "RAW_MATERIAL",
+    }),
   createBulk: (ingredients: CreateIngredientDto[]): Promise<Ingredient[]> =>
-    api.post("/ingredients/bulk", { ingredients }),
+    purchasesApi.createBulk(ingredients),
   update: (
     id: string,
     data: Partial<CreateIngredientDto>
-  ): Promise<Ingredient> => api.put(`/ingredients/${id}`, data),
-  delete: (id: string): Promise<void> => api.delete(`/ingredients/${id}`),
-  getLowStock: (): Promise<Ingredient[]> => api.get("/ingredients/low-stock"),
+  ): Promise<Ingredient> => purchasesApi.update(id, data),
+  delete: (id: string): Promise<void> => purchasesApi.delete(id),
+  getLowStock: (): Promise<Ingredient[]> => purchasesApi.getLowStockAlerts(),
 };
 
 // ============ RECIPES API ============
-export interface RecipeIngredient {
+export interface RecipeItem {
   id: string;
-  ingredientId: string;
+  purchaseId: string;
   quantity: number;
-  ingredient: Ingredient;
+  unit: string;
+  purchase: Purchase;
 }
+
+// Legacy alias for backwards compatibility
+export type RecipeIngredient = RecipeItem;
 
 export interface Recipe {
   id: string;
@@ -273,7 +258,9 @@ export interface Recipe {
   preparationTime?: number;
   sellingPrice: number;
   imageUrl?: string;
-  ingredients: RecipeIngredient[];
+  items: RecipeItem[];
+  // Legacy alias
+  ingredients?: RecipeItem[];
 }
 
 export interface CreateRecipeDto {
@@ -313,6 +300,8 @@ export const recipesApi = {
 };
 
 // ============ SALES API ============
+export type SaleCategory = "FOOD" | "BEVERAGE" | "CATERING" | "DELIVERY";
+
 export interface Sale {
   id: string;
   recipeId: string;
@@ -322,6 +311,7 @@ export interface Sale {
   costOfGoods: number;
   profit: number;
   saleDate: string;
+  category: SaleCategory;
   notes?: string;
   recipe: Recipe;
 }
@@ -331,6 +321,7 @@ export interface CreateSaleDto {
   quantity: number;
   unitPrice?: number;
   saleDate?: string;
+  category?: SaleCategory;
   notes?: string;
 }
 
@@ -373,7 +364,22 @@ export type ExpenseCategory =
   | "MARKETING"
   | "TRANSPORTATION"
   | "PACKAGING"
+  | "DELIVERY_FEES"
+  | "TRANSACTION_FEES"
+  | "SUPPLIES"
+  | "MAINTENANCE"
+  | "INSURANCE_LICENSES"
+  | "FIXED_SALARIES"
+  | "DEPRECIATION"
+  | "PERMITS_LICENSES"
+  | "INTERNET"
+  | "TAX_EXPENSE"
+  | "INTEREST_EXPENSE"
+  | "BANK_CHARGES"
+  | "SALARIES"
   | "OTHER";
+
+export type ExpenseType = "FIXED" | "VARIABLE" | "OPERATING" | "OTHER";
 
 export type ExpenseFrequency =
   | "DAILY"
@@ -385,6 +391,7 @@ export type ExpenseFrequency =
 export interface Expense {
   id: string;
   category: ExpenseCategory;
+  type: ExpenseType;
   description: string;
   amount: number;
   frequency: ExpenseFrequency;
@@ -394,6 +401,7 @@ export interface Expense {
 
 export interface CreateExpenseDto {
   category: ExpenseCategory;
+  type?: ExpenseType;
   description: string;
   amount: number;
   frequency?: ExpenseFrequency;
@@ -577,4 +585,723 @@ export const reportsApi = {
 
     return response.blob();
   },
+};
+
+// ============ INVENTORY TYPES ============
+export type InventoryType =
+  | "RAW_MATERIAL"
+  | "PACKAGING"
+  | "INGREDIENT"
+  | "SPICE"
+  | "CONDIMENT"
+  | "BEVERAGE"
+  | "DAIRY"
+  | "PRODUCE"
+  | "PROTEIN"
+  | "GRAIN"
+  | "OIL"
+  | "SUPPLY"
+  | "EQUIPMENT"
+  | "OTHER";
+
+// ============ PURCHASES API (THE INVENTORY) ============
+// Purchase IS the inventory item now - they are merged
+
+export interface Purchase {
+  id: string;
+  periodId?: string;
+  // Item fields (merged from InventoryItem)
+  name: string;
+  itemType: InventoryType;
+  unit: string;
+  // Stock tracking
+  quantity: number; // This IS the current stock (can be 0)
+  reorderLevel: number;
+  // Cost info
+  unitCost: number;
+  totalCost: number;
+  // Purchase details
+  supplier?: string;
+  purchaseDate: string;
+  notes?: string;
+  period?: InventoryPeriod;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Alias InventoryItem to Purchase for backwards compatibility
+export type InventoryItem = Purchase;
+
+export interface CreatePurchaseDto {
+  periodId?: string;
+  itemName: string;
+  itemType?: InventoryType;
+  unit?: string;
+  reorderLevel?: number;
+  quantity: number;
+  unitCost: number;
+  supplier?: string;
+  purchaseDate?: string;
+  notes?: string;
+}
+
+// Alias for backwards compatibility
+export type CreateInventoryItemDto = CreatePurchaseDto;
+
+export interface PurchaseStats {
+  total: { amount: number; count: number };
+  byType: { type: InventoryType; amount: number; count: number }[];
+}
+
+export const purchasesApi = {
+  getAll: (
+    itemType?: InventoryType,
+    periodId?: string,
+    startDate?: string,
+    endDate?: string,
+    supplier?: string
+  ): Promise<Purchase[]> => {
+    const params = new URLSearchParams();
+    if (itemType) params.append("itemType", itemType);
+    if (periodId) params.append("periodId", periodId);
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    if (supplier) params.append("supplier", supplier);
+    const query = params.toString();
+    return api.get(`/purchases${query ? `?${query}` : ""}`);
+  },
+  getById: (id: string): Promise<Purchase> => api.get(`/purchases/${id}`),
+  getStats: (startDate?: string, endDate?: string): Promise<PurchaseStats> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const query = params.toString();
+    return api.get(`/purchases/stats${query ? `?${query}` : ""}`);
+  },
+  getLowStockAlerts: (): Promise<Purchase[]> =>
+    api.get("/purchases/alerts/low-stock"),
+  getInventoryItems: (): Promise<Purchase[]> =>
+    api.get("/purchases/inventory-items"),
+  create: (data: CreatePurchaseDto): Promise<Purchase> =>
+    api.post("/purchases", data),
+  createBulk: (purchases: CreatePurchaseDto[]): Promise<Purchase[]> =>
+    api.post("/purchases/bulk", purchases),
+  update: (id: string, data: Partial<CreatePurchaseDto>): Promise<Purchase> =>
+    api.put(`/purchases/${id}`, data),
+  delete: (id: string): Promise<void> => api.delete(`/purchases/${id}`),
+};
+
+// Legacy inventoryItemsApi - now redirects to purchases
+export const inventoryItemsApi = {
+  getAll: (
+    _search?: string,
+    itemType?: InventoryType
+  ): Promise<InventoryItem[]> => {
+    return purchasesApi.getAll(itemType);
+  },
+  getById: (id: string): Promise<InventoryItem> => purchasesApi.getById(id),
+  create: (data: CreateInventoryItemDto): Promise<InventoryItem> =>
+    purchasesApi.create(data),
+  createBulk: (items: CreateInventoryItemDto[]): Promise<InventoryItem[]> =>
+    purchasesApi.createBulk(items),
+  update: (
+    id: string,
+    data: Partial<CreateInventoryItemDto>
+  ): Promise<InventoryItem> => purchasesApi.update(id, data),
+  delete: (id: string): Promise<void> => purchasesApi.delete(id),
+  getLowStock: (): Promise<InventoryItem[]> => purchasesApi.getLowStockAlerts(),
+};
+
+// ============ INVENTORY API ============
+export interface InventoryPeriod {
+  id: string;
+  periodName: string;
+  startDate: string;
+  endDate: string;
+  isClosed: boolean;
+  isActive: boolean;
+  snapshots?: InventorySnapshot[];
+  purchases?: Purchase[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InventorySnapshot {
+  id: string;
+  periodId: string;
+  purchaseId?: string;
+  itemName: string;
+  itemType: InventoryType;
+  snapshotType: "BEGINNING" | "ENDING";
+  quantity: number;
+  unitCost: number;
+  totalValue: number;
+  purchase?: Purchase;
+  createdAt: string;
+}
+
+export interface CreateInventoryPeriodDto {
+  periodName: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface CreateInventorySnapshotDto {
+  periodId: string;
+  purchaseId?: string;
+  itemName: string;
+  itemType: InventoryType;
+  snapshotType: "BEGINNING" | "ENDING";
+  quantity: number;
+  unitCost: number;
+}
+
+export interface InventorySummary {
+  beginning: {
+    total: number;
+    rawMaterials: number;
+    packaging: number;
+    itemCount: number;
+  };
+  ending: {
+    total: number;
+    rawMaterials: number;
+    packaging: number;
+    itemCount: number;
+  };
+  inventoryChange: number;
+}
+
+export const inventoryApi = {
+  // Periods
+  getAllPeriods: (): Promise<InventoryPeriod[]> =>
+    api.get("/inventory/periods"),
+  getActivePeriod: (): Promise<InventoryPeriod> =>
+    api.get("/inventory/periods/active"),
+  getLatestPeriod: (): Promise<InventoryPeriod | null> =>
+    api.get("/inventory/periods/latest"),
+  setActivePeriod: (id: string): Promise<InventoryPeriod> =>
+    api.put(`/inventory/periods/${id}/activate`, {}),
+  getPeriodById: (id: string): Promise<InventoryPeriod> =>
+    api.get(`/inventory/periods/${id}`),
+  getPeriodSummary: (id: string): Promise<InventorySummary> =>
+    api.get(`/inventory/periods/${id}/summary`),
+  createPeriod: (data: CreateInventoryPeriodDto): Promise<InventoryPeriod> =>
+    api.post("/inventory/periods", data),
+  updatePeriod: (
+    id: string,
+    data: Partial<CreateInventoryPeriodDto>
+  ): Promise<InventoryPeriod> => api.put(`/inventory/periods/${id}`, data),
+  deletePeriod: (id: string): Promise<void> =>
+    api.delete(`/inventory/periods/${id}`),
+
+  // Snapshots
+  getSnapshots: (periodId: string): Promise<InventorySnapshot[]> =>
+    api.get(`/inventory/periods/${periodId}/snapshots`),
+  getSnapshotById: (id: string): Promise<InventorySnapshot> =>
+    api.get(`/inventory/snapshots/${id}`),
+  createSnapshot: (
+    data: CreateInventorySnapshotDto
+  ): Promise<InventorySnapshot> => api.post("/inventory/snapshots", data),
+  createBulkSnapshots: (
+    snapshots: CreateInventorySnapshotDto[]
+  ): Promise<InventorySnapshot[]> =>
+    api.post("/inventory/snapshots/bulk", snapshots),
+  updateSnapshot: (
+    id: string,
+    data: Partial<CreateInventorySnapshotDto>
+  ): Promise<InventorySnapshot> => api.put(`/inventory/snapshots/${id}`, data),
+  deleteSnapshot: (id: string): Promise<void> =>
+    api.delete(`/inventory/snapshots/${id}`),
+
+  // Helpers
+  copyFromPurchases: (
+    periodId: string,
+    snapshotType: "BEGINNING" | "ENDING"
+  ): Promise<InventorySnapshot[]> =>
+    api.post(
+      `/inventory/periods/${periodId}/copy-from-purchases?snapshotType=${snapshotType}`
+    ),
+};
+
+// ============ INVENTORY TRANSACTIONS API ============
+export type TransactionType = "INITIAL" | "RESTOCK" | "SALE";
+
+export interface InventoryTransaction {
+  id: string;
+  purchaseId: string;
+  type: TransactionType;
+  quantityChange: number; // positive for INITIAL/RESTOCK, negative for SALE
+  quantityBefore: number;
+  quantityAfter: number;
+  unitCost?: number;
+  referenceId?: string; // saleId if from sale
+  notes?: string;
+  createdAt: string;
+  purchase?: {
+    id: string;
+    name: string;
+    unit: string;
+    itemType: InventoryType;
+  };
+}
+
+export interface TransactionFilters {
+  purchaseId?: string;
+  type?: TransactionType;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface TransactionStats {
+  totalTransactions: number;
+  todayTransactions: number;
+  restockCount: number;
+  saleCount: number;
+}
+
+export const inventoryTransactionsApi = {
+  getAll: (filters?: TransactionFilters): Promise<InventoryTransaction[]> => {
+    const params = new URLSearchParams();
+    if (filters?.purchaseId) params.append("purchaseId", filters.purchaseId);
+    if (filters?.type) params.append("type", filters.type);
+    if (filters?.startDate) params.append("startDate", filters.startDate);
+    if (filters?.endDate) params.append("endDate", filters.endDate);
+    const query = params.toString();
+    return api.get(`/inventory-transactions${query ? `?${query}` : ""}`);
+  },
+  getByItem: (purchaseId: string): Promise<InventoryTransaction[]> =>
+    api.get(`/inventory-transactions/item/${purchaseId}`),
+  getStats: (): Promise<TransactionStats> =>
+    api.get("/inventory-transactions/stats"),
+};
+
+// Restock API - add stock to existing item
+export interface RestockDto {
+  quantity: number;
+  notes?: string;
+  unitCost?: number;
+}
+
+export const restockApi = {
+  restock: (id: string, data: RestockDto): Promise<Purchase> =>
+    api.post(`/purchases/${id}/restock`, data),
+};
+
+// ============ FINANCIAL REPORTS API ============
+export interface FinancialCOGS {
+  period: { startDate: string; endDate: string };
+  beginningInventory: {
+    total: number;
+    rawMaterials: number;
+    packaging: number;
+  };
+  purchases: { total: number; rawMaterials: number; packaging: number };
+  endingInventory: { total: number; rawMaterials: number; packaging: number };
+  cogs: number;
+  formula: string;
+}
+
+export interface OperatingExpenses {
+  period: { startDate?: string; endDate?: string };
+  total: number;
+  breakdown: {
+    utilities: number;
+    rent: number;
+    marketing: number;
+    transportation: number;
+    supplies: number;
+    maintenance: number;
+    insurance: number;
+    internet: number;
+    other: number;
+  };
+  byCategory: { category: string; amount: number }[];
+}
+
+export interface VariableCosts {
+  period: { startDate?: string; endDate?: string };
+  total: number;
+  breakdown: {
+    ingredients: number;
+    packaging: number;
+    deliveryFees: number;
+    transactionFees: number;
+    labor: number;
+    other: number;
+  };
+}
+
+export interface FixedCosts {
+  period: { startDate?: string; endDate?: string };
+  total: number;
+  breakdown: {
+    rent: number;
+    salaries: number;
+    depreciation: number;
+    permits: number;
+    insurance: number;
+    internet: number;
+    other: number;
+  };
+}
+
+export interface SalesRevenue {
+  period: { startDate?: string; endDate?: string };
+  total: number;
+  byCategory: {
+    food: number;
+    beverage: number;
+    catering: number;
+    delivery: number;
+  };
+  salesCount: number;
+}
+
+export interface GrossProfit {
+  period: { startDate?: string; endDate?: string };
+  revenue: number;
+  cogs: number;
+  grossProfit: number;
+  grossProfitMargin: number;
+}
+
+export interface OperatingIncome {
+  period: { startDate?: string; endDate?: string };
+  grossProfit: number;
+  operatingExpenses: number;
+  operatingIncome: number;
+  operatingMargin: number;
+}
+
+export interface OtherExpenses {
+  period: { startDate?: string; endDate?: string };
+  total: number;
+  breakdown: {
+    taxExpense: number;
+    interestExpense: number;
+    depreciation: number;
+    bankCharges: number;
+  };
+}
+
+export interface NetProfit {
+  period: { startDate?: string; endDate?: string };
+  operatingIncome: number;
+  otherExpenses: number;
+  netProfit: number;
+  netProfitMargin: number;
+}
+
+export interface FullIncomeStatement {
+  period: { startDate?: string; endDate?: string };
+  revenue: {
+    foodSales: number;
+    beverageSales: number;
+    cateringSales: number;
+    deliverySales: number;
+    totalRevenue: number;
+  };
+  costOfGoodsSold: number;
+  grossProfit: number;
+  grossProfitMargin: number;
+  operatingExpenses: {
+    rent: number;
+    utilities: number;
+    salaries: number;
+    marketing: number;
+    supplies: number;
+    maintenance: number;
+    insuranceLicenses: number;
+    miscellaneous: number;
+    total: number;
+  };
+  operatingIncome: number;
+  otherExpenses: {
+    taxExpense: number;
+    interestExpense: number;
+    depreciation: number;
+    bankCharges: number;
+    total: number;
+  };
+  netProfit: number;
+  netProfitMargin: number;
+  costAnalysis: {
+    variableCosts: VariableCosts;
+    fixedCosts: FixedCosts;
+    totalCosts: number;
+  };
+}
+
+export interface RecipeCostBreakdown {
+  recipe: Recipe;
+  ingredients: {
+    ingredientId: string;
+    ingredientName: string;
+    quantity: number;
+    unit: string;
+    unitCost: number;
+    totalCost: number;
+  }[];
+  totalIngredientCost: number;
+  laborCost: number;
+  overheadCost: number;
+  totalCost: number;
+  sellingPrice: number;
+  profit: number;
+  profitMargin: number;
+}
+
+export const financialReportsApi = {
+  getCOGS: (startDate: string, endDate: string): Promise<FinancialCOGS> => {
+    const params = new URLSearchParams();
+    params.append("startDate", startDate);
+    params.append("endDate", endDate);
+    return api.get(`/reports/financial/cogs?${params.toString()}`);
+  },
+  getOperatingExpenses: (
+    startDate?: string,
+    endDate?: string
+  ): Promise<OperatingExpenses> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const query = params.toString();
+    return api.get(`/reports/financial/opex${query ? `?${query}` : ""}`);
+  },
+  getVariableCosts: (
+    startDate?: string,
+    endDate?: string
+  ): Promise<VariableCosts> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const query = params.toString();
+    return api.get(
+      `/reports/financial/variable-costs${query ? `?${query}` : ""}`
+    );
+  },
+  getFixedCosts: (
+    startDate?: string,
+    endDate?: string
+  ): Promise<FixedCosts> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const query = params.toString();
+    return api.get(`/reports/financial/fixed-costs${query ? `?${query}` : ""}`);
+  },
+  getSalesRevenue: (
+    startDate?: string,
+    endDate?: string
+  ): Promise<SalesRevenue> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const query = params.toString();
+    return api.get(
+      `/reports/financial/sales-revenue${query ? `?${query}` : ""}`
+    );
+  },
+  getGrossProfit: (
+    startDate?: string,
+    endDate?: string
+  ): Promise<GrossProfit> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const query = params.toString();
+    return api.get(
+      `/reports/financial/gross-profit${query ? `?${query}` : ""}`
+    );
+  },
+  getOperatingIncome: (
+    startDate?: string,
+    endDate?: string
+  ): Promise<OperatingIncome> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const query = params.toString();
+    return api.get(
+      `/reports/financial/operating-income${query ? `?${query}` : ""}`
+    );
+  },
+  getOtherExpenses: (
+    startDate?: string,
+    endDate?: string
+  ): Promise<OtherExpenses> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const query = params.toString();
+    return api.get(
+      `/reports/financial/other-expenses${query ? `?${query}` : ""}`
+    );
+  },
+  getNetProfit: (startDate?: string, endDate?: string): Promise<NetProfit> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const query = params.toString();
+    return api.get(`/reports/financial/net-profit${query ? `?${query}` : ""}`);
+  },
+  getFullIncomeStatement: (
+    startDate?: string,
+    endDate?: string
+  ): Promise<FullIncomeStatement> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    const query = params.toString();
+    return api.get(
+      `/reports/financial/income-statement${query ? `?${query}` : ""}`
+    );
+  },
+  getRecipeCost: (recipeId: string): Promise<RecipeCostBreakdown> =>
+    api.get(`/reports/financial/recipe-cost/${recipeId}`),
+};
+
+// ============ RECEIPT SCANNER TYPES ============
+export type ItemCategory = "INVENTORY" | "EXPENSE" | "UNKNOWN";
+
+export type ScannerExpenseType =
+  | "UTILITIES"
+  | "RENT"
+  | "MAINTENANCE"
+  | "SUPPLIES"
+  | "EQUIPMENT"
+  | "SALARY"
+  | "OTHER";
+
+export interface ScannedItem {
+  name: string;
+  quantity: number;
+  unit: string;
+  unitCost: number;
+  totalCost: number;
+  category: ItemCategory;
+  expenseType?: ScannerExpenseType;
+  inventoryType?: string;
+  confidence: number;
+  rawText: string;
+  matchedWith?: string;
+}
+
+export interface VendorInfo {
+  name?: string;
+  address?: string;
+  phone?: string;
+  tin?: string;
+}
+
+export interface TotalValidation {
+  calculatedTotal: number;
+  detectedTotal?: number;
+  difference: number;
+  isValid: boolean;
+  message: string;
+}
+
+export interface ScanResult {
+  items: ScannedItem[];
+  rawText: string;
+  scannedAt: string;
+  inventoryCount: number;
+  expenseCount: number;
+  unknownCount: number;
+  vendor?: VendorInfo;
+  totalValidation?: TotalValidation;
+}
+
+export interface SaveInventoryItem {
+  name: string;
+  quantity: number;
+  unit: string;
+  unitCost: number;
+  totalCost: number;
+  inventoryType: string;
+}
+
+export interface SaveExpenseItem {
+  name: string;
+  amount: number;
+  category: string;
+  frequency: string;
+  notes?: string;
+}
+
+export interface SaveScannedItemsDto {
+  inventoryItems: SaveInventoryItem[];
+  expenseItems: SaveExpenseItem[];
+}
+
+export interface SaveResult {
+  inventorySaved: number;
+  expensesSaved: number;
+}
+
+// Category correction for learning
+export interface CategoryCorrection {
+  itemName: string;
+  category: ItemCategory;
+  subCategory?: string;
+  vendor?: string;
+}
+
+export interface LearningStats {
+  totalPatterns: number;
+  inventoryPatterns: number;
+  expensePatterns: number;
+  topPatterns: Array<{ pattern: string; category: string; useCount: number }>;
+}
+
+// ============ RECEIPT SCANNER API ============
+export const receiptScannerApi = {
+  scanReceipt: async (file: File): Promise<ScanResult> => {
+    const token = await getAccessToken();
+    const formData = new FormData();
+    formData.append("receipt", file);
+
+    const response = await fetch(`${API_URL}/receipt/scan`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new ApiError(
+        error.message || "Failed to scan receipt",
+        response.status,
+        error
+      );
+    }
+
+    return response.json();
+  },
+
+  saveItems: (data: SaveScannedItemsDto): Promise<SaveResult> =>
+    api.post("/receipt/save", data),
+
+  // Save category corrections for learning
+  learnFromCorrections: (
+    corrections: CategoryCorrection[]
+  ): Promise<{ savedCount: number }> =>
+    api.post("/receipt/learn", { corrections }),
+
+  // Get learning statistics
+  getLearningStats: (): Promise<LearningStats> =>
+    api.get("/receipt/learning-stats"),
+
+  parseText: (
+    text: string
+  ): Promise<{
+    items: ScannedItem[];
+    inventoryCount: number;
+    expenseCount: number;
+    unknownCount: number;
+  }> => api.post("/receipt/parse-text", { text }),
 };

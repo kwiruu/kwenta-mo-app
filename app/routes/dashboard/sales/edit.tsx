@@ -13,7 +13,15 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import { useSale, useUpdateSale, useDeleteSale, useRecipes } from "~/hooks";
+import type { SaleCategory } from "~/lib/api";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
+
+const saleCategoryLabels: Record<SaleCategory, string> = {
+  FOOD: "Food",
+  BEVERAGE: "Beverage",
+  CATERING: "Catering",
+  DELIVERY: "Delivery",
+};
 
 export default function EditSale() {
   const { id } = useParams();
@@ -28,6 +36,7 @@ export default function EditSale() {
     recipeId: "",
     quantitySold: 1,
     dateSold: new Date().toISOString().split("T")[0],
+    category: "FOOD" as SaleCategory,
     notes: "",
   });
 
@@ -38,6 +47,7 @@ export default function EditSale() {
         recipeId: sale.recipeId,
         quantitySold: sale.quantity,
         dateSold: new Date(sale.saleDate).toISOString().split("T")[0],
+        category: sale.category || "FOOD",
         notes: sale.notes || "",
       });
     }
@@ -75,6 +85,7 @@ export default function EditSale() {
           quantity: formData.quantitySold,
           unitPrice: unitPrice,
           saleDate: formData.dateSold,
+          category: formData.category,
           notes: formData.notes || undefined,
         },
       },
@@ -212,6 +223,33 @@ export default function EditSale() {
                       required
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="category">Sale Category</Label>
+                  <select
+                    id="category"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={formData.category}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        category: e.target.value as SaleCategory,
+                      })
+                    }
+                    required
+                  >
+                    {Object.entries(saleCategoryLabels).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      )
+                    )}
+                  </select>
+                  <p className="text-xs text-muted-foreground">
+                    Categorize this sale for revenue breakdown reports
+                  </p>
                 </div>
 
                 <div className="space-y-2">
