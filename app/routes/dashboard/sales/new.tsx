@@ -11,6 +11,14 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useCreateSale, useRecipes } from "~/hooks";
+import type { SaleCategory } from "~/lib/api";
+
+const saleCategoryLabels: Record<SaleCategory, string> = {
+  FOOD: "Food",
+  BEVERAGE: "Beverage",
+  CATERING: "Catering",
+  DELIVERY: "Delivery",
+};
 
 export default function NewSale() {
   const navigate = useNavigate();
@@ -21,6 +29,7 @@ export default function NewSale() {
     recipeId: "",
     quantitySold: 1,
     dateSold: new Date().toISOString().split("T")[0],
+    category: "FOOD" as SaleCategory,
   });
 
   const selectedRecipe = recipes.find((r) => r.id === formData.recipeId);
@@ -53,6 +62,7 @@ export default function NewSale() {
         quantity: formData.quantitySold,
         unitPrice: unitPrice,
         saleDate: formData.dateSold,
+        category: formData.category,
       },
       {
         onSuccess: () => navigate("/dashboard/sales"),
@@ -156,6 +166,33 @@ export default function NewSale() {
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="category">Sale Category</Label>
+                  <select
+                    id="category"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={formData.category}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        category: e.target.value as SaleCategory,
+                      })
+                    }
+                    required
+                  >
+                    {Object.entries(saleCategoryLabels).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      )
+                    )}
+                  </select>
+                  <p className="text-xs text-muted-foreground">
+                    Categorize this sale for revenue breakdown reports
+                  </p>
+                </div>
+
                 {/* Quick quantity buttons */}
                 {formData.recipeId && (
                   <div className="space-y-2">
@@ -247,9 +284,35 @@ export default function NewSale() {
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={!formData.recipeId}
+                disabled={!formData.recipeId || createSaleMutation.isPending}
               >
-                Record Sale
+                {createSaleMutation.isPending ? (
+                  <>
+                    <svg
+                      className="mr-2 h-4 w-4 animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Recording...
+                  </>
+                ) : (
+                  "Record Sale"
+                )}
               </Button>
               <Button type="button" variant="outline" asChild>
                 <Link to="/dashboard/sales">Cancel</Link>

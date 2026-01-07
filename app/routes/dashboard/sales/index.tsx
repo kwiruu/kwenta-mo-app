@@ -327,7 +327,7 @@ export default function SalesIndex() {
               <p className="mt-2 text-muted-foreground">
                 Start recording your sales to track revenue and profits.
               </p>
-              <Button className="mt-4" asChild>
+              <Button className="mt-4" variant="green" asChild>
                 <Link to="/dashboard/sales/new">Record First Sale</Link>
               </Button>
             </div>

@@ -1,5 +1,24 @@
 import { useState } from "react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { Link } from "react-router";
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Calculator,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  Package,
+  Truck,
+  Warehouse,
+  Receipt,
+  Minus,
+  Plus,
+  Download,
+} from "lucide-react";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
   Card,
   CardContent,
@@ -7,9 +26,20 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "~/components/ui/collapsible";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { Separator } from "~/components/ui/separator";
+import { Badge } from "~/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import {
   Table,
@@ -19,66 +49,183 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { reportsApi } from "~/lib/api";
 import {
+  useFinancialCOGS,
+  useOperatingExpenses,
+  useVariableCosts,
+  useFixedCosts,
+  useSalesRevenue,
+  useGrossProfit,
+  useOperatingIncome,
+  useOtherExpenses,
+  useNetProfit,
+  useFullIncomeStatement,
+  useRecipes,
+  useRecipeCostBreakdown,
   useCOGSReport,
-  useIncomeStatement,
   useProfitSummary,
   useExpenses,
   useExpenseStats,
 } from "~/hooks";
+import { reportsApi } from "~/lib/api";
+import { APP_CONFIG } from "~/config/app";
+
+export function meta() {
+  return [
+    { title: `Financial Reports - ${APP_CONFIG.name}` },
+    { name: "description", content: "View your financial reports and metrics" },
+  ];
+}
 
 type ReportType = "cogs" | "expense" | "income" | "profit";
 
 export default function ReportsIndex() {
-  const [activeReport, setActiveReport] = useState<ReportType>("cogs");
-  const [dateRange, setDateRange] = useState({
-    start: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-      .toISOString()
-      .split("T")[0],
-    end: new Date().toISOString().split("T")[0],
-  });
-
-  // Use TanStack Query hooks for all report data
-  const { data: cogsReport, isLoading: cogsLoading } = useCOGSReport(
-    dateRange.start,
-    dateRange.end
+  // Date range state
+  const today = new Date();
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const [startDate, setStartDate] = useState(
+    firstDayOfMonth.toISOString().split("T")[0]
   );
-  const { data: incomeStatement, isLoading: incomeLoading } =
-    useIncomeStatement(dateRange.start, dateRange.end);
+  const [endDate, setEndDate] = useState(today.toISOString().split("T")[0]);
+
+  // Active tab state
+  const [activeReport, setActiveReport] = useState<ReportType>("cogs");
+
+  // Selected recipe for recipe costing
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>("");
+
+  // Collapsible states
+  const [expandedSections, setExpandedSections] = useState<string[]>([
+    "income-statement",
+  ]);
+
+  // Fetch all financial data for advanced section
+  const { data: cogs, isLoading: loadingCOGS } = useFinancialCOGS(
+    startDate,
+    endDate
+  );
+  const { data: opex, isLoading: loadingOpex } = useOperatingExpenses(
+    startDate,
+    endDate
+  );
+  const { data: variableCosts, isLoading: loadingVariable } = useVariableCosts(
+    startDate,
+    endDate
+  );
+  const { data: fixedCosts, isLoading: loadingFixed } = useFixedCosts(
+    startDate,
+    endDate
+  );
+  const { data: salesRevenue, isLoading: loadingSales } = useSalesRevenue(
+    startDate,
+    endDate
+  );
+  const { data: grossProfit, isLoading: loadingGross } = useGrossProfit(
+    startDate,
+    endDate
+  );
+  const { data: operatingIncome, isLoading: loadingOperating } =
+    useOperatingIncome(startDate, endDate);
+  const { data: otherExpenses, isLoading: loadingOther } = useOtherExpenses(
+    startDate,
+    endDate
+  );
+  const { data: netProfit, isLoading: loadingNet } = useNetProfit(
+    startDate,
+    endDate
+  );
+  const { data: incomeStatement, isLoading: loadingStatement } =
+    useFullIncomeStatement(startDate, endDate);
+  const { data: recipes = [] } = useRecipes();
+  const { data: recipeCost, isLoading: loadingRecipe } =
+    useRecipeCostBreakdown(selectedRecipeId);
+
+  // Fetch data for basic reports tabs
+  const { data: cogsReport, isLoading: cogsReportLoading } = useCOGSReport(
+    startDate,
+    endDate
+  );
   const { data: profitSummary, isLoading: profitLoading } = useProfitSummary(
-    dateRange.start,
-    dateRange.end
+    startDate,
+    endDate
   );
   const { data: expenses = [] } = useExpenses({
-    startDate: dateRange.start,
-    endDate: dateRange.end,
+    startDate: startDate,
+    endDate: endDate,
   });
-  const { data: stats } = useExpenseStats(dateRange.start, dateRange.end);
+  const { data: stats } = useExpenseStats(startDate, endDate);
 
-  const isLoading = cogsLoading || incomeLoading || profitLoading;
+  const isLoading =
+    loadingCOGS ||
+    loadingOpex ||
+    loadingVariable ||
+    loadingFixed ||
+    loadingSales ||
+    loadingGross ||
+    loadingOperating ||
+    loadingOther ||
+    loadingNet ||
+    loadingStatement ||
+    cogsReportLoading ||
+    profitLoading;
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined | null) => {
+    if (amount === undefined || amount === null) return "₱0.00";
     return new Intl.NumberFormat("en-PH", {
       style: "currency",
       currency: "PHP",
     }).format(amount);
   };
 
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) =>
+      prev.includes(section)
+        ? prev.filter((s) => s !== section)
+        : [...prev, section]
+    );
+  };
+
+  // Quick date range selection
+  const setQuickRange = (range: string) => {
+    const now = new Date();
+    let start: Date;
+    const end: Date = new Date();
+
+    switch (range) {
+      case "today":
+        start = new Date();
+        break;
+      case "week":
+        start = new Date(now.setDate(now.getDate() - now.getDay()));
+        break;
+      case "month":
+        start = new Date(end.getFullYear(), end.getMonth(), 1);
+        break;
+      case "quarter":
+        const quarter = Math.floor(end.getMonth() / 3);
+        start = new Date(end.getFullYear(), quarter * 3, 1);
+        break;
+      case "year":
+        start = new Date(end.getFullYear(), 0, 1);
+        break;
+      default:
+        start = firstDayOfMonth;
+    }
+
+    setStartDate(start.toISOString().split("T")[0]);
+    setEndDate(end.toISOString().split("T")[0]);
+  };
+
   const handleExportCSV = async (
     type: "sales" | "expenses" | "ingredients"
   ) => {
     try {
-      const csv = await reportsApi.exportCSV(
-        type,
-        dateRange.start,
-        dateRange.end
-      );
+      const csv = await reportsApi.exportCSV(type, startDate, endDate);
       const blob = new Blob([csv], { type: "text/csv" });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${type}-report-${dateRange.start}-to-${dateRange.end}.csv`;
+      a.download = `${type}-report-${startDate}-to-${endDate}.csv`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -89,15 +236,11 @@ export default function ReportsIndex() {
 
   const handleExportExcel = async (type: "sales" | "expenses") => {
     try {
-      const blob = await reportsApi.exportExcel(
-        type,
-        dateRange.start,
-        dateRange.end
-      );
+      const blob = await reportsApi.exportExcel(type, startDate, endDate);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${type}-report-${dateRange.start}-to-${dateRange.end}.xlsx`;
+      a.download = `${type}-report-${startDate}-to-${endDate}.xlsx`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -116,96 +259,122 @@ export default function ReportsIndex() {
   const totalProfit = profitSummary?.totals.profit ?? 0;
   const totalRevenue = profitSummary?.totals.revenue ?? 0;
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="text-center pt-20">
-          <div className="h-64 mx-auto">
-            <DotLottieReact src="/assets/file_search.lottie" loop autoplay />
-          </div>
-          <p className="-mt-12 text-gray-500">Loading reports...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-          <p className="text-muted-foreground">
-            Financial reports and business analytics
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Financial Reports
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Comprehensive financial analysis and business analytics
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => handleExportExcel("sales")}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExportExcel("sales")}
+          >
+            <Download className="h-4 w-4 mr-2" />
             Export Sales
           </Button>
           <Button
             variant="outline"
+            size="sm"
             onClick={() => handleExportExcel("expenses")}
           >
+            <Download className="h-4 w-4 mr-2" />
             Export Expenses
           </Button>
         </div>
       </div>
 
-      {/* Date Range Filter */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end">
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={dateRange.start}
-                onChange={(e) =>
-                  setDateRange({ ...dateRange, start: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={dateRange.end}
-                onChange={(e) =>
-                  setDateRange({ ...dateRange, end: e.target.value })
-                }
-              />
-            </div>
-            <Button variant="outline">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="mr-2 h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+      {/* Date Range Filters */}
+      <Card className="border-none p-0 m-0 shadow-none bg-white">
+        <CardContent className="p-0 mb-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setQuickRange("today")}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                Today
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setQuickRange("week")}
+              >
+                This Week
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setQuickRange("month")}
+              >
+                This Month
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setQuickRange("quarter")}
+              >
+                This Quarter
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setQuickRange("year")}
+              >
+                This Year
+              </Button>
+            </div>
+
+            <div className="flex gap-3 items-end">
+              <div className="space-y-1">
+                <Label htmlFor="startDate" className="text-sm text-gray-600">
+                  From
+                </Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="border-gray-200 w-40"
                 />
-              </svg>
-              Refresh
-            </Button>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="endDate" className="text-sm text-gray-600">
+                  To
+                </Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="border-gray-200 w-40"
+                />
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* {isLoading && (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      )} */}
 
       {/* Report Tabs */}
       <Tabs
         value={activeReport}
         onValueChange={(v) => setActiveReport(v as ReportType)}
       >
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-4 mb-4">
           <TabsTrigger value="cogs">COGS Report</TabsTrigger>
           <TabsTrigger value="expense">Expense Report</TabsTrigger>
           <TabsTrigger value="income">Income Statement</TabsTrigger>
@@ -442,18 +611,34 @@ export default function ReportsIndex() {
               <div>
                 <h3 className="font-semibold text-lg mb-3">Revenue</h3>
                 <div className="space-y-2 pl-4">
-                  <div className="flex justify-between">
-                    <span>Sales Revenue</span>
-                    <span>
-                      {formatCurrency(incomeStatement?.revenue.sales ?? 0)}
-                    </span>
-                  </div>
+                  {(incomeStatement?.revenue?.foodSales ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Food Sales</span>
+                      <span>{formatCurrency(incomeStatement?.revenue?.foodSales ?? 0)}</span>
+                    </div>
+                  )}
+                  {(incomeStatement?.revenue?.beverageSales ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Beverage Sales</span>
+                      <span>{formatCurrency(incomeStatement?.revenue?.beverageSales ?? 0)}</span>
+                    </div>
+                  )}
+                  {(incomeStatement?.revenue?.cateringSales ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Catering Sales</span>
+                      <span>{formatCurrency(incomeStatement?.revenue?.cateringSales ?? 0)}</span>
+                    </div>
+                  )}
+                  {(incomeStatement?.revenue?.deliverySales ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Delivery Sales</span>
+                      <span>{formatCurrency(incomeStatement?.revenue?.deliverySales ?? 0)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-semibold border-t pt-2">
                     <span>Total Revenue</span>
                     <span>
-                      {formatCurrency(
-                        incomeStatement?.revenue.totalRevenue ?? 0
-                      )}
+                      {formatCurrency(incomeStatement?.revenue?.totalRevenue ?? 0)}
                     </span>
                   </div>
                 </div>
@@ -490,20 +675,58 @@ export default function ReportsIndex() {
                   Operating Expenses
                 </h3>
                 <div className="space-y-2 pl-4">
-                  {incomeStatement?.operatingExpenses.breakdown.map(
-                    (item, idx) => (
-                      <div key={idx} className="flex justify-between">
-                        <span>{item.category}</span>
-                        <span>{formatCurrency(item.amount)}</span>
-                      </div>
-                    )
+                  {(incomeStatement?.operatingExpenses?.rent ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Rent</span>
+                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.rent ?? 0)}</span>
+                    </div>
+                  )}
+                  {(incomeStatement?.operatingExpenses?.utilities ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Utilities</span>
+                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.utilities ?? 0)}</span>
+                    </div>
+                  )}
+                  {(incomeStatement?.operatingExpenses?.salaries ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Salaries</span>
+                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.salaries ?? 0)}</span>
+                    </div>
+                  )}
+                  {(incomeStatement?.operatingExpenses?.marketing ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Marketing</span>
+                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.marketing ?? 0)}</span>
+                    </div>
+                  )}
+                  {(incomeStatement?.operatingExpenses?.supplies ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Supplies</span>
+                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.supplies ?? 0)}</span>
+                    </div>
+                  )}
+                  {(incomeStatement?.operatingExpenses?.maintenance ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Maintenance</span>
+                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.maintenance ?? 0)}</span>
+                    </div>
+                  )}
+                  {(incomeStatement?.operatingExpenses?.insuranceLicenses ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Insurance & Licenses</span>
+                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.insuranceLicenses ?? 0)}</span>
+                    </div>
+                  )}
+                  {(incomeStatement?.operatingExpenses?.miscellaneous ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Miscellaneous</span>
+                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.miscellaneous ?? 0)}</span>
+                    </div>
                   )}
                   <div className="flex justify-between font-semibold border-t pt-2">
                     <span>Total Operating Expenses</span>
                     <span>
-                      {formatCurrency(
-                        incomeStatement?.operatingExpenses.total ?? 0
-                      )}
+                      {formatCurrency(incomeStatement?.operatingExpenses?.total ?? 0)}
                     </span>
                   </div>
                 </div>
@@ -754,6 +977,723 @@ export default function ReportsIndex() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Key Metrics Overview */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border shadow-none bg-white">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Sales Revenue</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {formatCurrency(salesRevenue?.total)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border shadow-none bg-white">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Gross Profit</p>
+                <p className="text-2xl font-semibold text-green-600">
+                  {formatCurrency(grossProfit?.grossProfit)}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {grossProfit?.grossProfitMargin?.toFixed(1)}% margin
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border shadow-none bg-white">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center">
+                <Calculator className="h-5 w-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Operating Income</p>
+                <p className="text-2xl font-semibold text-purple-600">
+                  {formatCurrency(operatingIncome?.operatingIncome)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border shadow-none bg-white">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div
+                className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                  (netProfit?.netProfit || 0) >= 0 ? "bg-green-50" : "bg-red-50"
+                }`}
+              >
+                {(netProfit?.netProfit || 0) >= 0 ? (
+                  <TrendingUp className="h-5 w-5 text-green-500" />
+                ) : (
+                  <TrendingDown className="h-5 w-5 text-red-500" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Net Profit</p>
+                <p
+                  className={`text-2xl font-semibold ${
+                    (netProfit?.netProfit || 0) >= 0
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  {formatCurrency(netProfit?.netProfit)}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {netProfit?.netProfitMargin?.toFixed(1)}% margin
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Full Income Statement */}
+      <Collapsible
+        open={expandedSections.includes("income-statement")}
+        onOpenChange={() => toggleSection("income-statement")}
+      >
+        <Card className="border shadow-none bg-white">
+          <CardHeader>
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                  <FileText className="h-4 w-4 text-indigo-500" />
+                </div>
+                <div className="text-left">
+                  <CardTitle className="text-gray-900">
+                    Income Statement
+                  </CardTitle>
+                  <CardDescription className="text-gray-500">
+                    Complete profit and loss breakdown
+                  </CardDescription>
+                </div>
+              </div>
+              {expandedSections.includes("income-statement") ? (
+                <ChevronUp className="h-5 w-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              )}
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <div className="space-y-6">
+                {/* Revenue Section */}
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-blue-500" />
+                    Revenue
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Food Sales</span>
+                      <span className="font-medium">
+                        {formatCurrency(
+                          incomeStatement?.revenue?.foodSales
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Beverage Sales</span>
+                      <span className="font-medium">
+                        {formatCurrency(
+                          incomeStatement?.revenue?.beverageSales
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Catering</span>
+                      <span className="font-medium">
+                        {formatCurrency(
+                          incomeStatement?.revenue?.cateringSales
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Delivery</span>
+                      <span className="font-medium">
+                        {formatCurrency(
+                          incomeStatement?.revenue?.deliverySales
+                        )}
+                      </span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-semibold text-blue-700">
+                      <span>Total Sales Revenue</span>
+                      <span>
+                        {formatCurrency(incomeStatement?.revenue?.totalRevenue)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* COGS Section */}
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Package className="h-4 w-4 text-orange-500" />
+                    Cost of Goods Sold (COGS)
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Beginning Inventory</span>
+                      <span className="font-medium">
+                        {formatCurrency(cogs?.beginningInventory?.total)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        <Plus className="h-3 w-3 inline mr-1" />
+                        Purchases
+                      </span>
+                      <span className="font-medium">
+                        {formatCurrency(cogs?.purchases?.total)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        <Minus className="h-3 w-3 inline mr-1" />
+                        Ending Inventory
+                      </span>
+                      <span className="font-medium">
+                        {formatCurrency(cogs?.endingInventory?.total)}
+                      </span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-semibold text-orange-700">
+                      <span>Total COGS</span>
+                      <span>{formatCurrency(incomeStatement?.costOfGoodsSold ?? cogs?.cogs)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gross Profit */}
+                <div className="bg-green-50 rounded-lg p-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-green-800 flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4" />
+                      Gross Profit
+                    </span>
+                    <div className="text-right">
+                      <span className="text-xl font-bold text-green-700">
+                        {formatCurrency(incomeStatement?.grossProfit ?? grossProfit?.grossProfit)}
+                      </span>
+                      <p className="text-xs text-green-600">
+                        {(incomeStatement?.grossProfitMargin ?? grossProfit?.grossProfitMargin ?? 0).toFixed(1)}% margin
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Operating Expenses Section */}
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Receipt className="h-4 w-4 text-purple-500" />
+                    Operating Expenses
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    {incomeStatement?.operatingExpenses ? (
+                      <>
+                        {incomeStatement.operatingExpenses.rent > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Rent</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.operatingExpenses.rent)}
+                            </span>
+                          </div>
+                        )}
+                        {incomeStatement.operatingExpenses.utilities > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Utilities</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.operatingExpenses.utilities)}
+                            </span>
+                          </div>
+                        )}
+                        {incomeStatement.operatingExpenses.salaries > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Salaries</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.operatingExpenses.salaries)}
+                            </span>
+                          </div>
+                        )}
+                        {incomeStatement.operatingExpenses.marketing > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Marketing</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.operatingExpenses.marketing)}
+                            </span>
+                          </div>
+                        )}
+                        {incomeStatement.operatingExpenses.supplies > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Supplies</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.operatingExpenses.supplies)}
+                            </span>
+                          </div>
+                        )}
+                        {incomeStatement.operatingExpenses.maintenance > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Maintenance</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.operatingExpenses.maintenance)}
+                            </span>
+                          </div>
+                        )}
+                        {incomeStatement.operatingExpenses.insuranceLicenses > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Insurance & Licenses</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.operatingExpenses.insuranceLicenses)}
+                            </span>
+                          </div>
+                        )}
+                        {incomeStatement.operatingExpenses.miscellaneous > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Miscellaneous</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.operatingExpenses.miscellaneous)}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    ) : opex?.byCategory && opex.byCategory.length > 0 ? (
+                      opex.byCategory.slice(0, 5).map((cat) => (
+                        <div
+                          key={cat.category}
+                          className="flex justify-between"
+                        >
+                          <span className="text-gray-600 capitalize">
+                            {cat.category.replace(/_/g, " ").toLowerCase()}
+                          </span>
+                          <span className="font-medium">
+                            {formatCurrency(cat.amount)}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-sm">
+                        No operating expenses data available
+                      </p>
+                    )}
+                    <Separator />
+                    <div className="flex justify-between font-semibold text-purple-700">
+                      <span>Total Operating Expenses</span>
+                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.total ?? opex?.total)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Operating Income */}
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-purple-800 flex items-center gap-2">
+                      <Calculator className="h-4 w-4" />
+                      Operating Income
+                    </span>
+                    <span className="text-xl font-bold text-purple-700">
+                      {formatCurrency(incomeStatement?.operatingIncome ?? operatingIncome?.operatingIncome)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Other Expenses */}
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Minus className="h-4 w-4 text-gray-500" />
+                    Other Expenses
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    {incomeStatement?.otherExpenses ? (
+                      <>
+                        {incomeStatement.otherExpenses.taxExpense > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Tax Expense</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.otherExpenses.taxExpense)}
+                            </span>
+                          </div>
+                        )}
+                        {incomeStatement.otherExpenses.interestExpense > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Interest Expense</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.otherExpenses.interestExpense)}
+                            </span>
+                          </div>
+                        )}
+                        {incomeStatement.otherExpenses.depreciation > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Depreciation</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.otherExpenses.depreciation)}
+                            </span>
+                          </div>
+                        )}
+                        {incomeStatement.otherExpenses.bankCharges > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Bank Charges</span>
+                            <span className="font-medium">
+                              {formatCurrency(incomeStatement.otherExpenses.bankCharges)}
+                            </span>
+                          </div>
+                        )}
+                        <Separator />
+                      </>
+                    ) : null}
+                    <div className="flex justify-between font-medium text-gray-700">
+                      <span>Total Other Expenses</span>
+                      <span>{formatCurrency(incomeStatement?.otherExpenses?.total ?? otherExpenses?.total)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Net Profit */}
+                <div
+                  className={`rounded-lg p-6 ${
+                    (incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >= 0
+                      ? "bg-green-100"
+                      : "bg-red-100"
+                  }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <span
+                      className={`text-lg font-bold flex items-center gap-2 ${
+                        (incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >= 0
+                          ? "text-green-800"
+                          : "text-red-800"
+                      }`}
+                    >
+                      {(incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >= 0 ? (
+                        <TrendingUp className="h-5 w-5" />
+                      ) : (
+                        <TrendingDown className="h-5 w-5" />
+                      )}
+                      Net Profit
+                    </span>
+                    <div className="text-right">
+                      <span
+                        className={`text-2xl font-bold ${
+                          (incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >= 0
+                            ? "text-green-700"
+                            : "text-red-700"
+                        }`}
+                      >
+                        {formatCurrency(incomeStatement?.netProfit ?? netProfit?.netProfit)}
+                      </span>
+                      <p
+                        className={`text-sm ${
+                          (incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {(incomeStatement?.netProfitMargin ?? netProfit?.netProfitMargin ?? 0).toFixed(1)}% margin
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
+      {/* Cost Breakdown */}
+      <Collapsible
+        open={expandedSections.includes("cost-breakdown")}
+        onOpenChange={() => toggleSection("cost-breakdown")}
+      >
+        <Card className="border shadow-none bg-white">
+          <CardHeader>
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                  <Package className="h-4 w-4 text-orange-500" />
+                </div>
+                <div className="text-left">
+                  <CardTitle className="text-gray-900">
+                    Cost Breakdown
+                  </CardTitle>
+                  <CardDescription className="text-gray-500">
+                    Detailed analysis of fixed and variable costs
+                  </CardDescription>
+                </div>
+              </div>
+              {expandedSections.includes("cost-breakdown") ? (
+                <ChevronUp className="h-5 w-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              )}
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Fixed Costs */}
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Warehouse className="h-4 w-4 text-blue-500" />
+                    Fixed Costs
+                  </h3>
+                  <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+                    {fixedCosts?.breakdown &&
+                    Object.keys(fixedCosts.breakdown).length > 0 ? (
+                      Object.entries(fixedCosts.breakdown).map(
+                        ([category, amount]) => (
+                          <div key={category} className="flex justify-between">
+                            <span className="text-gray-600 capitalize">
+                              {category.replace(/_/g, " ")}
+                            </span>
+                            <span className="font-medium">
+                              {formatCurrency(amount as number)}
+                            </span>
+                          </div>
+                        )
+                      )
+                    ) : (
+                      <p className="text-gray-500 text-sm">
+                        No fixed costs recorded
+                      </p>
+                    )}
+                    <Separator />
+                    <div className="flex justify-between font-semibold text-blue-700">
+                      <span>Total Fixed</span>
+                      <span>{formatCurrency(fixedCosts?.total)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Variable Costs */}
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                    Variable Costs
+                  </h3>
+                  <div className="bg-green-50 rounded-lg p-4 space-y-2">
+                    {variableCosts?.breakdown &&
+                    Object.keys(variableCosts.breakdown).length > 0 ? (
+                      Object.entries(variableCosts.breakdown).map(
+                        ([category, amount]) => (
+                          <div key={category} className="flex justify-between">
+                            <span className="text-gray-600 capitalize">
+                              {category.replace(/_/g, " ")}
+                            </span>
+                            <span className="font-medium">
+                              {formatCurrency(amount as number)}
+                            </span>
+                          </div>
+                        )
+                      )
+                    ) : (
+                      <p className="text-gray-500 text-sm">
+                        No variable costs recorded
+                      </p>
+                    )}
+                    <Separator />
+                    <div className="flex justify-between font-semibold text-green-700">
+                      <span>Total Variable</span>
+                      <span>{formatCurrency(variableCosts?.total)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
+      {/* Recipe Costing */}
+      <Collapsible
+        open={expandedSections.includes("recipe-costing")}
+        onOpenChange={() => toggleSection("recipe-costing")}
+      >
+        <Card className="border shadow-none bg-white">
+          <CardHeader>
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <Calculator className="h-4 w-4 text-amber-500" />
+                </div>
+                <div className="text-left">
+                  <CardTitle className="text-gray-900">
+                    Recipe Costing
+                  </CardTitle>
+                  <CardDescription className="text-gray-500">
+                    Analyze costs and margins for individual recipes
+                  </CardDescription>
+                </div>
+              </div>
+              {expandedSections.includes("recipe-costing") ? (
+                <ChevronUp className="h-5 w-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              )}
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <div className="space-y-4">
+                <div className="max-w-md">
+                  <Label htmlFor="recipe" className="text-gray-700">
+                    Select Recipe
+                  </Label>
+                  <Select
+                    value={selectedRecipeId}
+                    onValueChange={setSelectedRecipeId}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Choose a recipe to analyze" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {recipes.map((recipe) => (
+                        <SelectItem key={recipe.id} value={recipe.id}>
+                          {recipe.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {loadingRecipe && selectedRecipeId && (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                )}
+
+                {recipeCost && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <h4 className="font-medium text-gray-900">
+                        Cost Analysis
+                      </h4>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Ingredient Cost</span>
+                        <span className="font-medium">
+                          {formatCurrency(recipeCost.totalIngredientCost)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Labor Cost</span>
+                        <span className="font-medium">
+                          {formatCurrency(recipeCost.laborCost)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Overhead</span>
+                        <span className="font-medium">
+                          {formatCurrency(recipeCost.overheadCost)}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-semibold text-gray-900">
+                        <span>Total Cost</span>
+                        <span>{formatCurrency(recipeCost.totalCost)}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <h4 className="font-medium text-gray-900">
+                        Profit Analysis
+                      </h4>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Selling Price</span>
+                        <span className="font-medium">
+                          {formatCurrency(recipeCost.sellingPrice)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Profit per Recipe</span>
+                        <span
+                          className={`font-medium ${
+                            recipeCost.profit >= 0
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {formatCurrency(recipeCost.profit)}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-semibold">
+                        <span>Profit Margin</span>
+                        <Badge
+                          className={
+                            recipeCost.profitMargin >= 30
+                              ? "bg-green-100 text-green-800"
+                              : recipeCost.profitMargin >= 15
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
+                          }
+                        >
+                          {recipeCost.profitMargin.toFixed(1)}%
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {selectedRecipeId && !recipeCost && !loadingRecipe && (
+                  <div className="text-center py-4 text-gray-500">
+                    No cost data available for this recipe
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
+      {/* Quick Links */}
+      <Card className="border shadow-none bg-white">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" asChild size="sm">
+              <Link to="/dashboard/purchases">
+                <Truck className="h-4 w-4 mr-2" />
+                Manage Purchases
+              </Link>
+            </Button>
+            <Button variant="outline" asChild size="sm">
+              <Link to="/dashboard/inventory">
+                <Warehouse className="h-4 w-4 mr-2" />
+                Manage Inventory
+              </Link>
+            </Button>
+            <Button variant="outline" asChild size="sm">
+              <Link to="/dashboard/expenses">
+                <Receipt className="h-4 w-4 mr-2" />
+                View Expenses
+              </Link>
+            </Button>
+            <Button variant="outline" asChild size="sm">
+              <Link to="/dashboard/sales">
+                <DollarSign className="h-4 w-4 mr-2" />
+                View Sales
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -151,50 +151,89 @@ export default function ExpensesListPage() {
       {/* Summary Cards */}
       <div className="grid gap-5 md:grid-cols-3">
         <Card className="border shadow-none bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-gray-500">
-              Total Expenses
-            </CardDescription>
-            <CardTitle className="text-2xl text-gray-900">
-              {formatCurrency(totalExpenses)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-gray-400">
-              Sum of all recorded expenses
-            </p>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-red-50 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-red-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Total Expenses</p>
+                <p className="text-xl font-semibold text-gray-900">
+                  {formatCurrency(totalExpenses)}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
         <Card className="border shadow-none bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-gray-500">
-              Number of Expenses
-            </CardDescription>
-            <CardTitle className="text-2xl text-gray-900">
-              {expenses.length}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-gray-400">
-              Across {stats?.byCategory?.length ?? 0} categories
-            </p>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-amber-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Number of Expenses</p>
+                <p className="text-xl font-semibold text-gray-900">
+                  {expenses.length}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
         <Card className="border shadow-none bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-gray-500">
-              Largest Category
-            </CardDescription>
-            <CardTitle className="text-2xl text-gray-900">
-              {largestCategory ? categoryLabels[largestCategory.category] : "—"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-gray-400">
-              {largestCategory
-                ? formatCurrency(Number(largestCategory.amount))
-                : "No expenses yet"}
-            </p>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-indigo-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Largest Category</p>
+                <p className="text-xl font-semibold text-gray-900">
+                  {largestCategory
+                    ? categoryLabels[largestCategory.category]
+                    : "—"}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

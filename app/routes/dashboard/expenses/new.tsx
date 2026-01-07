@@ -21,7 +21,7 @@ import {
 } from "~/components/ui/card";
 import { useCreateExpense } from "~/hooks";
 import { APP_CONFIG } from "~/config/app";
-import type { ExpenseCategory } from "~/lib/api";
+import type { ExpenseCategory, ExpenseType } from "~/lib/api";
 
 export function meta() {
   return [
@@ -41,14 +41,19 @@ const expenseCategories: {
     label: "Utilities",
     description: "Electricity, water, gas",
   },
-  { value: "LABOR", label: "Salaries", description: "Employee wages" },
+  { value: "SALARIES", label: "Salaries", description: "Employee wages" },
+  {
+    value: "FIXED_SALARIES",
+    label: "Fixed Salaries",
+    description: "Fixed employee wages",
+  },
   {
     value: "EQUIPMENT",
     label: "Equipment",
     description: "Kitchen equipment, tools",
   },
   {
-    value: "OTHER",
+    value: "MAINTENANCE",
     label: "Maintenance",
     description: "Repairs, upkeep",
   },
@@ -59,8 +64,13 @@ const expenseCategories: {
   },
   {
     value: "PACKAGING",
+    label: "Packaging",
+    description: "Containers, packaging materials",
+  },
+  {
+    value: "SUPPLIES",
     label: "Supplies",
-    description: "Containers, packaging",
+    description: "Office and kitchen supplies",
   },
   {
     value: "TRANSPORTATION",
@@ -68,11 +78,74 @@ const expenseCategories: {
     description: "Delivery, commute",
   },
   {
-    value: "OTHER",
+    value: "DELIVERY_FEES",
+    label: "Delivery Fees",
+    description: "Third-party delivery costs",
+  },
+  {
+    value: "TRANSACTION_FEES",
+    label: "Transaction Fees",
+    description: "Payment processing fees",
+  },
+  {
+    value: "INSURANCE_LICENSES",
+    label: "Insurance",
+    description: "Business insurance",
+  },
+  {
+    value: "PERMITS_LICENSES",
     label: "Permits & Licenses",
     description: "Business permits, licenses",
   },
+  {
+    value: "INTERNET",
+    label: "Internet",
+    description: "Internet and phone",
+  },
+  {
+    value: "DEPRECIATION",
+    label: "Depreciation",
+    description: "Asset depreciation",
+  },
+  {
+    value: "TAX_EXPENSE",
+    label: "Taxes",
+    description: "Business taxes",
+  },
+  {
+    value: "INTEREST_EXPENSE",
+    label: "Interest",
+    description: "Loan interest payments",
+  },
+  {
+    value: "BANK_CHARGES",
+    label: "Bank Charges",
+    description: "Banking fees",
+  },
   { value: "OTHER", label: "Other", description: "Miscellaneous expenses" },
+];
+
+const expenseTypes: {
+  value: ExpenseType;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "FIXED",
+    label: "Fixed",
+    description: "Regular, unchanging expenses (rent, salaries)",
+  },
+  {
+    value: "VARIABLE",
+    label: "Variable",
+    description: "Costs that change with sales (ingredients, packaging)",
+  },
+  {
+    value: "OPERATING",
+    label: "Operating",
+    description: "Day-to-day business expenses",
+  },
+  { value: "OTHER", label: "Other", description: "Other expense types" },
 ];
 
 const frequencyOptions = [
@@ -91,6 +164,7 @@ export default function NewExpensePage() {
   const [formData, setFormData] = useState({
     description: "",
     category: "" as ExpenseCategory,
+    type: "OPERATING" as ExpenseType,
     amount: "",
     frequency: "MONTHLY",
     expenseDate: new Date().toISOString().split("T")[0],
@@ -125,6 +199,7 @@ export default function NewExpensePage() {
     createExpenseMutation.mutate(
       {
         category: formData.category,
+        type: formData.type,
         description: formData.description.trim(),
         amount: parseFloat(formData.amount),
         frequency: formData.frequency as
@@ -260,6 +335,38 @@ export default function NewExpensePage() {
               {errors.category && (
                 <p className="text-sm text-red-500">{errors.category}</p>
               )}
+            </div>
+
+            {/* Expense Type */}
+            <div className="space-y-2">
+              <Label htmlFor="type" className="text-gray-700">
+                Expense Type
+              </Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    type: value as ExpenseType,
+                  })
+                }
+              >
+                <SelectTrigger className="border-gray-200">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {expenseTypes.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      <div className="flex flex-col">
+                        <span>{t.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Helps categorize expenses for financial reports
+              </p>
             </div>
 
             {/* Amount, Frequency and Date Row */}
