@@ -606,7 +606,6 @@ export type InventoryType =
 
 // ============ PURCHASES API (THE INVENTORY) ============
 // Purchase IS the inventory item now - they are merged
-export type PurchaseStatus = "PLANNED" | "PURCHASED";
 
 export interface Purchase {
   id: string;
@@ -616,13 +615,12 @@ export interface Purchase {
   itemType: InventoryType;
   unit: string;
   // Stock tracking
-  quantity: number; // This IS the current stock
+  quantity: number; // This IS the current stock (can be 0)
   reorderLevel: number;
   // Cost info
   unitCost: number;
   totalCost: number;
   // Purchase details
-  status: PurchaseStatus;
   supplier?: string;
   purchaseDate: string;
   notes?: string;
@@ -640,7 +638,6 @@ export interface CreatePurchaseDto {
   itemType?: InventoryType;
   unit?: string;
   reorderLevel?: number;
-  status?: PurchaseStatus;
   quantity: number;
   unitCost: number;
   supplier?: string;
@@ -659,7 +656,6 @@ export interface PurchaseStats {
 export const purchasesApi = {
   getAll: (
     itemType?: InventoryType,
-    status?: PurchaseStatus,
     periodId?: string,
     startDate?: string,
     endDate?: string,
@@ -667,7 +663,6 @@ export const purchasesApi = {
   ): Promise<Purchase[]> => {
     const params = new URLSearchParams();
     if (itemType) params.append("itemType", itemType);
-    if (status) params.append("status", status);
     if (periodId) params.append("periodId", periodId);
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
@@ -829,6 +824,70 @@ export const inventoryApi = {
     ),
 };
 
+// ============ INVENTORY TRANSACTIONS API ============
+export type TransactionType = "INITIAL" | "RESTOCK" | "SALE";
+
+export interface InventoryTransaction {
+  id: string;
+  purchaseId: string;
+  type: TransactionType;
+  quantityChange: number; // positive for INITIAL/RESTOCK, negative for SALE
+  quantityBefore: number;
+  quantityAfter: number;
+  unitCost?: number;
+  referenceId?: string; // saleId if from sale
+  notes?: string;
+  createdAt: string;
+  purchase?: {
+    id: string;
+    name: string;
+    unit: string;
+    itemType: InventoryType;
+  };
+}
+
+export interface TransactionFilters {
+  purchaseId?: string;
+  type?: TransactionType;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface TransactionStats {
+  totalTransactions: number;
+  todayTransactions: number;
+  restockCount: number;
+  saleCount: number;
+}
+
+export const inventoryTransactionsApi = {
+  getAll: (filters?: TransactionFilters): Promise<InventoryTransaction[]> => {
+    const params = new URLSearchParams();
+    if (filters?.purchaseId) params.append("purchaseId", filters.purchaseId);
+    if (filters?.type) params.append("type", filters.type);
+    if (filters?.startDate) params.append("startDate", filters.startDate);
+    if (filters?.endDate) params.append("endDate", filters.endDate);
+    const query = params.toString();
+    return api.get(`/inventory-transactions${query ? `?${query}` : ""}`);
+  },
+  getByItem: (purchaseId: string): Promise<InventoryTransaction[]> =>
+    api.get(`/inventory-transactions/item/${purchaseId}`),
+  getStats: (): Promise<TransactionStats> =>
+    api.get("/inventory-transactions/stats"),
+};
+
+// Restock API - add stock to existing item
+export interface RestockDto {
+  quantity: number;
+  notes?: string;
+  unitCost?: number;
+}
+
+export const restockApi = {
+  restock: (id: string, data: RestockDto): Promise<Purchase> =>
+    api.post(`/purchases/${id}/restock`, data),
+};
+
 // ============ FINANCIAL REPORTS API ============
 export interface FinancialCOGS {
   period: { startDate: string; endDate: string };
@@ -936,13 +995,42 @@ export interface NetProfit {
 
 export interface FullIncomeStatement {
   period: { startDate?: string; endDate?: string };
-  revenue: SalesRevenue;
-  cogs: number;
-  grossProfit: GrossProfit;
-  operatingExpenses: OperatingExpenses;
-  operatingIncome: OperatingIncome;
-  otherExpenses: OtherExpenses;
-  netProfit: NetProfit;
+  revenue: {
+    foodSales: number;
+    beverageSales: number;
+    cateringSales: number;
+    deliverySales: number;
+    totalRevenue: number;
+  };
+  costOfGoodsSold: number;
+  grossProfit: number;
+  grossProfitMargin: number;
+  operatingExpenses: {
+    rent: number;
+    utilities: number;
+    salaries: number;
+    marketing: number;
+    supplies: number;
+    maintenance: number;
+    insuranceLicenses: number;
+    miscellaneous: number;
+    total: number;
+  };
+  operatingIncome: number;
+  otherExpenses: {
+    taxExpense: number;
+    interestExpense: number;
+    depreciation: number;
+    bankCharges: number;
+    total: number;
+  };
+  netProfit: number;
+  netProfitMargin: number;
+  costAnalysis: {
+    variableCosts: VariableCosts;
+    fixedCosts: FixedCosts;
+    totalCosts: number;
+  };
 }
 
 export interface RecipeCostBreakdown {
@@ -1072,4 +1160,148 @@ export const financialReportsApi = {
   },
   getRecipeCost: (recipeId: string): Promise<RecipeCostBreakdown> =>
     api.get(`/reports/financial/recipe-cost/${recipeId}`),
+};
+
+// ============ RECEIPT SCANNER TYPES ============
+export type ItemCategory = "INVENTORY" | "EXPENSE" | "UNKNOWN";
+
+export type ScannerExpenseType =
+  | "UTILITIES"
+  | "RENT"
+  | "MAINTENANCE"
+  | "SUPPLIES"
+  | "EQUIPMENT"
+  | "SALARY"
+  | "OTHER";
+
+export interface ScannedItem {
+  name: string;
+  quantity: number;
+  unit: string;
+  unitCost: number;
+  totalCost: number;
+  category: ItemCategory;
+  expenseType?: ScannerExpenseType;
+  inventoryType?: string;
+  confidence: number;
+  rawText: string;
+  matchedWith?: string;
+}
+
+export interface VendorInfo {
+  name?: string;
+  address?: string;
+  phone?: string;
+  tin?: string;
+}
+
+export interface TotalValidation {
+  calculatedTotal: number;
+  detectedTotal?: number;
+  difference: number;
+  isValid: boolean;
+  message: string;
+}
+
+export interface ScanResult {
+  items: ScannedItem[];
+  rawText: string;
+  scannedAt: string;
+  inventoryCount: number;
+  expenseCount: number;
+  unknownCount: number;
+  vendor?: VendorInfo;
+  totalValidation?: TotalValidation;
+}
+
+export interface SaveInventoryItem {
+  name: string;
+  quantity: number;
+  unit: string;
+  unitCost: number;
+  totalCost: number;
+  inventoryType: string;
+}
+
+export interface SaveExpenseItem {
+  name: string;
+  amount: number;
+  category: string;
+  frequency: string;
+  notes?: string;
+}
+
+export interface SaveScannedItemsDto {
+  inventoryItems: SaveInventoryItem[];
+  expenseItems: SaveExpenseItem[];
+}
+
+export interface SaveResult {
+  inventorySaved: number;
+  expensesSaved: number;
+}
+
+// Category correction for learning
+export interface CategoryCorrection {
+  itemName: string;
+  category: ItemCategory;
+  subCategory?: string;
+  vendor?: string;
+}
+
+export interface LearningStats {
+  totalPatterns: number;
+  inventoryPatterns: number;
+  expensePatterns: number;
+  topPatterns: Array<{ pattern: string; category: string; useCount: number }>;
+}
+
+// ============ RECEIPT SCANNER API ============
+export const receiptScannerApi = {
+  scanReceipt: async (file: File): Promise<ScanResult> => {
+    const token = await getAccessToken();
+    const formData = new FormData();
+    formData.append("receipt", file);
+
+    const response = await fetch(`${API_URL}/receipt/scan`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new ApiError(
+        error.message || "Failed to scan receipt",
+        response.status,
+        error
+      );
+    }
+
+    return response.json();
+  },
+
+  saveItems: (data: SaveScannedItemsDto): Promise<SaveResult> =>
+    api.post("/receipt/save", data),
+
+  // Save category corrections for learning
+  learnFromCorrections: (
+    corrections: CategoryCorrection[]
+  ): Promise<{ savedCount: number }> =>
+    api.post("/receipt/learn", { corrections }),
+
+  // Get learning statistics
+  getLearningStats: (): Promise<LearningStats> =>
+    api.get("/receipt/learning-stats"),
+
+  parseText: (
+    text: string
+  ): Promise<{
+    items: ScannedItem[];
+    inventoryCount: number;
+    expenseCount: number;
+    unknownCount: number;
+  }> => api.post("/receipt/parse-text", { text }),
 };

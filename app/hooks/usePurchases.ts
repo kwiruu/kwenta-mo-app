@@ -4,7 +4,6 @@ import {
   type CreatePurchaseDto,
   type Purchase,
   type InventoryType,
-  type PurchaseStatus,
 } from "~/lib/api";
 
 export const purchaseKeys = {
@@ -12,7 +11,6 @@ export const purchaseKeys = {
   lists: () => [...purchaseKeys.all, "list"] as const,
   list: (filters: {
     itemType?: InventoryType;
-    status?: PurchaseStatus;
     periodId?: string;
     startDate?: string;
     endDate?: string;
@@ -27,7 +25,6 @@ export const purchaseKeys = {
 
 export function usePurchases(filters?: {
   itemType?: InventoryType;
-  status?: PurchaseStatus;
   periodId?: string;
   startDate?: string;
   endDate?: string;
@@ -38,7 +35,6 @@ export function usePurchases(filters?: {
     queryFn: () =>
       purchasesApi.getAll(
         filters?.itemType,
-        filters?.status,
         filters?.periodId,
         filters?.startDate,
         filters?.endDate,

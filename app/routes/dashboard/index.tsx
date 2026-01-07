@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   Plus,
   ArrowRight,
+  CameraIcon,
 } from "lucide-react";
 import {
   Card,
@@ -153,8 +154,8 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium text-gray-500">
               Total Revenue
             </CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <DollarSign className="h-4 w-4 text-primary" />
+            <div className="h-8 w-8 rounded-lg bg-greenz/10 flex items-center justify-center">
+              <DollarSign className="h-4 w-4 text-greenz" />
             </div>
           </CardHeader>
           <CardContent>
@@ -199,7 +200,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium text-gray-500">
               Gross Profit
             </CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-lightgreenz/10 flex items-center justify-center">
               <DollarSign className="h-4 w-4 text-lightgreenz" />
             </div>
           </CardHeader>
@@ -577,11 +578,11 @@ export default function DashboardPage() {
               className="h-auto py-6 flex flex-col gap-3 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all"
               asChild
             >
-              <Link to="/dashboard/ingredients/upload">
-                <div className="h-10 w-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-                  <Plus className="h-5 w-5 text-lightgreenz" />
+              <Link to="/dashboard/scan-receipt">
+                <div className="h-10 w-10 rounded-lg bg-lightgreenz/10 flex items-center justify-center">
+                  <CameraIcon className="h-5 w-5 text-lightgreenz" />
                 </div>
-                <span className="text-gray-700">Bulk Upload</span>
+                <span className="text-gray-700">Scan Receipt</span>
               </Link>
             </Button>
             <Button

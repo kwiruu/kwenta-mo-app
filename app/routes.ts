@@ -47,6 +47,8 @@ export default [
     route("dashboard/inventory", "routes/dashboard/inventory/index.tsx"),
     route("dashboard/inventory/new", "routes/dashboard/inventory/new.tsx"),
     route("dashboard/inventory/:id", "routes/dashboard/inventory/period.tsx"),
+    // Scan Receipt
+    route("dashboard/scan-receipt", "routes/dashboard/scan-receipt/index.tsx"),
     // Reports
     route("dashboard/reports", "routes/dashboard/reports/index.tsx"),
   ]),

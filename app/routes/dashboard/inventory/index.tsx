@@ -15,6 +15,13 @@ import {
   Settings,
   CheckCircle,
   AlertTriangle,
+  PlusCircle,
+  MinusCircle,
+  History,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Filter,
+  Camera,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -84,12 +91,16 @@ import {
   useCreateInventoryPeriod,
   useSetActivePeriod,
 } from "~/hooks/useInventory";
+import {
+  useInventoryTransactions,
+  useRestock,
+} from "~/hooks/useInventoryTransactions";
 import { APP_CONFIG } from "~/config/app";
 import type {
   CreatePurchaseDto,
   InventoryType,
-  PurchaseStatus,
   Purchase,
+  TransactionType,
 } from "~/lib/api";
 
 export function meta() {
@@ -116,29 +127,42 @@ export default function InventoryPage() {
   const { data: purchaseStats } = usePurchaseStats();
   const { data: lowStockItems = [] } = useLowStockAlerts();
 
+  // Transaction history state
+  const [historyItemFilter, setHistoryItemFilter] = useState<string>("ALL");
+  const [historyTypeFilter, setHistoryTypeFilter] = useState<
+    TransactionType | "ALL"
+  >("ALL");
+  const { data: transactions = [], isLoading: transactionsLoading } =
+    useInventoryTransactions({
+      purchaseId: historyItemFilter === "ALL" ? undefined : historyItemFilter,
+      type: historyTypeFilter === "ALL" ? undefined : historyTypeFilter,
+    });
+
   // Mutations
   const createPurchaseMutation = useCreatePurchase();
   const updatePurchaseMutation = useUpdatePurchase();
   const deletePurchaseMutation = useDeletePurchase();
+  const restockMutation = useRestock();
 
   // UI state
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | PurchaseStatus>(
-    "all"
-  );
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
 
   // Modal states
   const [showItemModal, setShowItemModal] = useState(false);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [showRestockModal, setShowRestockModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Purchase | null>(null);
   const [editMode, setEditMode] = useState(false);
+
+  // Restock form state
+  const [restockQuantity, setRestockQuantity] = useState(0);
+  const [restockNotes, setRestockNotes] = useState("");
 
   // Form state
   const [itemForm, setItemForm] = useState<CreatePurchaseDto>({
     itemName: "",
     itemType: "RAW_MATERIAL" as InventoryType,
-    status: "PURCHASED" as PurchaseStatus,
     quantity: 0,
     unit: "pcs",
     unitCost: 0,
@@ -163,27 +187,13 @@ export default function InventoryPage() {
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
         purchase.supplier?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" || purchase.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     });
-  }, [purchases, searchQuery, statusFilter]);
-
-  const purchasedItems = useMemo(() => {
-    return purchases.filter((p) => p.status === "PURCHASED");
-  }, [purchases]);
-
-  const plannedItems = useMemo(() => {
-    return purchases.filter((p) => p.status === "PLANNED");
-  }, [purchases]);
+  }, [purchases, searchQuery]);
 
   const totalInventoryValue = useMemo(() => {
-    return purchasedItems.reduce((sum, p) => sum + Number(p.totalCost), 0);
-  }, [purchasedItems]);
-
-  const plannedValue = useMemo(() => {
-    return plannedItems.reduce((sum, p) => sum + Number(p.totalCost), 0);
-  }, [plannedItems]);
+    return purchases.reduce((sum, p) => sum + Number(p.totalCost), 0);
+  }, [purchases]);
 
   // Aggregate items by name for stock view
   const stockByItem = useMemo(() => {
@@ -191,7 +201,7 @@ export default function InventoryPage() {
       string,
       { name: string; quantity: number; totalCost: number; lastCost: number }
     >();
-    purchasedItems.forEach((p) => {
+    purchases.forEach((p) => {
       const itemName = p.name || "Unknown";
       const existing = itemMap.get(itemName);
       if (existing) {
@@ -208,7 +218,7 @@ export default function InventoryPage() {
       }
     });
     return Array.from(itemMap.values());
-  }, [purchasedItems]);
+  }, [purchases]);
 
   // Helpers
   const formatInventoryType = (type: InventoryType) => {
@@ -266,6 +276,45 @@ export default function InventoryPage() {
     });
   };
 
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString("en-PH", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getTransactionTypeInfo = (type: TransactionType) => {
+    switch (type) {
+      case "INITIAL":
+        return {
+          label: "Initial Stock",
+          color: "border-blue-200 bg-blue-50 text-blue-700",
+          icon: Package,
+        };
+      case "RESTOCK":
+        return {
+          label: "Restock",
+          color: "border-green-200 bg-green-50 text-green-700",
+          icon: ArrowUpCircle,
+        };
+      case "SALE":
+        return {
+          label: "Sale",
+          color: "border-red-200 bg-red-50 text-red-700",
+          icon: ArrowDownCircle,
+        };
+      default:
+        return {
+          label: type,
+          color: "border-gray-200 bg-gray-50 text-gray-700",
+          icon: Clock,
+        };
+    }
+  };
+
   // Handlers
   const handleDeleteItem = () => {
     if (!deleteItemId) return;
@@ -281,7 +330,6 @@ export default function InventoryPage() {
       setItemForm({
         itemName: item.name || "",
         itemType: item.itemType || "RAW_MATERIAL",
-        status: item.status,
         quantity: Number(item.quantity),
         unit: item.unit || "pcs",
         unitCost: Number(item.unitCost),
@@ -295,7 +343,6 @@ export default function InventoryPage() {
       setItemForm({
         itemName: "",
         itemType: "RAW_MATERIAL",
-        status: "PURCHASED",
         quantity: 0,
         unit: "pcs",
         unitCost: 0,
@@ -321,11 +368,32 @@ export default function InventoryPage() {
     }
   };
 
-  const handleMarkAsPurchased = (item: Purchase) => {
-    updatePurchaseMutation.mutate({
-      id: item.id,
-      data: { status: "PURCHASED" },
-    });
+  const handleOpenRestockModal = (item: Purchase) => {
+    setSelectedItem(item);
+    setRestockQuantity(0);
+    setRestockNotes("");
+    setShowRestockModal(true);
+  };
+
+  const handleRestock = () => {
+    if (!selectedItem || restockQuantity <= 0) return;
+
+    restockMutation.mutate(
+      {
+        id: selectedItem.id,
+        data: {
+          quantity: restockQuantity,
+          notes: restockNotes || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          setShowRestockModal(false);
+          setRestockQuantity(0);
+          setRestockNotes("");
+        },
+      }
+    );
   };
 
   const handleCreatePeriod = () => {
@@ -411,6 +479,13 @@ export default function InventoryPage() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          <Link to="/dashboard/scan-receipt">
+            <Button variant="outline">
+              <Camera className="h-4 w-4 mr-2" />
+              Scan Receipt
+            </Button>
+          </Link>
+
           <Button variant="green" onClick={() => handleOpenItemModal()}>
             <Plus className="h-4 w-4 mr-2" />
             Add Item
@@ -419,7 +494,7 @@ export default function InventoryPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="border shadow-none bg-white">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
@@ -452,32 +527,24 @@ export default function InventoryPage() {
           </CardContent>
         </Card>
 
-        <Card className="border shadow-none bg-white">
+        <Card
+          className={`border shadow-none ${lowStockItems.length > 0 ? "border-amber-200 bg-amber-50" : "bg-white"}`}
+        >
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-amber-500" />
+              <div
+                className={`h-10 w-10 rounded-lg flex items-center justify-center ${lowStockItems.length > 0 ? "bg-amber-100" : "bg-orange-50"}`}
+              >
+                <AlertTriangle
+                  className={`h-5 w-5 ${lowStockItems.length > 0 ? "text-amber-600" : "text-orange-500"}`}
+                />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Planned Items</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  {plannedItems.length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-none bg-white">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                <ShoppingCart className="h-5 w-5 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Planned Value</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  {formatCurrency(plannedValue)}
+                <p className="text-sm text-gray-500">Low Stock Alerts</p>
+                <p
+                  className={`text-xl font-semibold ${lowStockItems.length > 0 ? "text-amber-900" : "text-gray-900"}`}
+                >
+                  {lowStockItems.length}
                 </p>
               </div>
             </div>
@@ -485,102 +552,13 @@ export default function InventoryPage() {
         </Card>
       </div>
 
-      {/* Low Stock Alert Cards */}
-      {lowStockItems.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-amber-600" />
-            Low Stock Alerts ({lowStockItems.length} items)
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {lowStockItems.map((item) => (
-              <Card
-                key={item.id}
-                className="border border-amber-200 bg-amber-50/50 shadow-sm"
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 mb-1">
-                        {item.name}
-                      </h4>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {item.supplier && `${item.supplier} • `}
-                        {formatInventoryType(item.itemType || "OTHER")}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className={`${
-                            item.quantity < 0
-                              ? "bg-red-100 text-red-800 border-red-300"
-                              : item.quantity === 0
-                                ? "bg-orange-100 text-orange-800 border-orange-300"
-                                : "bg-amber-100 text-amber-800 border-amber-300"
-                          }`}
-                        >
-                          {item.quantity < 0
-                            ? `Out of stock (${Math.abs(item.quantity).toFixed(1)} ${item.unit})`
-                            : item.quantity === 0
-                              ? `Empty stock`
-                              : `${item.quantity.toFixed(1)} ${item.unit} remaining`}
-                        </Badge>
-                      </div>
-                      {item.reorderLevel && (
-                        <p className="text-xs text-gray-500 mt-2">
-                          Reorder at: {item.reorderLevel} {item.unit}
-                        </p>
-                      )}
-                    </div>
-                    <div className="ml-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-amber-700 border-amber-300 hover:bg-amber-100"
-                        onClick={() => handleOpenItemModal(item)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Planned Items Alert */}
-      {plannedItems.length > 0 && (
-        <Card className="border-amber-100 bg-amber-50 shadow-none">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-amber-700 flex items-center gap-2 text-base">
-              <Clock className="h-5 w-5" />
-              Shopping List
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-amber-600 text-sm">
-              {plannedItems.length} planned item(s) totaling{" "}
-              {formatCurrency(plannedValue)}:{" "}
-              {plannedItems
-                .slice(0, 3)
-                .map((i) => i.name || "Unknown")
-                .join(", ")}
-              {plannedItems.length > 3 &&
-                ` and ${plannedItems.length - 3} more`}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Tabs for different views */}
       <Tabs defaultValue="transactions" className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <TabsList>
-            <TabsTrigger value="transactions">All Transactions</TabsTrigger>
+            <TabsTrigger value="transactions">All Items</TabsTrigger>
             <TabsTrigger value="stock">Stock Summary</TabsTrigger>
-            <TabsTrigger value="planned">Shopping List</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -593,25 +571,10 @@ export default function InventoryPage() {
                 className="pl-9 border-gray-200"
               />
             </div>
-            <Select
-              value={statusFilter}
-              onValueChange={(v) =>
-                setStatusFilter(v as "all" | PurchaseStatus)
-              }
-            >
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="PURCHASED">Purchased</SelectItem>
-                <SelectItem value="PLANNED">Planned</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
-        {/* All Transactions Tab */}
+        {/* All Items Tab */}
         <TabsContent value="transactions">
           <Card className="border shadow-none bg-white">
             <CardContent className="p-0">
@@ -652,9 +615,6 @@ export default function InventoryPage() {
                       <TableHead className="text-gray-500 font-medium">
                         Type
                       </TableHead>
-                      <TableHead className="text-gray-500 font-medium">
-                        Status
-                      </TableHead>
                       <TableHead className="text-right text-gray-500 font-medium">
                         Qty
                       </TableHead>
@@ -674,10 +634,7 @@ export default function InventoryPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredPurchases.map((item) => (
-                      <TableRow
-                        key={item.id}
-                        className={`border-gray-100 ${item.status === "PLANNED" ? "bg-amber-50/50" : ""}`}
-                      >
+                      <TableRow key={item.id} className="border-gray-100">
                         <TableCell className="font-medium text-gray-900 pl-4">
                           <div>
                             <span>{item.name || "Unknown"}</span>
@@ -698,25 +655,6 @@ export default function InventoryPage() {
                             {formatInventoryType(item.itemType || "OTHER")}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          {item.status === "PURCHASED" ? (
-                            <Badge
-                              variant="outline"
-                              className="border-green-300 bg-green-50 text-green-700"
-                            >
-                              <Check className="h-3 w-3 mr-1" />
-                              Purchased
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="border-amber-300 bg-amber-50 text-amber-700"
-                            >
-                              <Clock className="h-3 w-3 mr-1" />
-                              Planned
-                            </Badge>
-                          )}
-                        </TableCell>
                         <TableCell className="text-right text-gray-900">
                           {item.quantity}
                         </TableCell>
@@ -731,17 +669,15 @@ export default function InventoryPage() {
                         </TableCell>
                         <TableCell className="text-right pr-4">
                           <div className="flex justify-end gap-1">
-                            {item.status === "PLANNED" && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                onClick={() => handleMarkAsPurchased(item)}
-                                title="Mark as Purchased"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-gray-500 hover:text-green-600 hover:bg-green-50"
+                              onClick={() => handleOpenRestockModal(item)}
+                              title="Add Stock"
+                            >
+                              <PlusCircle className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -777,13 +713,13 @@ export default function InventoryPage() {
             <CardHeader>
               <CardTitle>Stock Summary</CardTitle>
               <CardDescription>
-                Aggregated view of purchased items in this period
+                Aggregated view of items in this period
               </CardDescription>
             </CardHeader>
             <CardContent>
               {stockByItem.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  No purchased items in this period
+                  No items in this period
                 </div>
               ) : (
                 <Table>
@@ -823,75 +759,142 @@ export default function InventoryPage() {
           </Card>
         </TabsContent>
 
-        {/* Shopping List Tab */}
-        <TabsContent value="planned">
+        {/* History Tab */}
+        <TabsContent value="history">
           <Card className="border shadow-none bg-white">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-amber-500" />
-                Shopping List
-              </CardTitle>
-              <CardDescription>
-                Items you&apos;re planning to purchase
-              </CardDescription>
+            <CardHeader className="pb-4">
+              <div className="flex flex-col sm:flex-row justify-between gap-4">
+                <div>
+                  <CardTitle>Transaction History</CardTitle>
+                  <CardDescription>
+                    Track all inventory changes including restocks and sales
+                    deductions
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Select
+                    value={historyItemFilter}
+                    onValueChange={setHistoryItemFilter}
+                  >
+                    <SelectTrigger className="w-48">
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="All Items" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Items</SelectItem>
+                      {purchases.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={historyTypeFilter}
+                    onValueChange={(v) =>
+                      setHistoryTypeFilter(v as TransactionType | "ALL")
+                    }
+                  >
+                    <SelectTrigger className="w-36">
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Types</SelectItem>
+                      <SelectItem value="INITIAL">Initial</SelectItem>
+                      <SelectItem value="RESTOCK">Restock</SelectItem>
+                      <SelectItem value="SALE">Sale</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent>
-              {plannedItems.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4 mx-auto">
-                    <Check className="h-8 w-8 text-green-500" />
+            <CardContent className="p-0">
+              {transactionsLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                </div>
+              ) : transactions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
+                    <History className="h-8 w-8 text-gray-400" />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    All caught up!
+                    No transactions yet
                   </h3>
-                  <p className="text-gray-500 mb-4">
-                    No planned items. Add items with &quot;Planned&quot; status
-                    to create a shopping list.
+                  <p className="text-gray-500 mb-4 max-w-sm">
+                    Add items or make sales to see transaction history here.
                   </p>
-                  <Button onClick={() => handleOpenItemModal()}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Planned Item
-                  </Button>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Supplier</TableHead>
-                      <TableHead className="text-right">Qty</TableHead>
-                      <TableHead className="text-right">Est. Cost</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                    <TableRow className="border-gray-100 hover:bg-transparent">
+                      <TableHead className="text-gray-500 font-medium pl-4">
+                        Date/Time
+                      </TableHead>
+                      <TableHead className="text-gray-500 font-medium">
+                        Item
+                      </TableHead>
+                      <TableHead className="text-gray-500 font-medium">
+                        Type
+                      </TableHead>
+                      <TableHead className="text-right text-gray-500 font-medium">
+                        Change
+                      </TableHead>
+                      <TableHead className="text-right text-gray-500 font-medium">
+                        Before → After
+                      </TableHead>
+                      <TableHead className="text-gray-500 font-medium pr-4">
+                        Notes
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {plannedItems.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">
-                          {item.name || "Unknown"}
-                        </TableCell>
-                        <TableCell className="text-gray-500">
-                          {item.supplier || "—"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {item.quantity}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(item.totalCost)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-green-600 border-green-200 hover:bg-green-50"
-                            onClick={() => handleMarkAsPurchased(item)}
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Mark Purchased
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {transactions.map((tx) => {
+                      const typeInfo = getTransactionTypeInfo(tx.type);
+                      const TypeIcon = typeInfo.icon;
+                      return (
+                        <TableRow key={tx.id} className="border-gray-100">
+                          <TableCell className="text-gray-600 pl-4">
+                            {formatDateTime(tx.createdAt)}
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-900">
+                            {tx.purchase?.name || "Unknown"}
+                            <span className="ml-1 text-gray-400 text-sm">
+                              ({tx.purchase?.unit || ""})
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={`${typeInfo.color} flex items-center gap-1 w-fit`}
+                            >
+                              <TypeIcon className="h-3 w-3" />
+                              {typeInfo.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span
+                              className={`font-semibold ${
+                                tx.quantityChange >= 0
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }`}
+                            >
+                              {tx.quantityChange >= 0 ? "+" : ""}
+                              {Number(tx.quantityChange).toFixed(2)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right text-gray-600">
+                            {Number(tx.quantityBefore).toFixed(2)} →{" "}
+                            {Number(tx.quantityAfter).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-gray-500 pr-4 max-w-32 truncate">
+                            {tx.notes || "-"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               )}
@@ -925,6 +928,7 @@ export default function InventoryPage() {
                 placeholder="e.g., Rice, Onion, Packaging Box"
               />
             </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="itemType">Type</Label>
@@ -957,37 +961,20 @@ export default function InventoryPage() {
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="grid gap-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={itemForm.status}
-                  onValueChange={(value) =>
-                    setItemForm({
-                      ...itemForm,
-                      status: value as PurchaseStatus,
-                    })
+                <Label htmlFor="supplier">Supplier</Label>
+                <Input
+                  id="supplier"
+                  value={itemForm.supplier}
+                  onChange={(e) =>
+                    setItemForm({ ...itemForm, supplier: e.target.value })
                   }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PURCHASED">
-                      <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-green-500" />
-                        Purchased
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="PLANNED">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-amber-500" />
-                        Planned
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                  placeholder="e.g., Local Market"
+                />
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="quantity">Quantity *</Label>
@@ -1007,18 +994,41 @@ export default function InventoryPage() {
                   placeholder="0"
                 />
               </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="unit">Unit *</Label>
-                <Input
-                  id="unit"
-                  value={itemForm.unit || ""}
-                  onChange={(e) =>
-                    setItemForm({ ...itemForm, unit: e.target.value })
+                <Select
+                  value={itemForm.unit || "pcs"}
+                  onValueChange={(value) =>
+                    setItemForm({ ...itemForm, unit: value })
                   }
-                  placeholder="e.g., kg, L, pcs, boxes"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="max-h-60">
+                    <SelectItem value="kg">Kilogram (kg)</SelectItem>
+                    <SelectItem value="g">Gram (g)</SelectItem>
+                    <SelectItem value="lbs">Pounds (lbs)</SelectItem>
+                    <SelectItem value="L">Liter (L)</SelectItem>
+                    <SelectItem value="mL">Milliliter (mL)</SelectItem>
+                    <SelectItem value="gal">Gallon (gal)</SelectItem>
+                    <SelectItem value="pcs">Pieces (pcs)</SelectItem>
+                    <SelectItem value="bottle">Bottle</SelectItem>
+                    <SelectItem value="can">Can</SelectItem>
+                    <SelectItem value="box">Box</SelectItem>
+                    <SelectItem value="pack">Pack</SelectItem>
+                    <SelectItem value="bundle">Bundle</SelectItem>
+                    <SelectItem value="bag">Bag</SelectItem>
+                    <SelectItem value="sack">Sack</SelectItem>
+                    <SelectItem value="dozen">Dozen</SelectItem>
+                    <SelectItem value="tray">Tray</SelectItem>
+                    <SelectItem value="container">Container</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="unitCost">Unit Cost (₱) *</Label>
@@ -1038,17 +1048,7 @@ export default function InventoryPage() {
                   placeholder="0.00"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="supplier">Supplier</Label>
-                <Input
-                  id="supplier"
-                  value={itemForm.supplier}
-                  onChange={(e) =>
-                    setItemForm({ ...itemForm, supplier: e.target.value })
-                  }
-                  placeholder="e.g., Local Market"
-                />
-              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="purchaseDate">Date Purchased</Label>
                 <Input
@@ -1061,6 +1061,7 @@ export default function InventoryPage() {
                 />
               </div>
             </div>
+
             <div className="grid gap-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea
@@ -1073,6 +1074,7 @@ export default function InventoryPage() {
                 rows={2}
               />
             </div>
+
             {itemForm.quantity > 0 && itemForm.unitCost > 0 && (
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">
@@ -1092,7 +1094,7 @@ export default function InventoryPage() {
               onClick={handleSaveItem}
               disabled={
                 !itemForm.itemName ||
-                itemForm.quantity <= 0 ||
+                itemForm.quantity < 0 ||
                 createPurchaseMutation.isPending ||
                 updatePurchaseMutation.isPending
               }
@@ -1102,9 +1104,7 @@ export default function InventoryPage() {
                 ? "Saving..."
                 : editMode
                   ? "Save Changes"
-                  : itemForm.status === "PLANNED"
-                    ? "Add to Shopping List"
-                    : "Add Item"}
+                  : "Add Item"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1196,6 +1196,112 @@ export default function InventoryPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Stock Modal */}
+      <Dialog open={showRestockModal} onOpenChange={setShowRestockModal}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Add Stock</DialogTitle>
+            <DialogDescription>
+              Add stock quantity for {selectedItem?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Current Stock</Label>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-lg font-semibold text-gray-900">
+                  {selectedItem?.quantity} {selectedItem?.unit}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="restockQty">Quantity to Add *</Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    setRestockQuantity((prev) => Math.max(0, prev - 1))
+                  }
+                  disabled={restockQuantity <= 0}
+                >
+                  <MinusCircle className="h-4 w-4" />
+                </Button>
+                <Input
+                  id="restockQty"
+                  type="number"
+                  step="any"
+                  min="0"
+                  value={restockQuantity}
+                  onChange={(e) =>
+                    setRestockQuantity(
+                      e.target.value === ""
+                        ? 0
+                        : Math.max(0, parseFloat(e.target.value))
+                    )
+                  }
+                  className="text-center"
+                  placeholder="0"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setRestockQuantity((prev) => prev + 1)}
+                >
+                  <PlusCircle className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="restockNotes">Notes (optional)</Label>
+              <Input
+                id="restockNotes"
+                value={restockNotes}
+                onChange={(e) => setRestockNotes(e.target.value)}
+                placeholder="e.g., Restocked from supplier"
+              />
+            </div>
+
+            {restockQuantity > 0 && (
+              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-green-900">
+                  New Stock:{" "}
+                  <span className="font-semibold">
+                    {(Number(selectedItem?.quantity) || 0) + restockQuantity}{" "}
+                    {selectedItem?.unit}
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowRestockModal(false);
+                setRestockQuantity(0);
+                setRestockNotes("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="green"
+              onClick={handleRestock}
+              disabled={restockQuantity <= 0 || restockMutation.isPending}
+            >
+              {restockMutation.isPending
+                ? "Adding..."
+                : `Add ${restockQuantity} ${selectedItem?.unit || "units"}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
