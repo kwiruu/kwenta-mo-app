@@ -1,16 +1,10 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router";
-import { Plus, Search, Upload, Edit, Trash2, Receipt } from "lucide-react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { Plus, Search, Upload, Edit, Trash2, Receipt } from 'lucide-react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import {
   Table,
   TableBody,
@@ -18,41 +12,41 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
-import { useExpenses, useExpenseStats, useDeleteExpense } from "~/hooks";
-import { APP_CONFIG } from "~/config/app";
-import type { ExpenseCategory, Expense } from "~/lib/api";
+} from '~/components/ui/table';
+import { Badge } from '~/components/ui/badge';
+import { useExpenses, useExpenseStats, useDeleteExpense } from '~/hooks';
+import { APP_CONFIG } from '~/config/app';
+import type { ExpenseCategory, Expense } from '~/lib/api';
 
 export function meta() {
   return [
     { title: `Operating Expenses - ${APP_CONFIG.name}` },
-    { name: "description", content: "Manage your business operating expenses" },
+    { name: 'description', content: 'Manage your business operating expenses' },
   ];
 }
 
 const categoryLabels: Record<ExpenseCategory, string> = {
-  INGREDIENTS: "Ingredients",
-  LABOR: "Labor",
-  UTILITIES: "Utilities",
-  RENT: "Rent",
-  EQUIPMENT: "Equipment",
-  MARKETING: "Marketing",
-  TRANSPORTATION: "Transportation",
-  PACKAGING: "Packaging",
-  OTHER: "Other",
+  INGREDIENTS: 'Ingredients',
+  LABOR: 'Labor',
+  UTILITIES: 'Utilities',
+  RENT: 'Rent',
+  EQUIPMENT: 'Equipment',
+  MARKETING: 'Marketing',
+  TRANSPORTATION: 'Transportation',
+  PACKAGING: 'Packaging',
+  OTHER: 'Other',
 };
 
 const categoryColors: Record<ExpenseCategory, string> = {
-  INGREDIENTS: "bg-green-100 text-green-700 hover:bg-green-100",
-  LABOR: "bg-secondary/10 text-secondary hover:bg-secondary/10",
-  UTILITIES: "bg-amber-100 text-amber-700 hover:bg-amber-100",
-  RENT: "bg-blue-100 text-blue-700 hover:bg-blue-100",
-  EQUIPMENT: "bg-purple-100 text-purple-700 hover:bg-purple-100",
-  MARKETING: "bg-pink-100 text-pink-700 hover:bg-pink-100",
-  TRANSPORTATION: "bg-cyan-100 text-cyan-700 hover:bg-cyan-100",
-  PACKAGING: "bg-orange-100 text-orange-700 hover:bg-orange-100",
-  OTHER: "bg-gray-100 text-gray-700 hover:bg-gray-100",
+  INGREDIENTS: 'bg-green-100 text-green-700 hover:bg-green-100',
+  LABOR: 'bg-secondary/10 text-secondary hover:bg-secondary/10',
+  UTILITIES: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
+  RENT: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
+  EQUIPMENT: 'bg-purple-100 text-purple-700 hover:bg-purple-100',
+  MARKETING: 'bg-pink-100 text-pink-700 hover:bg-pink-100',
+  TRANSPORTATION: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-100',
+  PACKAGING: 'bg-orange-100 text-orange-700 hover:bg-orange-100',
+  OTHER: 'bg-gray-100 text-gray-700 hover:bg-gray-100',
 };
 
 export default function ExpensesListPage() {
@@ -60,7 +54,7 @@ export default function ExpensesListPage() {
   const { data: expenses = [], isLoading } = useExpenses();
   const { data: stats } = useExpenseStats();
   const deleteExpenseMutation = useDeleteExpense();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const filteredExpenses = expenses.filter(
@@ -69,21 +63,20 @@ export default function ExpensesListPage() {
       expense.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const totalExpenses =
-    stats?.total ?? expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const totalExpenses = stats?.total ?? expenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
     }).format(amount);
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-PH", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return new Date(dateStr).toLocaleDateString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
@@ -121,12 +114,8 @@ export default function ExpensesListPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Operating Expenses
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Track your recurring business expenses
-          </p>
+          <h1 className="text-2xl font-semibold text-gray-900">Operating Expenses</h1>
+          <p className="text-gray-500 mt-1">Track your recurring business expenses</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -199,9 +188,7 @@ export default function ExpensesListPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Number of Expenses</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  {expenses.length}
-                </p>
+                <p className="text-xl font-semibold text-gray-900">{expenses.length}</p>
               </div>
             </div>
           </CardContent>
@@ -228,9 +215,7 @@ export default function ExpensesListPage() {
               <div>
                 <p className="text-sm text-gray-500">Largest Category</p>
                 <p className="text-xl font-semibold text-gray-900">
-                  {largestCategory
-                    ? categoryLabels[largestCategory.category]
-                    : "—"}
+                  {largestCategory ? categoryLabels[largestCategory.category] : '—'}
                 </p>
               </div>
             </div>
@@ -259,13 +244,11 @@ export default function ExpensesListPage() {
               <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
                 <Receipt className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No expenses found
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No expenses found</h3>
               <p className="text-gray-500 mb-4 max-w-sm">
                 {searchQuery
-                  ? "Try a different search term"
-                  : "Track your operating expenses to calculate accurate product costs."}
+                  ? 'Try a different search term'
+                  : 'Track your operating expenses to calculate accurate product costs.'}
               </p>
               {!searchQuery && (
                 <div className="flex gap-2">
@@ -288,18 +271,10 @@ export default function ExpensesListPage() {
             <Table>
               <TableHeader>
                 <TableRow className="border-gray-100 hover:bg-transparent">
-                  <TableHead className="text-gray-500 font-medium pl-4">
-                    Description
-                  </TableHead>
-                  <TableHead className="text-gray-500 font-medium">
-                    Category
-                  </TableHead>
-                  <TableHead className="text-right text-gray-500 font-medium">
-                    Amount
-                  </TableHead>
-                  <TableHead className="text-gray-500 font-medium">
-                    Date
-                  </TableHead>
+                  <TableHead className="text-gray-500 font-medium pl-4">Description</TableHead>
+                  <TableHead className="text-gray-500 font-medium">Category</TableHead>
+                  <TableHead className="text-right text-gray-500 font-medium">Amount</TableHead>
+                  <TableHead className="text-gray-500 font-medium">Date</TableHead>
                   <TableHead className="text-right text-gray-500 font-medium pr-4">
                     Actions
                   </TableHead>
@@ -328,9 +303,7 @@ export default function ExpensesListPage() {
                           variant="ghost"
                           size="sm"
                           className="text-gray-500 hover:text-primary hover:bg-primary/10"
-                          onClick={() =>
-                            navigate(`/dashboard/expenses/${expense.id}/edit`)
-                          }
+                          onClick={() => navigate(`/dashboard/expenses/${expense.id}/edit`)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -339,8 +312,8 @@ export default function ExpensesListPage() {
                           size="sm"
                           className={
                             deleteConfirm === expense.id
-                              ? "text-red-500 hover:text-red-600 hover:bg-red-50"
-                              : "text-gray-500 hover:text-red-500 hover:bg-red-50"
+                              ? 'text-red-500 hover:text-red-600 hover:bg-red-50'
+                              : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
                           }
                           onClick={() => handleDelete(expense.id)}
                         >

@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Link } from "react-router";
+import { useState, useMemo } from 'react';
+import { Link } from 'react-router';
 import {
   Plus,
   Search,
@@ -22,16 +22,10 @@ import {
   ArrowDownCircle,
   Filter,
   Camera,
-} from "lucide-react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+} from 'lucide-react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import {
   Table,
   TableBody,
@@ -39,7 +33,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
+} from '~/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -47,7 +41,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "~/components/ui/dialog";
+} from '~/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,26 +51,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "~/components/ui/alert-dialog";
+} from '~/components/ui/alert-dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select";
+} from '~/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { Badge } from "~/components/ui/badge";
-import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+} from '~/components/ui/dropdown-menu';
+import { Badge } from '~/components/ui/badge';
+import { Label } from '~/components/ui/label';
+import { Textarea } from '~/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import {
   usePurchases,
   usePurchaseStats,
@@ -84,31 +78,23 @@ import {
   useUpdatePurchase,
   useDeletePurchase,
   useLowStockAlerts,
-} from "~/hooks/usePurchases";
+} from '~/hooks/usePurchases';
 import {
   useActivePeriod,
   useInventoryPeriods,
   useCreateInventoryPeriod,
   useSetActivePeriod,
-} from "~/hooks/useInventory";
-import {
-  useInventoryTransactions,
-  useRestock,
-} from "~/hooks/useInventoryTransactions";
-import { APP_CONFIG } from "~/config/app";
-import type {
-  CreatePurchaseDto,
-  InventoryType,
-  Purchase,
-  TransactionType,
-} from "~/lib/api";
+} from '~/hooks/useInventory';
+import { useInventoryTransactions, useRestock } from '~/hooks/useInventoryTransactions';
+import { APP_CONFIG } from '~/config/app';
+import type { CreatePurchaseDto, InventoryType, Purchase, TransactionType } from '~/lib/api';
 
 export function meta() {
   return [
     { title: `Inventory - ${APP_CONFIG.name}` },
     {
-      name: "description",
-      content: "Manage your inventory with the Active Period system",
+      name: 'description',
+      content: 'Manage your inventory with the Active Period system',
     },
   ];
 }
@@ -128,15 +114,12 @@ export default function InventoryPage() {
   const { data: lowStockItems = [] } = useLowStockAlerts();
 
   // Transaction history state
-  const [historyItemFilter, setHistoryItemFilter] = useState<string>("ALL");
-  const [historyTypeFilter, setHistoryTypeFilter] = useState<
-    TransactionType | "ALL"
-  >("ALL");
-  const { data: transactions = [], isLoading: transactionsLoading } =
-    useInventoryTransactions({
-      purchaseId: historyItemFilter === "ALL" ? undefined : historyItemFilter,
-      type: historyTypeFilter === "ALL" ? undefined : historyTypeFilter,
-    });
+  const [historyItemFilter, setHistoryItemFilter] = useState<string>('ALL');
+  const [historyTypeFilter, setHistoryTypeFilter] = useState<TransactionType | 'ALL'>('ALL');
+  const { data: transactions = [], isLoading: transactionsLoading } = useInventoryTransactions({
+    purchaseId: historyItemFilter === 'ALL' ? undefined : historyItemFilter,
+    type: historyTypeFilter === 'ALL' ? undefined : historyTypeFilter,
+  });
 
   // Mutations
   const createPurchaseMutation = useCreatePurchase();
@@ -145,7 +128,7 @@ export default function InventoryPage() {
   const restockMutation = useRestock();
 
   // UI state
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
 
   // Modal states
@@ -157,35 +140,33 @@ export default function InventoryPage() {
 
   // Restock form state
   const [restockQuantity, setRestockQuantity] = useState(0);
-  const [restockNotes, setRestockNotes] = useState("");
+  const [restockNotes, setRestockNotes] = useState('');
 
   // Form state
   const [itemForm, setItemForm] = useState<CreatePurchaseDto>({
-    itemName: "",
-    itemType: "RAW_MATERIAL" as InventoryType,
+    itemName: '',
+    itemType: 'RAW_MATERIAL' as InventoryType,
     quantity: 0,
-    unit: "pcs",
+    unit: 'pcs',
     unitCost: 0,
-    supplier: "",
-    purchaseDate: new Date().toISOString().split("T")[0],
-    notes: "",
+    supplier: '',
+    purchaseDate: new Date().toISOString().split('T')[0],
+    notes: '',
   });
 
   const [periodForm, setPeriodForm] = useState({
-    periodName: "",
-    startDate: new Date().toISOString().split("T")[0],
+    periodName: '',
+    startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
       .toISOString()
-      .split("T")[0],
+      .split('T')[0],
   });
 
   // Computed values
   const filteredPurchases = useMemo(() => {
     return purchases.filter((purchase) => {
       const matchesSearch =
-        (purchase.name || "")
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
+        (purchase.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         purchase.supplier?.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesSearch;
     });
@@ -202,7 +183,7 @@ export default function InventoryPage() {
       { name: string; quantity: number; totalCost: number; lastCost: number }
     >();
     purchases.forEach((p) => {
-      const itemName = p.name || "Unknown";
+      const itemName = p.name || 'Unknown';
       const existing = itemMap.get(itemName);
       if (existing) {
         existing.quantity += Number(p.quantity);
@@ -223,93 +204,93 @@ export default function InventoryPage() {
   // Helpers
   const formatInventoryType = (type: InventoryType) => {
     const typeMap: Record<InventoryType, string> = {
-      RAW_MATERIAL: "Raw Material",
-      PACKAGING: "Packaging",
-      INGREDIENT: "Ingredient",
-      SPICE: "Spice",
-      CONDIMENT: "Condiment",
-      BEVERAGE: "Beverage",
-      DAIRY: "Dairy",
-      PRODUCE: "Produce",
-      PROTEIN: "Protein",
-      GRAIN: "Grain",
-      OIL: "Oil",
-      SUPPLY: "Supply",
-      EQUIPMENT: "Equipment",
-      OTHER: "Other",
+      RAW_MATERIAL: 'Raw Material',
+      PACKAGING: 'Packaging',
+      INGREDIENT: 'Ingredient',
+      SPICE: 'Spice',
+      CONDIMENT: 'Condiment',
+      BEVERAGE: 'Beverage',
+      DAIRY: 'Dairy',
+      PRODUCE: 'Produce',
+      PROTEIN: 'Protein',
+      GRAIN: 'Grain',
+      OIL: 'Oil',
+      SUPPLY: 'Supply',
+      EQUIPMENT: 'Equipment',
+      OTHER: 'Other',
     };
     return typeMap[type] || type;
   };
 
   const getInventoryTypeColor = (type: InventoryType) => {
     const colorMap: Record<InventoryType, string> = {
-      RAW_MATERIAL: "border-blue-200 bg-blue-50 text-blue-700",
-      INGREDIENT: "border-green-200 bg-green-50 text-green-700",
-      SPICE: "border-orange-200 bg-orange-50 text-orange-700",
-      CONDIMENT: "border-yellow-200 bg-yellow-50 text-yellow-700",
-      BEVERAGE: "border-cyan-200 bg-cyan-50 text-cyan-700",
-      DAIRY: "border-indigo-200 bg-indigo-50 text-indigo-700",
-      PRODUCE: "border-lime-200 bg-lime-50 text-lime-700",
-      PROTEIN: "border-red-200 bg-red-50 text-red-700",
-      GRAIN: "border-amber-200 bg-amber-50 text-amber-700",
-      OIL: "border-yellow-200 bg-yellow-50 text-yellow-700",
-      PACKAGING: "border-purple-200 bg-purple-50 text-purple-700",
-      SUPPLY: "border-gray-200 bg-gray-50 text-gray-700",
-      EQUIPMENT: "border-slate-200 bg-slate-50 text-slate-700",
-      OTHER: "border-gray-200 bg-gray-50 text-gray-700",
+      RAW_MATERIAL: 'border-blue-200 bg-blue-50 text-blue-700',
+      INGREDIENT: 'border-green-200 bg-green-50 text-green-700',
+      SPICE: 'border-orange-200 bg-orange-50 text-orange-700',
+      CONDIMENT: 'border-yellow-200 bg-yellow-50 text-yellow-700',
+      BEVERAGE: 'border-cyan-200 bg-cyan-50 text-cyan-700',
+      DAIRY: 'border-indigo-200 bg-indigo-50 text-indigo-700',
+      PRODUCE: 'border-lime-200 bg-lime-50 text-lime-700',
+      PROTEIN: 'border-red-200 bg-red-50 text-red-700',
+      GRAIN: 'border-amber-200 bg-amber-50 text-amber-700',
+      OIL: 'border-yellow-200 bg-yellow-50 text-yellow-700',
+      PACKAGING: 'border-purple-200 bg-purple-50 text-purple-700',
+      SUPPLY: 'border-gray-200 bg-gray-50 text-gray-700',
+      EQUIPMENT: 'border-slate-200 bg-slate-50 text-slate-700',
+      OTHER: 'border-gray-200 bg-gray-50 text-gray-700',
     };
-    return colorMap[type] || "border-gray-200 bg-gray-50 text-gray-700";
+    return colorMap[type] || 'border-gray-200 bg-gray-50 text-gray-700';
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-PH", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return new Date(dateString).toLocaleDateString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
   const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString("en-PH", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    return new Date(dateString).toLocaleString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
   const getTransactionTypeInfo = (type: TransactionType) => {
     switch (type) {
-      case "INITIAL":
+      case 'INITIAL':
         return {
-          label: "Initial Stock",
-          color: "border-blue-200 bg-blue-50 text-blue-700",
+          label: 'Initial Stock',
+          color: 'border-blue-200 bg-blue-50 text-blue-700',
           icon: Package,
         };
-      case "RESTOCK":
+      case 'RESTOCK':
         return {
-          label: "Restock",
-          color: "border-green-200 bg-green-50 text-green-700",
+          label: 'Restock',
+          color: 'border-green-200 bg-green-50 text-green-700',
           icon: ArrowUpCircle,
         };
-      case "SALE":
+      case 'SALE':
         return {
-          label: "Sale",
-          color: "border-red-200 bg-red-50 text-red-700",
+          label: 'Sale',
+          color: 'border-red-200 bg-red-50 text-red-700',
           icon: ArrowDownCircle,
         };
       default:
         return {
           label: type,
-          color: "border-gray-200 bg-gray-50 text-gray-700",
+          color: 'border-gray-200 bg-gray-50 text-gray-700',
           icon: Clock,
         };
     }
@@ -328,27 +309,27 @@ export default function InventoryPage() {
       setEditMode(true);
       setSelectedItem(item);
       setItemForm({
-        itemName: item.name || "",
-        itemType: item.itemType || "RAW_MATERIAL",
+        itemName: item.name || '',
+        itemType: item.itemType || 'RAW_MATERIAL',
         quantity: Number(item.quantity),
-        unit: item.unit || "pcs",
+        unit: item.unit || 'pcs',
         unitCost: Number(item.unitCost),
-        supplier: item.supplier || "",
-        purchaseDate: item.purchaseDate.split("T")[0],
-        notes: item.notes || "",
+        supplier: item.supplier || '',
+        purchaseDate: item.purchaseDate.split('T')[0],
+        notes: item.notes || '',
       });
     } else {
       setEditMode(false);
       setSelectedItem(null);
       setItemForm({
-        itemName: "",
-        itemType: "RAW_MATERIAL",
+        itemName: '',
+        itemType: 'RAW_MATERIAL',
         quantity: 0,
-        unit: "pcs",
+        unit: 'pcs',
         unitCost: 0,
-        supplier: "",
-        purchaseDate: new Date().toISOString().split("T")[0],
-        notes: "",
+        supplier: '',
+        purchaseDate: new Date().toISOString().split('T')[0],
+        notes: '',
       });
     }
     setShowItemModal(true);
@@ -371,7 +352,7 @@ export default function InventoryPage() {
   const handleOpenRestockModal = (item: Purchase) => {
     setSelectedItem(item);
     setRestockQuantity(0);
-    setRestockNotes("");
+    setRestockNotes('');
     setShowRestockModal(true);
   };
 
@@ -390,7 +371,7 @@ export default function InventoryPage() {
         onSuccess: () => {
           setShowRestockModal(false);
           setRestockQuantity(0);
-          setRestockNotes("");
+          setRestockNotes('');
         },
       }
     );
@@ -403,15 +384,11 @@ export default function InventoryPage() {
         // Set the new period as active
         setActivePeriodMutation.mutate(newPeriod.id);
         setPeriodForm({
-          periodName: "",
-          startDate: new Date().toISOString().split("T")[0],
-          endDate: new Date(
-            new Date().getFullYear(),
-            new Date().getMonth() + 1,
-            0
-          )
+          periodName: '',
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
             .toISOString()
-            .split("T")[0],
+            .split('T')[0],
         });
       },
     });
@@ -448,7 +425,7 @@ export default function InventoryPage() {
               <Button variant="outline" className="min-w-48 justify-between">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span>{activePeriod?.periodName || "Select Period"}</span>
+                  <span>{activePeriod?.periodName || 'Select Period'}</span>
                 </div>
                 <ChevronDown className="h-4 w-4 opacity-50" />
               </Button>
@@ -519,30 +496,28 @@ export default function InventoryPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Unique Items</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  {stockByItem.length}
-                </p>
+                <p className="text-xl font-semibold text-gray-900">{stockByItem.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card
-          className={`border shadow-none ${lowStockItems.length > 0 ? "border-amber-200 bg-amber-50" : "bg-white"}`}
+          className={`border shadow-none ${lowStockItems.length > 0 ? 'border-amber-200 bg-amber-50' : 'bg-white'}`}
         >
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
               <div
-                className={`h-10 w-10 rounded-lg flex items-center justify-center ${lowStockItems.length > 0 ? "bg-amber-100" : "bg-orange-50"}`}
+                className={`h-10 w-10 rounded-lg flex items-center justify-center ${lowStockItems.length > 0 ? 'bg-amber-100' : 'bg-orange-50'}`}
               >
                 <AlertTriangle
-                  className={`h-5 w-5 ${lowStockItems.length > 0 ? "text-amber-600" : "text-orange-500"}`}
+                  className={`h-5 w-5 ${lowStockItems.length > 0 ? 'text-amber-600' : 'text-orange-500'}`}
                 />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Low Stock Alerts</p>
                 <p
-                  className={`text-xl font-semibold ${lowStockItems.length > 0 ? "text-amber-900" : "text-gray-900"}`}
+                  className={`text-xl font-semibold ${lowStockItems.length > 0 ? 'text-amber-900' : 'text-gray-900'}`}
                 >
                   {lowStockItems.length}
                 </p>
@@ -587,19 +562,14 @@ export default function InventoryPage() {
                   <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
                     <Package className="h-8 w-8 text-gray-400" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No items found
-                  </h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
                   <p className="text-gray-500 mb-4 max-w-sm">
                     {searchQuery
-                      ? "Try a different search term"
-                      : "Add your first item to start tracking inventory."}
+                      ? 'Try a different search term'
+                      : 'Add your first item to start tracking inventory.'}
                   </p>
                   {!searchQuery && (
-                    <Button
-                      variant="green"
-                      onClick={() => handleOpenItemModal()}
-                    >
+                    <Button variant="green" onClick={() => handleOpenItemModal()}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add Item
                     </Button>
@@ -609,24 +579,14 @@ export default function InventoryPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-gray-100 hover:bg-transparent">
-                      <TableHead className="text-gray-500 font-medium pl-4">
-                        Item
-                      </TableHead>
-                      <TableHead className="text-gray-500 font-medium">
-                        Type
-                      </TableHead>
-                      <TableHead className="text-right text-gray-500 font-medium">
-                        Qty
-                      </TableHead>
+                      <TableHead className="text-gray-500 font-medium pl-4">Item</TableHead>
+                      <TableHead className="text-gray-500 font-medium">Type</TableHead>
+                      <TableHead className="text-right text-gray-500 font-medium">Qty</TableHead>
                       <TableHead className="text-right text-gray-500 font-medium">
                         Unit Cost
                       </TableHead>
-                      <TableHead className="text-right text-gray-500 font-medium">
-                        Total
-                      </TableHead>
-                      <TableHead className="text-gray-500 font-medium">
-                        Date
-                      </TableHead>
+                      <TableHead className="text-right text-gray-500 font-medium">Total</TableHead>
+                      <TableHead className="text-gray-500 font-medium">Date</TableHead>
                       <TableHead className="text-right text-gray-500 font-medium pr-4">
                         Actions
                       </TableHead>
@@ -637,27 +597,21 @@ export default function InventoryPage() {
                       <TableRow key={item.id} className="border-gray-100">
                         <TableCell className="font-medium text-gray-900 pl-4">
                           <div>
-                            <span>{item.name || "Unknown"}</span>
+                            <span>{item.name || 'Unknown'}</span>
                             {item.supplier && (
-                              <span className="block text-xs text-gray-400">
-                                {item.supplier}
-                              </span>
+                              <span className="block text-xs text-gray-400">{item.supplier}</span>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge
                             variant="outline"
-                            className={getInventoryTypeColor(
-                              item.itemType || "OTHER"
-                            )}
+                            className={getInventoryTypeColor(item.itemType || 'OTHER')}
                           >
-                            {formatInventoryType(item.itemType || "OTHER")}
+                            {formatInventoryType(item.itemType || 'OTHER')}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right text-gray-900">
-                          {item.quantity}
-                        </TableCell>
+                        <TableCell className="text-right text-gray-900">{item.quantity}</TableCell>
                         <TableCell className="text-right text-gray-900">
                           {formatCurrency(item.unitCost)}
                         </TableCell>
@@ -712,38 +666,26 @@ export default function InventoryPage() {
           <Card className="border shadow-none bg-white">
             <CardHeader>
               <CardTitle>Stock Summary</CardTitle>
-              <CardDescription>
-                Aggregated view of items in this period
-              </CardDescription>
+              <CardDescription>Aggregated view of items in this period</CardDescription>
             </CardHeader>
             <CardContent>
               {stockByItem.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  No items in this period
-                </div>
+                <div className="text-center py-12 text-gray-500">No items in this period</div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Item Name</TableHead>
-                      <TableHead className="text-right">
-                        Total Quantity
-                      </TableHead>
-                      <TableHead className="text-right">
-                        Last Unit Cost
-                      </TableHead>
+                      <TableHead className="text-right">Total Quantity</TableHead>
+                      <TableHead className="text-right">Last Unit Cost</TableHead>
                       <TableHead className="text-right">Total Value</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {stockByItem.map((item) => (
                       <TableRow key={item.name}>
-                        <TableCell className="font-medium">
-                          {item.name}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {item.quantity}
-                        </TableCell>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell className="text-right">{item.quantity}</TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(item.lastCost)}
                         </TableCell>
@@ -767,15 +709,11 @@ export default function InventoryPage() {
                 <div>
                   <CardTitle>Transaction History</CardTitle>
                   <CardDescription>
-                    Track all inventory changes including restocks and sales
-                    deductions
+                    Track all inventory changes including restocks and sales deductions
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Select
-                    value={historyItemFilter}
-                    onValueChange={setHistoryItemFilter}
-                  >
+                  <Select value={historyItemFilter} onValueChange={setHistoryItemFilter}>
                     <SelectTrigger className="w-48">
                       <Filter className="h-4 w-4 mr-2" />
                       <SelectValue placeholder="All Items" />
@@ -791,9 +729,7 @@ export default function InventoryPage() {
                   </Select>
                   <Select
                     value={historyTypeFilter}
-                    onValueChange={(v) =>
-                      setHistoryTypeFilter(v as TransactionType | "ALL")
-                    }
+                    onValueChange={(v) => setHistoryTypeFilter(v as TransactionType | 'ALL')}
                   >
                     <SelectTrigger className="w-36">
                       <SelectValue placeholder="All Types" />
@@ -818,9 +754,7 @@ export default function InventoryPage() {
                   <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
                     <History className="h-8 w-8 text-gray-400" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No transactions yet
-                  </h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
                   <p className="text-gray-500 mb-4 max-w-sm">
                     Add items or make sales to see transaction history here.
                   </p>
@@ -829,24 +763,14 @@ export default function InventoryPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-gray-100 hover:bg-transparent">
-                      <TableHead className="text-gray-500 font-medium pl-4">
-                        Date/Time
-                      </TableHead>
-                      <TableHead className="text-gray-500 font-medium">
-                        Item
-                      </TableHead>
-                      <TableHead className="text-gray-500 font-medium">
-                        Type
-                      </TableHead>
-                      <TableHead className="text-right text-gray-500 font-medium">
-                        Change
-                      </TableHead>
+                      <TableHead className="text-gray-500 font-medium pl-4">Date/Time</TableHead>
+                      <TableHead className="text-gray-500 font-medium">Item</TableHead>
+                      <TableHead className="text-gray-500 font-medium">Type</TableHead>
+                      <TableHead className="text-right text-gray-500 font-medium">Change</TableHead>
                       <TableHead className="text-right text-gray-500 font-medium">
                         Before → After
                       </TableHead>
-                      <TableHead className="text-gray-500 font-medium pr-4">
-                        Notes
-                      </TableHead>
+                      <TableHead className="text-gray-500 font-medium pr-4">Notes</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -859,9 +783,9 @@ export default function InventoryPage() {
                             {formatDateTime(tx.createdAt)}
                           </TableCell>
                           <TableCell className="font-medium text-gray-900">
-                            {tx.purchase?.name || "Unknown"}
+                            {tx.purchase?.name || 'Unknown'}
                             <span className="ml-1 text-gray-400 text-sm">
-                              ({tx.purchase?.unit || ""})
+                              ({tx.purchase?.unit || ''})
                             </span>
                           </TableCell>
                           <TableCell>
@@ -876,21 +800,19 @@ export default function InventoryPage() {
                           <TableCell className="text-right">
                             <span
                               className={`font-semibold ${
-                                tx.quantityChange >= 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                                tx.quantityChange >= 0 ? 'text-green-600' : 'text-red-600'
                               }`}
                             >
-                              {tx.quantityChange >= 0 ? "+" : ""}
+                              {tx.quantityChange >= 0 ? '+' : ''}
                               {Number(tx.quantityChange).toFixed(2)}
                             </span>
                           </TableCell>
                           <TableCell className="text-right text-gray-600">
-                            {Number(tx.quantityBefore).toFixed(2)} →{" "}
+                            {Number(tx.quantityBefore).toFixed(2)} →{' '}
                             {Number(tx.quantityAfter).toFixed(2)}
                           </TableCell>
                           <TableCell className="text-gray-500 pr-4 max-w-32 truncate">
-                            {tx.notes || "-"}
+                            {tx.notes || '-'}
                           </TableCell>
                         </TableRow>
                       );
@@ -907,12 +829,10 @@ export default function InventoryPage() {
       <Dialog open={showItemModal} onOpenChange={setShowItemModal}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>
-              {editMode ? "Edit Item" : "Add Inventory Item"}
-            </DialogTitle>
+            <DialogTitle>{editMode ? 'Edit Item' : 'Add Inventory Item'}</DialogTitle>
             <DialogDescription>
               {editMode
-                ? "Update the item details below."
+                ? 'Update the item details below.'
                 : "Add a new item. Choose 'Planned' to add to your shopping list."}
             </DialogDescription>
           </DialogHeader>
@@ -922,9 +842,7 @@ export default function InventoryPage() {
               <Input
                 id="name"
                 value={itemForm.itemName}
-                onChange={(e) =>
-                  setItemForm({ ...itemForm, itemName: e.target.value })
-                }
+                onChange={(e) => setItemForm({ ...itemForm, itemName: e.target.value })}
                 placeholder="e.g., Rice, Onion, Packaging Box"
               />
             </div>
@@ -967,9 +885,7 @@ export default function InventoryPage() {
                 <Input
                   id="supplier"
                   value={itemForm.supplier}
-                  onChange={(e) =>
-                    setItemForm({ ...itemForm, supplier: e.target.value })
-                  }
+                  onChange={(e) => setItemForm({ ...itemForm, supplier: e.target.value })}
                   placeholder="e.g., Local Market"
                 />
               </div>
@@ -983,12 +899,11 @@ export default function InventoryPage() {
                   type="number"
                   min="0"
                   step="any"
-                  value={itemForm.quantity || ""}
+                  value={itemForm.quantity || ''}
                   onChange={(e) =>
                     setItemForm({
                       ...itemForm,
-                      quantity:
-                        e.target.value === "" ? 0 : parseFloat(e.target.value),
+                      quantity: e.target.value === '' ? 0 : parseFloat(e.target.value),
                     })
                   }
                   placeholder="0"
@@ -998,10 +913,8 @@ export default function InventoryPage() {
               <div className="grid gap-2">
                 <Label htmlFor="unit">Unit *</Label>
                 <Select
-                  value={itemForm.unit || "pcs"}
-                  onValueChange={(value) =>
-                    setItemForm({ ...itemForm, unit: value })
-                  }
+                  value={itemForm.unit || 'pcs'}
+                  onValueChange={(value) => setItemForm({ ...itemForm, unit: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -1037,12 +950,11 @@ export default function InventoryPage() {
                   type="number"
                   min="0"
                   step="any"
-                  value={itemForm.unitCost || ""}
+                  value={itemForm.unitCost || ''}
                   onChange={(e) =>
                     setItemForm({
                       ...itemForm,
-                      unitCost:
-                        e.target.value === "" ? 0 : parseFloat(e.target.value),
+                      unitCost: e.target.value === '' ? 0 : parseFloat(e.target.value),
                     })
                   }
                   placeholder="0.00"
@@ -1055,9 +967,7 @@ export default function InventoryPage() {
                   id="purchaseDate"
                   type="date"
                   value={itemForm.purchaseDate}
-                  onChange={(e) =>
-                    setItemForm({ ...itemForm, purchaseDate: e.target.value })
-                  }
+                  onChange={(e) => setItemForm({ ...itemForm, purchaseDate: e.target.value })}
                 />
               </div>
             </div>
@@ -1067,9 +977,7 @@ export default function InventoryPage() {
               <Textarea
                 id="notes"
                 value={itemForm.notes}
-                onChange={(e) =>
-                  setItemForm({ ...itemForm, notes: e.target.value })
-                }
+                onChange={(e) => setItemForm({ ...itemForm, notes: e.target.value })}
                 placeholder="Additional notes..."
                 rows={2}
               />
@@ -1078,7 +986,7 @@ export default function InventoryPage() {
             {itemForm.quantity > 0 && itemForm.unitCost > 0 && (
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">
-                  Total:{" "}
+                  Total:{' '}
                   <span className="font-semibold">
                     {formatCurrency(itemForm.quantity * itemForm.unitCost)}
                   </span>
@@ -1099,12 +1007,11 @@ export default function InventoryPage() {
                 updatePurchaseMutation.isPending
               }
             >
-              {createPurchaseMutation.isPending ||
-              updatePurchaseMutation.isPending
-                ? "Saving..."
+              {createPurchaseMutation.isPending || updatePurchaseMutation.isPending
+                ? 'Saving...'
                 : editMode
-                  ? "Save Changes"
-                  : "Add Item"}
+                  ? 'Save Changes'
+                  : 'Add Item'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1115,9 +1022,7 @@ export default function InventoryPage() {
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Create New Period</DialogTitle>
-            <DialogDescription>
-              Start a new inventory tracking period.
-            </DialogDescription>
+            <DialogDescription>Start a new inventory tracking period.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -1125,9 +1030,7 @@ export default function InventoryPage() {
               <Input
                 id="periodName"
                 value={periodForm.periodName}
-                onChange={(e) =>
-                  setPeriodForm({ ...periodForm, periodName: e.target.value })
-                }
+                onChange={(e) => setPeriodForm({ ...periodForm, periodName: e.target.value })}
                 placeholder="e.g., January 2026"
               />
             </div>
@@ -1138,9 +1041,7 @@ export default function InventoryPage() {
                   id="periodStart"
                   type="date"
                   value={periodForm.startDate}
-                  onChange={(e) =>
-                    setPeriodForm({ ...periodForm, startDate: e.target.value })
-                  }
+                  onChange={(e) => setPeriodForm({ ...periodForm, startDate: e.target.value })}
                 />
               </div>
               <div className="grid gap-2">
@@ -1149,9 +1050,7 @@ export default function InventoryPage() {
                   id="periodEnd"
                   type="date"
                   value={periodForm.endDate}
-                  onChange={(e) =>
-                    setPeriodForm({ ...periodForm, endDate: e.target.value })
-                  }
+                  onChange={(e) => setPeriodForm({ ...periodForm, endDate: e.target.value })}
                 />
               </div>
             </div>
@@ -1162,35 +1061,27 @@ export default function InventoryPage() {
             </Button>
             <Button
               onClick={handleCreatePeriod}
-              disabled={
-                !periodForm.periodName || createPeriodMutation.isPending
-              }
+              disabled={!periodForm.periodName || createPeriodMutation.isPending}
             >
-              {createPeriodMutation.isPending ? "Creating..." : "Create Period"}
+              {createPeriodMutation.isPending ? 'Creating...' : 'Create Period'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog
-        open={!!deleteItemId}
-        onOpenChange={() => setDeleteItemId(null)}
-      >
+      <AlertDialog open={!!deleteItemId} onOpenChange={() => setDeleteItemId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Item?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this item from your inventory. This
-              action cannot be undone.
+              This will permanently delete this item from your inventory. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteItem}
-              className="bg-red-500 hover:bg-red-600"
-            >
+            <AlertDialogAction onClick={handleDeleteItem} className="bg-red-500 hover:bg-red-600">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1202,9 +1093,7 @@ export default function InventoryPage() {
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Add Stock</DialogTitle>
-            <DialogDescription>
-              Add stock quantity for {selectedItem?.name}
-            </DialogDescription>
+            <DialogDescription>Add stock quantity for {selectedItem?.name}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -1223,9 +1112,7 @@ export default function InventoryPage() {
                   type="button"
                   variant="outline"
                   size="icon"
-                  onClick={() =>
-                    setRestockQuantity((prev) => Math.max(0, prev - 1))
-                  }
+                  onClick={() => setRestockQuantity((prev) => Math.max(0, prev - 1))}
                   disabled={restockQuantity <= 0}
                 >
                   <MinusCircle className="h-4 w-4" />
@@ -1238,9 +1125,7 @@ export default function InventoryPage() {
                   value={restockQuantity}
                   onChange={(e) =>
                     setRestockQuantity(
-                      e.target.value === ""
-                        ? 0
-                        : Math.max(0, parseFloat(e.target.value))
+                      e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value))
                     )
                   }
                   className="text-center"
@@ -1270,10 +1155,9 @@ export default function InventoryPage() {
             {restockQuantity > 0 && (
               <div className="p-3 bg-green-50 rounded-lg border border-green-200">
                 <p className="text-sm text-green-900">
-                  New Stock:{" "}
+                  New Stock:{' '}
                   <span className="font-semibold">
-                    {(Number(selectedItem?.quantity) || 0) + restockQuantity}{" "}
-                    {selectedItem?.unit}
+                    {(Number(selectedItem?.quantity) || 0) + restockQuantity} {selectedItem?.unit}
                   </span>
                 </p>
               </div>
@@ -1285,7 +1169,7 @@ export default function InventoryPage() {
               onClick={() => {
                 setShowRestockModal(false);
                 setRestockQuantity(0);
-                setRestockNotes("");
+                setRestockNotes('');
               }}
             >
               Cancel
@@ -1296,8 +1180,8 @@ export default function InventoryPage() {
               disabled={restockQuantity <= 0 || restockMutation.isPending}
             >
               {restockMutation.isPending
-                ? "Adding..."
-                : `Add ${restockQuantity} ${selectedItem?.unit || "units"}`}
+                ? 'Adding...'
+                : `Add ${restockQuantity} ${selectedItem?.unit || 'units'}`}
             </Button>
           </DialogFooter>
         </DialogContent>

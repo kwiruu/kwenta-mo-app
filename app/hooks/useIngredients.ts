@@ -1,20 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  ingredientsApi,
-  type Ingredient,
-  type CreateIngredientDto,
-} from "~/lib/api";
-import { useAuthStore } from "~/stores/authStore";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ingredientsApi, type Ingredient, type CreateIngredientDto } from '~/lib/api';
+import { useAuthStore } from '~/stores/authStore';
 
 // Query keys for cache management
 export const ingredientKeys = {
-  all: ["ingredients"] as const,
-  lists: () => [...ingredientKeys.all, "list"] as const,
+  all: ['ingredients'] as const,
+  lists: () => [...ingredientKeys.all, 'list'] as const,
   list: (filters: { search?: string; category?: string }) =>
     [...ingredientKeys.lists(), filters] as const,
-  details: () => [...ingredientKeys.all, "detail"] as const,
+  details: () => [...ingredientKeys.all, 'detail'] as const,
   detail: (id: string) => [...ingredientKeys.details(), id] as const,
-  lowStock: () => [...ingredientKeys.all, "low-stock"] as const,
+  lowStock: () => [...ingredientKeys.all, 'low-stock'] as const,
 };
 
 // Fetch all ingredients
@@ -69,8 +65,7 @@ export function useCreateBulkIngredients() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (ingredients: CreateIngredientDto[]) =>
-      ingredientsApi.createBulk(ingredients),
+    mutationFn: (ingredients: CreateIngredientDto[]) => ingredientsApi.createBulk(ingredients),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ingredientKeys.lists() });
       queryClient.invalidateQueries({ queryKey: ingredientKeys.lowStock() });
@@ -83,19 +78,11 @@ export function useUpdateIngredient() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<CreateIngredientDto>;
-    }) => ingredientsApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateIngredientDto> }) =>
+      ingredientsApi.update(id, data),
     onSuccess: (updatedIngredient) => {
       // Update the specific ingredient in cache
-      queryClient.setQueryData(
-        ingredientKeys.detail(updatedIngredient.id),
-        updatedIngredient
-      );
+      queryClient.setQueryData(ingredientKeys.detail(updatedIngredient.id), updatedIngredient);
       // Invalidate lists to ensure consistency
       queryClient.invalidateQueries({ queryKey: ingredientKeys.lists() });
       queryClient.invalidateQueries({ queryKey: ingredientKeys.lowStock() });

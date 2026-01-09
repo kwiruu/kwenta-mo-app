@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { User, Session } from "@supabase/supabase-js";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { User, Session } from '@supabase/supabase-js';
 import {
   supabase,
   signIn as supabaseSignIn,
@@ -8,8 +8,8 @@ import {
   signOut as supabaseSignOut,
   signInWithGoogle as supabaseSignInWithGoogle,
   getSession,
-} from "~/lib/supabase";
-import { authApi } from "~/lib/api";
+} from '~/lib/supabase';
+import { authApi } from '~/lib/api';
 
 interface AuthState {
   user: User | null;
@@ -25,10 +25,7 @@ interface AuthState {
     password: string,
     name: string
   ) => Promise<{ success: boolean; message?: string }>;
-  signIn: (
-    email: string,
-    password: string
-  ) => Promise<{ success: boolean; message?: string }>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   signInWithGoogle: () => Promise<{ success: boolean; message?: string }>;
   signOut: () => Promise<void>;
   clearError: () => void;
@@ -50,7 +47,7 @@ export const useAuthStore = create<AuthState>()(
           const { session, error } = await getSession();
 
           if (error) {
-            console.error("Session error:", error);
+            console.error('Session error:', error);
             set({
               user: null,
               session: null,
@@ -72,7 +69,7 @@ export const useAuthStore = create<AuthState>()(
             try {
               await authApi.syncUser(session.user.user_metadata?.name);
             } catch (syncError) {
-              console.warn("Failed to sync user with backend:", syncError);
+              console.warn('Failed to sync user with backend:', syncError);
             }
           } else {
             set({
@@ -85,7 +82,7 @@ export const useAuthStore = create<AuthState>()(
 
           // Listen for auth changes
           supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === "SIGNED_IN" && session) {
+            if (event === 'SIGNED_IN' && session) {
               set({
                 user: session.user,
                 session,
@@ -96,17 +93,17 @@ export const useAuthStore = create<AuthState>()(
               try {
                 await authApi.syncUser(session.user.user_metadata?.name);
               } catch (syncError) {
-                console.warn("Failed to sync user with backend:", syncError);
+                console.warn('Failed to sync user with backend:', syncError);
               }
-            } else if (event === "SIGNED_OUT") {
+            } else if (event === 'SIGNED_OUT') {
               set({ user: null, session: null, isAuthenticated: false });
-            } else if (event === "TOKEN_REFRESHED" && session) {
+            } else if (event === 'TOKEN_REFRESHED' && session) {
               set({ session });
             }
           });
         } catch (error) {
-          console.error("Initialize error:", error);
-          set({ isLoading: false, error: "Failed to initialize auth" });
+          console.error('Initialize error:', error);
+          set({ isLoading: false, error: 'Failed to initialize auth' });
         }
       },
 
@@ -127,7 +124,7 @@ export const useAuthStore = create<AuthState>()(
           if (data.user && !data.session) {
             return {
               success: true,
-              message: "Please check your email to confirm your account.",
+              message: 'Please check your email to confirm your account.',
             };
           }
 
@@ -143,14 +140,13 @@ export const useAuthStore = create<AuthState>()(
             try {
               await authApi.syncUser(name);
             } catch (syncError) {
-              console.warn("Failed to sync user with backend:", syncError);
+              console.warn('Failed to sync user with backend:', syncError);
             }
           }
 
           return { success: true };
         } catch (error) {
-          const message =
-            error instanceof Error ? error.message : "Sign up failed";
+          const message = error instanceof Error ? error.message : 'Sign up failed';
           set({ isLoading: false, error: message });
           return { success: false, message };
         }
@@ -179,17 +175,16 @@ export const useAuthStore = create<AuthState>()(
             try {
               await authApi.syncUser(data.user?.user_metadata?.name);
             } catch (syncError) {
-              console.warn("Failed to sync user with backend:", syncError);
+              console.warn('Failed to sync user with backend:', syncError);
             }
 
             return { success: true };
           }
 
           set({ isLoading: false });
-          return { success: false, message: "Sign in failed" };
+          return { success: false, message: 'Sign in failed' };
         } catch (error) {
-          const message =
-            error instanceof Error ? error.message : "Sign in failed";
+          const message = error instanceof Error ? error.message : 'Sign in failed';
           set({ isLoading: false, error: message });
           return { success: false, message };
         }
@@ -209,8 +204,7 @@ export const useAuthStore = create<AuthState>()(
           // The redirect will happen, so we don't need to update state here
           return { success: true };
         } catch (error) {
-          const message =
-            error instanceof Error ? error.message : "Google sign in failed";
+          const message = error instanceof Error ? error.message : 'Google sign in failed';
           set({ isLoading: false, error: message });
           return { success: false, message };
         }
@@ -226,14 +220,14 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           });
         } catch (error) {
-          console.error("Sign out error:", error);
+          console.error('Sign out error:', error);
         }
       },
 
       clearError: () => set({ error: null }),
     }),
     {
-      name: "auth-storage",
+      name: 'auth-storage',
       partialize: (state) => ({
         // Don't persist sensitive data - rely on Supabase session
       }),

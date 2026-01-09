@@ -1,25 +1,22 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   expensesApi,
   type Expense,
   type CreateExpenseDto,
   type ExpenseStats,
   type ExpenseCategory,
-} from "~/lib/api";
-import { useAuthStore } from "~/stores/authStore";
+} from '~/lib/api';
+import { useAuthStore } from '~/stores/authStore';
 
 // Query keys for cache management
 export const expenseKeys = {
-  all: ["expenses"] as const,
-  lists: () => [...expenseKeys.all, "list"] as const,
-  list: (filters?: {
-    startDate?: string;
-    endDate?: string;
-    category?: ExpenseCategory;
-  }) => [...expenseKeys.lists(), filters] as const,
-  details: () => [...expenseKeys.all, "detail"] as const,
+  all: ['expenses'] as const,
+  lists: () => [...expenseKeys.all, 'list'] as const,
+  list: (filters?: { startDate?: string; endDate?: string; category?: ExpenseCategory }) =>
+    [...expenseKeys.lists(), filters] as const,
+  details: () => [...expenseKeys.all, 'detail'] as const,
   detail: (id: string) => [...expenseKeys.details(), id] as const,
-  stats: () => [...expenseKeys.all, "stats"] as const,
+  stats: () => [...expenseKeys.all, 'stats'] as const,
   statsWithFilters: (startDate?: string, endDate?: string) =>
     [...expenseKeys.stats(), { startDate, endDate }] as const,
 };
@@ -34,12 +31,7 @@ export function useExpenses(filters?: {
 
   return useQuery({
     queryKey: expenseKeys.list(filters),
-    queryFn: () =>
-      expensesApi.getAll(
-        filters?.category,
-        filters?.startDate,
-        filters?.endDate
-      ),
+    queryFn: () => expensesApi.getAll(filters?.category, filters?.startDate, filters?.endDate),
     enabled: isAuthenticated && !isAuthLoading,
   });
 }
@@ -97,18 +89,10 @@ export function useUpdateExpense() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<CreateExpenseDto>;
-    }) => expensesApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateExpenseDto> }) =>
+      expensesApi.update(id, data),
     onSuccess: (updatedExpense) => {
-      queryClient.setQueryData(
-        expenseKeys.detail(updatedExpense.id),
-        updatedExpense
-      );
+      queryClient.setQueryData(expenseKeys.detail(updatedExpense.id), updatedExpense);
       queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
       queryClient.invalidateQueries({ queryKey: expenseKeys.stats() });
     },

@@ -1,37 +1,31 @@
-import { Link } from "react-router";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Badge } from "~/components/ui/badge";
-import { useRecipes, useDeleteRecipe } from "~/hooks";
-import { useState } from "react";
-import type { Recipe } from "~/lib/api";
+import { Link } from 'react-router';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Badge } from '~/components/ui/badge';
+import { useRecipes, useDeleteRecipe } from '~/hooks';
+import { useState } from 'react';
+import type { Recipe } from '~/lib/api';
 
 export default function RecipesIndex() {
   const { data: recipes = [], isLoading } = useRecipes();
   const deleteRecipeMutation = useDeleteRecipe();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredRecipes = recipes.filter((recipe) =>
     recipe.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
     }).format(amount);
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this recipe?")) {
+    if (confirm('Are you sure you want to delete this recipe?')) {
       deleteRecipeMutation.mutate(id);
     }
   };
@@ -56,9 +50,7 @@ export default function RecipesIndex() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Recipes</h1>
-          <p className="text-muted-foreground">
-            Manage your recipes and view cost breakdowns
-          </p>
+          <p className="text-muted-foreground">Manage your recipes and view cost breakdowns</p>
         </div>
         <Button variant="green" asChild>
           <Link to="/dashboard/recipes/new">
@@ -134,9 +126,7 @@ export default function RecipesIndex() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Recipes</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  {filteredRecipes.length}
-                </p>
+                <p className="text-xl font-semibold text-gray-900">{filteredRecipes.length}</p>
               </div>
             </div>
           </CardContent>
@@ -164,9 +154,8 @@ export default function RecipesIndex() {
                 <p className="text-sm text-gray-500">With Items</p>
                 <p className="text-xl font-semibold text-gray-900">
                   {
-                    filteredRecipes.filter(
-                      (r) => (r.items || r.ingredients || []).length > 0
-                    ).length
+                    filteredRecipes.filter((r) => (r.items || r.ingredients || []).length > 0)
+                      .length
                   }
                 </p>
               </div>
@@ -248,9 +237,7 @@ export default function RecipesIndex() {
               {/* Actions */}
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" size="sm" className="flex-1" asChild>
-                  <Link to={`/dashboard/recipes/edit?id=${recipe.id}`}>
-                    Edit
-                  </Link>
+                  <Link to={`/dashboard/recipes/edit?id=${recipe.id}`}>Edit</Link>
                 </Button>
                 <Button
                   variant="outline"
@@ -298,8 +285,7 @@ export default function RecipesIndex() {
             </svg>
             <h3 className="mt-4 text-lg font-semibold">No recipes yet</h3>
             <p className="mt-2 text-muted-foreground">
-              Get started by creating your first recipe to calculate costs and
-              track profitability.
+              Get started by creating your first recipe to calculate costs and track profitability.
             </p>
             <Button className="mt-4" asChild>
               <Link to="/dashboard/recipes/new">Create Recipe</Link>

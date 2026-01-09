@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router";
+import { useState, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router';
 import {
   ArrowLeft,
   Upload,
@@ -8,16 +8,10 @@ import {
   CheckCircle2,
   X,
   Download,
-} from "lucide-react";
-import * as XLSX from "xlsx";
-import { Button } from "~/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+} from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { Button } from '~/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import {
   Table,
   TableBody,
@@ -25,18 +19,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
-import { useCreateBulkExpenses } from "~/hooks";
-import { APP_CONFIG } from "~/config/app";
-import type { ExpenseCategory } from "~/lib/api";
+} from '~/components/ui/table';
+import { Badge } from '~/components/ui/badge';
+import { useCreateBulkExpenses } from '~/hooks';
+import { APP_CONFIG } from '~/config/app';
+import type { ExpenseCategory } from '~/lib/api';
 
 export function meta() {
   return [
     { title: `Upload Expenses - ${APP_CONFIG.name}` },
     {
-      name: "description",
-      content: "Bulk upload operating expenses from Excel or CSV",
+      name: 'description',
+      content: 'Bulk upload operating expenses from Excel or CSV',
     },
   ];
 }
@@ -45,37 +39,37 @@ interface ParsedExpense {
   name: string;
   category: ExpenseCategory;
   amount: number;
-  frequency: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+  frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
   notes?: string;
   isValid: boolean;
   errors: string[];
 }
 
 const validCategories: ExpenseCategory[] = [
-  "RENT",
-  "UTILITIES",
-  "LABOR",
-  "EQUIPMENT",
-  "MARKETING",
-  "PACKAGING",
-  "TRANSPORTATION",
-  "INGREDIENTS",
-  "OTHER",
+  'RENT',
+  'UTILITIES',
+  'LABOR',
+  'EQUIPMENT',
+  'MARKETING',
+  'PACKAGING',
+  'TRANSPORTATION',
+  'INGREDIENTS',
+  'OTHER',
 ];
 
 const categoryLabels: Record<ExpenseCategory, string> = {
-  RENT: "Rent",
-  UTILITIES: "Utilities",
-  LABOR: "Salaries",
-  EQUIPMENT: "Equipment",
-  MARKETING: "Marketing",
-  PACKAGING: "Supplies",
-  TRANSPORTATION: "Transportation",
-  INGREDIENTS: "Ingredients",
-  OTHER: "Other",
+  RENT: 'Rent',
+  UTILITIES: 'Utilities',
+  LABOR: 'Salaries',
+  EQUIPMENT: 'Equipment',
+  MARKETING: 'Marketing',
+  PACKAGING: 'Supplies',
+  TRANSPORTATION: 'Transportation',
+  INGREDIENTS: 'Ingredients',
+  OTHER: 'Other',
 };
 
-const validFrequencies = ["daily", "weekly", "monthly", "quarterly", "yearly"];
+const validFrequencies = ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'];
 
 export default function ExpensesUploadPage() {
   const navigate = useNavigate();
@@ -90,38 +84,34 @@ export default function ExpensesUploadPage() {
   const validateRow = (row: Record<string, unknown>): ParsedExpense => {
     const errors: string[] = [];
 
-    const name = String(row["Name"] || row["name"] || "").trim();
-    const categoryRaw = String(row["Category"] || row["category"] || "")
+    const name = String(row['Name'] || row['name'] || '').trim();
+    const categoryRaw = String(row['Category'] || row['category'] || '')
       .toLowerCase()
       .trim();
-    const amountRaw = row["Amount"] || row["amount"] || 0;
-    const frequencyRaw = String(
-      row["Frequency"] || row["frequency"] || "monthly"
-    )
+    const amountRaw = row['Amount'] || row['amount'] || 0;
+    const frequencyRaw = String(row['Frequency'] || row['frequency'] || 'monthly')
       .toLowerCase()
       .trim();
-    const notes = String(row["Notes"] || row["notes"] || "").trim();
+    const notes = String(row['Notes'] || row['notes'] || '').trim();
 
-    if (!name) errors.push("Name is required");
+    if (!name) errors.push('Name is required');
 
-    const category = validCategories.find(
-      (c) => c === categoryRaw
-    ) as ExpenseCategory;
+    const category = validCategories.find((c) => c === categoryRaw) as ExpenseCategory;
     if (!category) errors.push(`Invalid category: ${categoryRaw}`);
 
     const amount = parseFloat(String(amountRaw));
-    if (isNaN(amount) || amount <= 0) errors.push("Invalid amount");
+    if (isNaN(amount) || amount <= 0) errors.push('Invalid amount');
 
     const frequency = validFrequencies.find(
       (f) => f === frequencyRaw
-    ) as ParsedExpense["frequency"];
+    ) as ParsedExpense['frequency'];
     if (!frequency) errors.push(`Invalid frequency: ${frequencyRaw}`);
 
     return {
       name,
-      category: category || "other",
+      category: category || 'other',
       amount: isNaN(amount) ? 0 : amount,
-      frequency: frequency || "monthly",
+      frequency: frequency || 'monthly',
       notes: notes || undefined,
       isValid: errors.length === 0,
       errors,
@@ -137,25 +127,21 @@ export default function ExpensesUploadPage() {
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
+        const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
         if (jsonData.length === 0) {
-          setUploadError("The file appears to be empty");
+          setUploadError('The file appears to be empty');
           return;
         }
 
-        const parsed = jsonData.map((row) =>
-          validateRow(row as Record<string, unknown>)
-        );
+        const parsed = jsonData.map((row) => validateRow(row as Record<string, unknown>));
         setParsedData(parsed);
       } catch (error) {
-        console.error("Parse error:", error);
-        setUploadError(
-          "Failed to parse file. Please ensure it's a valid Excel or CSV file."
-        );
+        console.error('Parse error:', error);
+        setUploadError("Failed to parse file. Please ensure it's a valid Excel or CSV file.");
       }
     };
     reader.readAsArrayBuffer(file);
@@ -189,7 +175,7 @@ export default function ExpensesUploadPage() {
   const handleImport = async () => {
     const validItems = parsedData.filter((item) => item.isValid);
     if (validItems.length === 0) {
-      setUploadError("No valid items to import");
+      setUploadError('No valid items to import');
       return;
     }
 
@@ -197,33 +183,33 @@ export default function ExpensesUploadPage() {
 
     // Map frontend category to API category
     const categoryMap: Record<string, ExpenseCategory> = {
-      rent: "RENT",
-      utilities: "UTILITIES",
-      salaries: "LABOR",
-      equipment: "EQUIPMENT",
-      maintenance: "OTHER",
-      marketing: "MARKETING",
-      supplies: "PACKAGING",
-      transportation: "TRANSPORTATION",
-      permits: "OTHER",
-      other: "OTHER",
+      rent: 'RENT',
+      utilities: 'UTILITIES',
+      salaries: 'LABOR',
+      equipment: 'EQUIPMENT',
+      maintenance: 'OTHER',
+      marketing: 'MARKETING',
+      supplies: 'PACKAGING',
+      transportation: 'TRANSPORTATION',
+      permits: 'OTHER',
+      other: 'OTHER',
     };
 
     createBulkExpensesMutation.mutate(
       validItems.map((item) => ({
         description: item.name,
-        category: categoryMap[item.category] || ("OTHER" as ExpenseCategory),
+        category: categoryMap[item.category] || ('OTHER' as ExpenseCategory),
         amount: item.amount,
         notes: item.notes,
       })),
       {
         onSuccess: () => {
           setUploadSuccess(true);
-          setTimeout(() => navigate("/dashboard/expenses"), 1500);
+          setTimeout(() => navigate('/dashboard/expenses'), 1500);
         },
         onError: (error) => {
-          console.error("Import error:", error);
-          setUploadError("Failed to import expenses");
+          console.error('Import error:', error);
+          setUploadError('Failed to import expenses');
           setIsLoading(false);
         },
       }
@@ -233,46 +219,46 @@ export default function ExpensesUploadPage() {
   const downloadTemplate = () => {
     const template = [
       {
-        Name: "Store Rent",
-        Category: "rent",
+        Name: 'Store Rent',
+        Category: 'rent',
         Amount: 8000,
-        Frequency: "monthly",
-        Notes: "Market stall rental",
+        Frequency: 'monthly',
+        Notes: 'Market stall rental',
       },
       {
-        Name: "Electricity",
-        Category: "utilities",
+        Name: 'Electricity',
+        Category: 'utilities',
         Amount: 3500,
-        Frequency: "monthly",
-        Notes: "",
+        Frequency: 'monthly',
+        Notes: '',
       },
       {
-        Name: "Helper Salary",
-        Category: "salaries",
+        Name: 'Helper Salary',
+        Category: 'salaries',
         Amount: 500,
-        Frequency: "daily",
-        Notes: "Kitchen helper",
+        Frequency: 'daily',
+        Notes: 'Kitchen helper',
       },
     ];
 
     const ws = XLSX.utils.json_to_sheet(template);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Expenses");
-    XLSX.writeFile(wb, "expenses_template.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, 'Expenses');
+    XLSX.writeFile(wb, 'expenses_template.xlsx');
   };
 
   // Calculate monthly amount for preview
   const getMonthlyAmount = (item: ParsedExpense) => {
     switch (item.frequency) {
-      case "daily":
+      case 'daily':
         return item.amount * 30;
-      case "weekly":
+      case 'weekly':
         return item.amount * 4;
-      case "monthly":
+      case 'monthly':
         return item.amount;
-      case "quarterly":
+      case 'quarterly':
         return item.amount / 3;
-      case "yearly":
+      case 'yearly':
         return item.amount / 12;
       default:
         return item.amount;
@@ -283,20 +269,16 @@ export default function ExpensesUploadPage() {
   const invalidCount = parsedData.filter((i) => !i.isValid).length;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
     }).format(amount);
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Back Button */}
-      <Button
-        variant="ghost"
-        asChild
-        className="-ml-2 text-gray-600 hover:text-gray-900"
-      >
+      <Button variant="ghost" asChild className="-ml-2 text-gray-600 hover:text-gray-900">
         <Link to="/dashboard/expenses">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Expenses
@@ -306,12 +288,8 @@ export default function ExpensesUploadPage() {
       {/* Page Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Bulk Upload Expenses
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Import operating expenses from an Excel or CSV file
-          </p>
+          <h1 className="text-2xl font-semibold text-gray-900">Bulk Upload Expenses</h1>
+          <p className="text-gray-500 mt-1">Import operating expenses from an Excel or CSV file</p>
         </div>
         <Button
           variant="outline"
@@ -368,20 +346,16 @@ export default function ExpensesUploadPage() {
                 border-2 border-dashed rounded-lg p-12 text-center transition-colors
                 ${
                   isDragging
-                    ? "border-primary bg-primary/5"
-                    : "border-gray-200 hover:border-primary/50"
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 hover:border-primary/50'
                 }
               `}
             >
               <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
                 <Upload className="h-8 w-8 text-gray-400" />
               </div>
-              <p className="text-lg font-medium text-gray-900 mb-2">
-                Drop your file here
-              </p>
-              <p className="text-gray-500 mb-4">
-                or click to browse from your computer
-              </p>
+              <p className="text-lg font-medium text-gray-900 mb-2">Drop your file here</p>
+              <p className="text-gray-500 mb-4">or click to browse from your computer</p>
               <input
                 type="file"
                 accept=".xlsx,.xls,.csv"
@@ -398,30 +372,24 @@ export default function ExpensesUploadPage() {
 
             {/* Format Info */}
             <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
-              <h4 className="font-medium text-gray-900 mb-2">
-                Required Columns:
-              </h4>
+              <h4 className="font-medium text-gray-900 mb-2">Required Columns:</h4>
               <div className="grid gap-1 text-sm text-gray-500">
                 <p>
-                  <strong className="text-gray-700">Name</strong> - Expense name
-                  (required)
+                  <strong className="text-gray-700">Name</strong> - Expense name (required)
                 </p>
                 <p>
-                  <strong className="text-gray-700">Category</strong> - rent,
-                  utilities, salaries, equipment, maintenance, marketing,
-                  supplies, transportation, permits, other
+                  <strong className="text-gray-700">Category</strong> - rent, utilities, salaries,
+                  equipment, maintenance, marketing, supplies, transportation, permits, other
                 </p>
                 <p>
-                  <strong className="text-gray-700">Amount</strong> - Expense
-                  amount in PHP
+                  <strong className="text-gray-700">Amount</strong> - Expense amount in PHP
                 </p>
                 <p>
-                  <strong className="text-gray-700">Frequency</strong> - daily,
-                  weekly, monthly, quarterly, yearly
+                  <strong className="text-gray-700">Frequency</strong> - daily, weekly, monthly,
+                  quarterly, yearly
                 </p>
                 <p>
-                  <strong className="text-gray-700">Notes</strong> - Additional
-                  notes (optional)
+                  <strong className="text-gray-700">Notes</strong> - Additional notes (optional)
                 </p>
               </div>
             </div>
@@ -457,24 +425,12 @@ export default function ExpensesUploadPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-gray-100 hover:bg-transparent">
-                    <TableHead className="text-gray-500 font-medium">
-                      Status
-                    </TableHead>
-                    <TableHead className="text-gray-500 font-medium">
-                      Name
-                    </TableHead>
-                    <TableHead className="text-gray-500 font-medium">
-                      Category
-                    </TableHead>
-                    <TableHead className="text-right text-gray-500 font-medium">
-                      Amount
-                    </TableHead>
-                    <TableHead className="text-gray-500 font-medium">
-                      Frequency
-                    </TableHead>
-                    <TableHead className="text-right text-gray-500 font-medium">
-                      Monthly
-                    </TableHead>
+                    <TableHead className="text-gray-500 font-medium">Status</TableHead>
+                    <TableHead className="text-gray-500 font-medium">Name</TableHead>
+                    <TableHead className="text-gray-500 font-medium">Category</TableHead>
+                    <TableHead className="text-right text-gray-500 font-medium">Amount</TableHead>
+                    <TableHead className="text-gray-500 font-medium">Frequency</TableHead>
+                    <TableHead className="text-right text-gray-500 font-medium">Monthly</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -482,21 +438,19 @@ export default function ExpensesUploadPage() {
                   {parsedData.map((item, index) => (
                     <TableRow
                       key={index}
-                      className={
-                        !item.isValid ? "bg-red-50" : "border-gray-100"
-                      }
+                      className={!item.isValid ? 'bg-red-50' : 'border-gray-100'}
                     >
                       <TableCell>
                         {item.isValid ? (
                           <CheckCircle2 className="h-4 w-4 text-secondary" />
                         ) : (
-                          <span title={item.errors.join(", ")}>
+                          <span title={item.errors.join(', ')}>
                             <AlertCircle className="h-4 w-4 text-red-500" />
                           </span>
                         )}
                       </TableCell>
                       <TableCell className="font-medium text-gray-900">
-                        {item.name || "—"}
+                        {item.name || '—'}
                       </TableCell>
                       <TableCell className="text-gray-500">
                         {categoryLabels[item.category] || item.category}
@@ -504,9 +458,7 @@ export default function ExpensesUploadPage() {
                       <TableCell className="text-right text-gray-900">
                         {formatCurrency(item.amount)}
                       </TableCell>
-                      <TableCell className="capitalize text-gray-500">
-                        {item.frequency}
-                      </TableCell>
+                      <TableCell className="capitalize text-gray-500">{item.frequency}</TableCell>
                       <TableCell className="text-right font-medium text-gray-900">
                         {formatCurrency(getMonthlyAmount(item))}
                       </TableCell>
@@ -543,11 +495,7 @@ export default function ExpensesUploadPage() {
             Clear & Start Over
           </Button>
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="border-gray-200 text-gray-700"
-              asChild
-            >
+            <Button variant="outline" className="border-gray-200 text-gray-700" asChild>
               <Link to="/dashboard/expenses">Cancel</Link>
             </Button>
             <Button
@@ -555,7 +503,7 @@ export default function ExpensesUploadPage() {
               disabled={isLoading || validCount === 0}
               className="bg-primary hover:bg-primary/90"
             >
-              {isLoading ? "Importing..." : `Import ${validCount} Expenses`}
+              {isLoading ? 'Importing...' : `Import ${validCount} Expenses`}
             </Button>
           </div>
         </div>

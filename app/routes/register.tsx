@@ -1,8 +1,8 @@
-import { Link, useNavigate } from "react-router";
-import { useState, useEffect } from "react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import { Link, useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
 import {
   Card,
   CardContent,
@@ -10,14 +10,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card";
-import { APP_CONFIG } from "~/config/app";
-import { useAuthStore } from "~/stores/authStore";
+} from '~/components/ui/card';
+import { APP_CONFIG } from '~/config/app';
+import { useAuthStore } from '~/stores/authStore';
 
 export function meta() {
   return [
     { title: `Register - ${APP_CONFIG.name}` },
-    { name: "description", content: "Create a new KwentaMo account" },
+    { name: 'description', content: 'Create a new KwentaMo account' },
   ];
 }
 
@@ -32,19 +32,19 @@ export default function RegisterPage() {
     clearError,
   } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState('');
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
 
@@ -59,26 +59,22 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
-    setSuccessMessage("");
+    setError('');
+    setSuccessMessage('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setError('Passwords do not match');
       setIsLoading(false);
       return;
     }
 
     if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters");
+      setError('Password must be at least 8 characters');
       setIsLoading(false);
       return;
     }
 
-    const result = await signUp(
-      formData.email,
-      formData.password,
-      formData.name
-    );
+    const result = await signUp(formData.email, formData.password, formData.name);
 
     if (result.success) {
       if (result.message) {
@@ -86,20 +82,20 @@ export default function RegisterPage() {
         setSuccessMessage(result.message);
       } else {
         // Direct login (email confirmation disabled)
-        navigate("/dashboard/business-profile");
+        navigate('/dashboard/business-profile');
       }
     } else {
-      setError(result.message || "Registration failed. Please try again.");
+      setError(result.message || 'Registration failed. Please try again.');
     }
 
     setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
-    setError("");
+    setError('');
     const result = await signInWithGoogle();
     if (!result.success) {
-      setError(result.message || "Google sign in failed");
+      setError(result.message || 'Google sign in failed');
     }
     // Redirect handled by Supabase OAuth
   };
@@ -110,11 +106,7 @@ export default function RegisterPage() {
         {/* Logo */}
         <div className="text-center mb-4">
           <Link to="/" className="inline-flex items-center">
-            <img
-              src="/logo-text.svg"
-              alt="Kwenta MO"
-              className="h-10 mx-auto"
-            />
+            <img src="/logo-text.svg" alt="Kwenta MO" className="h-10 mx-auto" />
           </Link>
         </div>
 
@@ -148,9 +140,7 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="Juan Dela Cruz"
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                   disabled={isLoading}
                   className="h-11"
@@ -165,9 +155,7 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="you@example.com"
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                   disabled={isLoading}
                   className="h-11"
@@ -182,16 +170,12 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="8+ characters"
                   value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   disabled={isLoading}
                   className="h-11"
                 />
-                <p className="text-xs text-gray-400">
-                  Must be at least 8 characters
-                </p>
+                <p className="text-xs text-gray-400">Must be at least 8 characters</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-gray-700">
@@ -215,13 +199,8 @@ export default function RegisterPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-3 pt-2">
-              <Button
-                type="submit"
-                className="w-full h-11"
-                disabled={isLoading}
-                variant="green"
-              >
-                {isLoading ? "Creating account..." : "Create Account"}
+              <Button type="submit" className="w-full h-11" disabled={isLoading} variant="green">
+                {isLoading ? 'Creating account...' : 'Create Account'}
               </Button>
 
               {/* Google Sign Up */}
@@ -253,11 +232,8 @@ export default function RegisterPage() {
                 Sign up with Google
               </Button>
               <p className="text-sm text-gray-500 text-center">
-                Already have an account?{" "}
-                <Link
-                  to="/login"
-                  className="text-primary font-medium hover:underline"
-                >
+                Already have an account?{' '}
+                <Link to="/login" className="text-primary font-medium hover:underline">
                   Sign in
                 </Link>
               </p>

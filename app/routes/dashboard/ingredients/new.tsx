@@ -1,31 +1,25 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router";
-import { ArrowLeft, Package, Save } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { ArrowLeft, Package, Save } from 'lucide-react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { useCreateIngredient } from "~/hooks";
-import { APP_CONFIG } from "~/config/app";
-import type { IngredientUnit } from "~/types";
+} from '~/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { useCreateIngredient } from '~/hooks';
+import { APP_CONFIG } from '~/config/app';
+import type { IngredientUnit } from '~/types';
 
 export function meta() {
   return [
     { title: `Add Ingredient - ${APP_CONFIG.name}` },
-    { name: "description", content: "Add a new ingredient to your inventory" },
+    { name: 'description', content: 'Add a new ingredient to your inventory' },
   ];
 }
 
@@ -34,15 +28,15 @@ const ingredientUnits: {
   label: string;
   examples: string;
 }[] = [
-  { value: "kg", label: "Kilogram (kg)", examples: "rice, flour, meat" },
-  { value: "g", label: "Gram (g)", examples: "spices, seasonings" },
-  { value: "L", label: "Liter (L)", examples: "oil, soy sauce" },
-  { value: "mL", label: "Milliliter (mL)", examples: "vanilla extract" },
-  { value: "pcs", label: "Pieces (pcs)", examples: "eggs, onions" },
-  { value: "pack", label: "Pack", examples: "noodles, biscuits" },
-  { value: "bottle", label: "Bottle", examples: "vinegar, ketchup" },
-  { value: "can", label: "Can", examples: "sardines, corned beef" },
-  { value: "bundle", label: "Bundle", examples: "kangkong, pechay" },
+  { value: 'kg', label: 'Kilogram (kg)', examples: 'rice, flour, meat' },
+  { value: 'g', label: 'Gram (g)', examples: 'spices, seasonings' },
+  { value: 'L', label: 'Liter (L)', examples: 'oil, soy sauce' },
+  { value: 'mL', label: 'Milliliter (mL)', examples: 'vanilla extract' },
+  { value: 'pcs', label: 'Pieces (pcs)', examples: 'eggs, onions' },
+  { value: 'pack', label: 'Pack', examples: 'noodles, biscuits' },
+  { value: 'bottle', label: 'Bottle', examples: 'vinegar, ketchup' },
+  { value: 'can', label: 'Can', examples: 'sardines, corned beef' },
+  { value: 'bundle', label: 'Bundle', examples: 'kangkong, pechay' },
 ];
 
 export default function NewIngredientPage() {
@@ -51,31 +45,31 @@ export default function NewIngredientPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
-    name: "",
-    unit: "" as IngredientUnit,
-    pricePerUnit: "",
-    currentStock: "",
-    reorderLevel: "",
-    supplier: "",
+    name: '',
+    unit: '' as IngredientUnit,
+    pricePerUnit: '',
+    currentStock: '',
+    reorderLevel: '',
+    supplier: '',
   });
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "Ingredient name is required";
+      newErrors.name = 'Ingredient name is required';
     }
     if (!formData.unit) {
-      newErrors.unit = "Please select a unit";
+      newErrors.unit = 'Please select a unit';
     }
     if (!formData.pricePerUnit || parseFloat(formData.pricePerUnit) <= 0) {
-      newErrors.pricePerUnit = "Enter a valid price";
+      newErrors.pricePerUnit = 'Enter a valid price';
     }
     if (!formData.currentStock || parseFloat(formData.currentStock) < 0) {
-      newErrors.currentStock = "Enter current stock amount";
+      newErrors.currentStock = 'Enter current stock amount';
     }
     if (!formData.reorderLevel || parseFloat(formData.reorderLevel) < 0) {
-      newErrors.reorderLevel = "Enter reorder level";
+      newErrors.reorderLevel = 'Enter reorder level';
     }
 
     setErrors(newErrors);
@@ -90,7 +84,7 @@ export default function NewIngredientPage() {
     createIngredientMutation.mutate(
       {
         name: formData.name.trim(),
-        itemType: "RAW_MATERIAL",
+        itemType: 'RAW_MATERIAL',
         unit: formData.unit,
         costPerUnit: parseFloat(formData.pricePerUnit),
         currentStock: parseFloat(formData.currentStock),
@@ -98,8 +92,8 @@ export default function NewIngredientPage() {
         supplier: formData.supplier.trim() || undefined,
       },
       {
-        onSuccess: () => navigate("/dashboard/ingredients"),
-        onError: (error) => console.error("Error adding ingredient:", error),
+        onSuccess: () => navigate('/dashboard/ingredients'),
+        onError: (error) => console.error('Error adding ingredient:', error),
       }
     );
   };
@@ -107,11 +101,7 @@ export default function NewIngredientPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Back Button */}
-      <Button
-        variant="ghost"
-        asChild
-        className="-ml-2 text-gray-600 hover:text-gray-900"
-      >
+      <Button variant="ghost" asChild className="-ml-2 text-gray-600 hover:text-gray-900">
         <Link to="/dashboard/ingredients">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Ingredients
@@ -121,9 +111,7 @@ export default function NewIngredientPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">Add Ingredient</h1>
-        <p className="text-gray-500 mt-1">
-          Add a new ingredient to your inventory
-        </p>
+        <p className="text-gray-500 mt-1">Add a new ingredient to your inventory</p>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -149,14 +137,10 @@ export default function NewIngredientPage() {
                 id="name"
                 placeholder="e.g., Rice, Pork Belly, Cooking Oil"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className={errors.name ? "border-red-300" : "border-gray-200"}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className={errors.name ? 'border-red-300' : 'border-gray-200'}
               />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
             </div>
 
             {/* Unit and Price Row */}
@@ -172,11 +156,7 @@ export default function NewIngredientPage() {
                     setFormData({ ...formData, unit: value as IngredientUnit })
                   }
                 >
-                  <SelectTrigger
-                    className={
-                      errors.unit ? "border-red-300" : "border-gray-200"
-                    }
-                  >
+                  <SelectTrigger className={errors.unit ? 'border-red-300' : 'border-gray-200'}>
                     <SelectValue placeholder="Select unit" />
                   </SelectTrigger>
                   <SelectContent>
@@ -187,9 +167,7 @@ export default function NewIngredientPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.unit && (
-                  <p className="text-sm text-red-500">{errors.unit}</p>
-                )}
+                {errors.unit && <p className="text-sm text-red-500">{errors.unit}</p>}
               </div>
 
               {/* Price Per Unit */}
@@ -204,12 +182,8 @@ export default function NewIngredientPage() {
                   step="0.01"
                   placeholder="e.g., 55.00"
                   value={formData.pricePerUnit}
-                  onChange={(e) =>
-                    setFormData({ ...formData, pricePerUnit: e.target.value })
-                  }
-                  className={
-                    errors.pricePerUnit ? "border-red-300" : "border-gray-200"
-                  }
+                  onChange={(e) => setFormData({ ...formData, pricePerUnit: e.target.value })}
+                  className={errors.pricePerUnit ? 'border-red-300' : 'border-gray-200'}
                 />
                 {errors.pricePerUnit && (
                   <p className="text-sm text-red-500">{errors.pricePerUnit}</p>
@@ -231,19 +205,13 @@ export default function NewIngredientPage() {
                   step="0.01"
                   placeholder="e.g., 10"
                   value={formData.currentStock}
-                  onChange={(e) =>
-                    setFormData({ ...formData, currentStock: e.target.value })
-                  }
-                  className={
-                    errors.currentStock ? "border-red-300" : "border-gray-200"
-                  }
+                  onChange={(e) => setFormData({ ...formData, currentStock: e.target.value })}
+                  className={errors.currentStock ? 'border-red-300' : 'border-gray-200'}
                 />
                 {errors.currentStock && (
                   <p className="text-sm text-red-500">{errors.currentStock}</p>
                 )}
-                <p className="text-xs text-gray-400">
-                  How much do you currently have?
-                </p>
+                <p className="text-xs text-gray-400">How much do you currently have?</p>
               </div>
 
               {/* Reorder Level */}
@@ -258,12 +226,8 @@ export default function NewIngredientPage() {
                   step="0.01"
                   placeholder="e.g., 5"
                   value={formData.reorderLevel}
-                  onChange={(e) =>
-                    setFormData({ ...formData, reorderLevel: e.target.value })
-                  }
-                  className={
-                    errors.reorderLevel ? "border-red-300" : "border-gray-200"
-                  }
+                  onChange={(e) => setFormData({ ...formData, reorderLevel: e.target.value })}
+                  className={errors.reorderLevel ? 'border-red-300' : 'border-gray-200'}
                 />
                 {errors.reorderLevel && (
                   <p className="text-sm text-red-500">{errors.reorderLevel}</p>
@@ -283,26 +247,17 @@ export default function NewIngredientPage() {
                 id="supplier"
                 placeholder="e.g., Carbon Market, Supplier Name"
                 value={formData.supplier}
-                onChange={(e) =>
-                  setFormData({ ...formData, supplier: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
                 className="border-gray-200"
               />
-              <p className="text-xs text-gray-400">
-                Where do you usually buy this ingredient?
-              </p>
+              <p className="text-xs text-gray-400">Where do you usually buy this ingredient?</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 mt-6">
-          <Button
-            type="button"
-            variant="outline"
-            className="border-gray-200 text-gray-700"
-            asChild
-          >
+          <Button type="button" variant="outline" className="border-gray-200 text-gray-700" asChild>
             <Link to="/dashboard/ingredients">Cancel</Link>
           </Button>
           <Button
@@ -311,7 +266,7 @@ export default function NewIngredientPage() {
             className="bg-primary hover:bg-primary/90"
           >
             {createIngredientMutation.isPending ? (
-              "Saving..."
+              'Saving...'
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />

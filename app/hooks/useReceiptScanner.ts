@@ -1,5 +1,5 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { receiptScannerApi } from "../lib/api";
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { receiptScannerApi } from '../lib/api';
 import type {
   ScanResult,
   SaveScannedItemsDto,
@@ -7,7 +7,7 @@ import type {
   ScannedItem,
   CategoryCorrection,
   LearningStats,
-} from "../lib/api";
+} from '../lib/api';
 
 // Hook for scanning a receipt image
 export function useScanReceipt() {
@@ -19,8 +19,7 @@ export function useScanReceipt() {
 // Hook for saving scanned items
 export function useSaveScannedItems() {
   return useMutation<SaveResult, Error, SaveScannedItemsDto>({
-    mutationFn: (data: SaveScannedItemsDto) =>
-      receiptScannerApi.saveItems(data),
+    mutationFn: (data: SaveScannedItemsDto) => receiptScannerApi.saveItems(data),
   });
 }
 
@@ -35,7 +34,7 @@ export function useLearnFromCorrections() {
 // Hook for getting learning stats
 export function useLearningStats() {
   return useQuery<LearningStats>({
-    queryKey: ["receipt-scanner", "learning-stats"],
+    queryKey: ['receipt-scanner', 'learning-stats'],
     queryFn: () => receiptScannerApi.getLearningStats(),
   });
 }

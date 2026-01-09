@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-import { usersApi, ApiError } from "~/lib/api";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+import { usersApi, ApiError } from '~/lib/api';
 
 interface Business {
   id: string;
@@ -78,10 +78,7 @@ export const useBusinessStore = create<BusinessState>()(
           });
           return profile;
         } catch (error) {
-          const message =
-            error instanceof ApiError
-              ? error.message
-              : "Failed to fetch profile";
+          const message = error instanceof ApiError ? error.message : 'Failed to fetch profile';
           set({ error: message, isLoading: false });
           return null;
         }
@@ -94,10 +91,7 @@ export const useBusinessStore = create<BusinessState>()(
           set({ business, isLoading: false });
           return business;
         } catch (error) {
-          const message =
-            error instanceof ApiError
-              ? error.message
-              : "Failed to update business";
+          const message = error instanceof ApiError ? error.message : 'Failed to update business';
           set({ error: message, isLoading: false });
           return null;
         }
@@ -107,6 +101,6 @@ export const useBusinessStore = create<BusinessState>()(
       setError: (error) => set({ error }),
       clearError: () => set({ error: null }),
     }),
-    { name: "BusinessStore" }
+    { name: 'BusinessStore' }
   )
 );
