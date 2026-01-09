@@ -9,7 +9,7 @@ on:
 jobs:
   # Job 1: Type Check & Lint
   typecheck:
-    name: 📝 TypeScript & Lint Check
+    name: TypeScript & Lint Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
 
   # Job 2: Build Application
   build:
-    name: 🏗️ Build Application
+    name: Build Application
     runs-on: ubuntu-latest
     needs: typecheck
     steps:
@@ -63,7 +63,7 @@ jobs:
 
   # Job 3: Build Docker Image
   docker-build:
-    name: 🐳 Build Docker Image
+    name: Build Docker Image
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -84,7 +84,7 @@ jobs:
 
   # Job 4: Security Checks
   security:
-    name: 🔒 Security Scan
+    name: Security Scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -104,7 +104,7 @@ jobs:
 
   # Summary
   ci-success:
-    name: ✅ CI Pipeline Complete
+    name: CI Pipeline Complete
     runs-on: ubuntu-latest
     needs: [typecheck, build, docker-build, security]
     if: always()
@@ -112,8 +112,8 @@ jobs:
       - name: Check all jobs
         run: |
           if [ "${{ contains(needs.*.result, 'failure') }}" == "true" ]; then
-            echo "❌ Some checks failed"
+            echo "Some checks failed"
             exit 1
           else
-            echo "✅ All checks passed!"
+            echo "All checks passed!"
           fi
