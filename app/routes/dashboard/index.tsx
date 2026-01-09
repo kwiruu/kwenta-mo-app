@@ -370,7 +370,7 @@ export default function DashboardPage() {
                     <div>
                       <p className="font-medium text-gray-900">{item.name}</p>
                       <p className="text-sm text-gray-500">
-                        {item.currentStock} {item.unit} remaining (min: {item.reorderLevel})
+                        {item.quantity} {item.unit} remaining (min: {item.reorderLevel})
                       </p>
                     </div>
                     <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">

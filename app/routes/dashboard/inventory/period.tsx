@@ -148,7 +148,7 @@ export default function InventoryPeriodDetailPage() {
         ...newSnapshot,
         ingredientId,
         itemName: ingredient.name,
-        unitCost: ingredient.costPerUnit.toString(),
+        unitCost: ingredient.unitCost.toString(),
       });
     }
   };

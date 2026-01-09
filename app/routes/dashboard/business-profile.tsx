@@ -43,7 +43,6 @@ const rawMaterialSources = [
 
 export default function BusinessProfilePage() {
   const navigate = useNavigate();
-  const { setCurrentBusiness } = useBusinessStore();
 
   // TanStack Query hooks
   const { data: profile, isLoading: isLoadingProfile } = useUserProfile();
@@ -109,19 +108,6 @@ export default function BusinessProfilePage() {
         employeeCount: parseInt(formData.employeeCount) || undefined,
         avgMonthlySales: parseFloat(formData.avgMonthlySales) || undefined,
         rawMaterialSource: formData.rawMaterialSource || undefined,
-      });
-
-      // Update the Zustand store for header display
-      setCurrentBusiness({
-        id: result.id,
-        name: result.businessName,
-        type: result.businessType,
-        location: result.address,
-        employeeCount: result.employeeCount,
-        avgMonthlySales: result.avgMonthlySales,
-        rawMaterialSource: result.rawMaterialSource,
-        createdAt: new Date(result.createdAt),
-        updatedAt: new Date(result.updatedAt),
       });
 
       setSuccess(true);

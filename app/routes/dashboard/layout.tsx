@@ -46,27 +46,10 @@ export default function DashboardLayout() {
   const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, isAuthenticated, isLoading, signOut } = useAuthStore();
-  const { currentBusiness, setCurrentBusiness } = useBusinessStore();
+  const { business } = useBusinessStore();
 
   // Fetch profile from API
   const { data: profile } = useUserProfile();
-
-  // Sync API data with store for header display
-  useEffect(() => {
-    if (profile?.business && !currentBusiness) {
-      setCurrentBusiness({
-        id: profile.business.id,
-        name: profile.business.businessName,
-        type: profile.business.businessType,
-        location: profile.business.address,
-        employeeCount: profile.business.employeeCount,
-        avgMonthlySales: profile.business.avgMonthlySales,
-        rawMaterialSource: profile.business.rawMaterialSource,
-        createdAt: new Date(profile.business.createdAt),
-        updatedAt: new Date(profile.business.updatedAt),
-      });
-    }
-  }, [profile, currentBusiness, setCurrentBusiness]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -79,7 +62,6 @@ export default function DashboardLayout() {
     // Clear all cached data
     clearTokenCache();
     queryClient.clear();
-    setCurrentBusiness(null as any);
     await signOut();
     navigate('/login');
   };
@@ -209,9 +191,9 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-4">
             <div className="text-right">
               <span className="text-sm font-medium text-gray-900">
-                {currentBusiness?.name || user?.email || 'My Business'}
+                {business?.businessName || user?.email || 'My Business'}
               </span>
-              {currentBusiness?.name && <p className="text-xs text-gray-500">{user?.email}</p>}
+              {business?.businessName && <p className="text-xs text-gray-500">{user?.email}</p>}
             </div>
           </div>
         </header>

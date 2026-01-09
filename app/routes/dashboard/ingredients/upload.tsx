@@ -171,11 +171,11 @@ export default function IngredientsUploadPage() {
 
     createBulkIngredientsMutation.mutate(
       validItems.map((item) => ({
-        name: item.name,
+        itemName: item.name,
         itemType: 'RAW_MATERIAL' as const,
         unit: item.unit,
-        costPerUnit: item.pricePerUnit,
-        currentStock: item.currentStock,
+        unitCost: item.pricePerUnit,
+        quantity: item.currentStock,
         reorderLevel: item.reorderLevel,
         supplier: item.supplier,
       })),

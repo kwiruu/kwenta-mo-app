@@ -83,11 +83,11 @@ export default function NewIngredientPage() {
 
     createIngredientMutation.mutate(
       {
-        name: formData.name.trim(),
+        itemName: formData.name.trim(),
         itemType: 'RAW_MATERIAL',
         unit: formData.unit,
-        costPerUnit: parseFloat(formData.pricePerUnit),
-        currentStock: parseFloat(formData.currentStock),
+        unitCost: parseFloat(formData.pricePerUnit),
+        quantity: parseFloat(formData.currentStock),
         reorderLevel: parseFloat(formData.reorderLevel),
         supplier: formData.supplier.trim() || undefined,
       },

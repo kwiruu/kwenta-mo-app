@@ -36,7 +36,7 @@ export default function IngredientsListPage() {
     ingredient.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const lowStockItems = ingredients.filter((i) => Number(i.currentStock) <= Number(i.reorderLevel));
+  const lowStockItems = ingredients.filter((i) => Number(i.quantity) <= Number(i.reorderLevel));
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-PH', {
@@ -57,7 +57,7 @@ export default function IngredientsListPage() {
   };
 
   const getStockStatus = (ingredient: Ingredient) => {
-    const currentStock = Number(ingredient.currentStock);
+    const currentStock = Number(ingredient.quantity);
     const reorderLevel = Number(ingredient.reorderLevel);
 
     if (currentStock <= 0) {
@@ -208,10 +208,10 @@ export default function IngredientsListPage() {
                     </TableCell>
                     <TableCell className="text-gray-500">{ingredient.unit}</TableCell>
                     <TableCell className="text-right text-gray-900">
-                      {formatCurrency(ingredient.costPerUnit)}
+                      {formatCurrency(ingredient.unitCost)}
                     </TableCell>
                     <TableCell className="text-right text-gray-900">
-                      {ingredient.currentStock} {ingredient.unit}
+                      {ingredient.quantity} {ingredient.unit}
                     </TableCell>
                     <TableCell>{getStockStatus(ingredient)}</TableCell>
                     <TableCell className="text-gray-500">{ingredient.supplier || '—'}</TableCell>

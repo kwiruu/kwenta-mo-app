@@ -107,7 +107,9 @@ export function useDeletePurchase() {
 }
 
 // Get purchases as inventory items (for recipe selection)
-export function useInventoryItems() {
+// Note: This overlaps with useInventoryItems from useInventoryItems.ts
+// Both query the same endpoint but are maintained for backwards compatibility
+export function usePurchasesAsInventoryItems() {
   return useQuery({
     queryKey: [...purchaseKeys.all, 'inventory-items'] as const,
     queryFn: () => purchasesApi.getInventoryItems(),

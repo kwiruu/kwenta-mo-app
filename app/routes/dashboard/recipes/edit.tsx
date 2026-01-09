@@ -26,7 +26,6 @@ export default function EditRecipe() {
   const { data: activePeriod } = useActivePeriod();
   const { data: purchases = [] } = usePurchases({
     periodId: activePeriod?.id,
-    status: 'PURCHASED',
   });
 
   const [formData, setFormData] = useState({

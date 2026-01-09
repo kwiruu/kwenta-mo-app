@@ -60,8 +60,8 @@ export default function EditIngredientPage() {
       setFormData({
         name: ingredient.name,
         unit: ingredient.unit as IngredientUnit,
-        pricePerUnit: ingredient.costPerUnit.toString(),
-        currentStock: ingredient.currentStock.toString(),
+        pricePerUnit: ingredient.unitCost.toString(),
+        currentStock: ingredient.quantity.toString(),
         reorderLevel: ingredient.reorderLevel.toString(),
         supplier: ingredient.supplier || '',
       });
@@ -136,10 +136,10 @@ export default function EditIngredientPage() {
       {
         id: id!,
         data: {
-          name: formData.name.trim(),
+          itemName: formData.name.trim(),
           unit: formData.unit,
-          costPerUnit: parseFloat(formData.pricePerUnit),
-          currentStock: parseFloat(formData.currentStock),
+          unitCost: parseFloat(formData.pricePerUnit),
+          quantity: parseFloat(formData.currentStock),
           reorderLevel: parseFloat(formData.reorderLevel),
           supplier: formData.supplier.trim() || undefined,
         },
