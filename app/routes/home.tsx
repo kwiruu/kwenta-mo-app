@@ -28,7 +28,7 @@ import {
   Target,
 } from "lucide-react";
 
-export function meta({}: Route.MetaArgs) {
+export function meta(_args: Route.MetaArgs) {
   return [
     { title: `${APP_CONFIG.name} - Food Business Costing Assistant` },
     { name: "description", content: APP_CONFIG.description },

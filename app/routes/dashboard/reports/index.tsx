@@ -201,10 +201,11 @@ export default function ReportsIndex() {
       case "month":
         start = new Date(end.getFullYear(), end.getMonth(), 1);
         break;
-      case "quarter":
+      case "quarter": {
         const quarter = Math.floor(end.getMonth() / 3);
         start = new Date(end.getFullYear(), quarter * 3, 1);
         break;
+      }
       case "year":
         start = new Date(end.getFullYear(), 0, 1);
         break;
