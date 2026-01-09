@@ -1,10 +1,10 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase environment variables");
+  throw new Error('Missing Supabase environment variables');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -56,7 +56,7 @@ export const signIn = async (email: string, password: string) => {
 export const signInWithGoogle = async () => {
   const redirectUrl = import.meta.env.VITE_APP_URL || window.location.origin;
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
+    provider: 'google',
     options: {
       redirectTo: `${redirectUrl}/dashboard`,
     },
@@ -95,7 +95,7 @@ export const getAccessToken = async (): Promise<string | null> => {
       return cachedToken;
     }
   } catch (error) {
-    console.error("Error getting session:", error);
+    console.error('Error getting session:', error);
   }
   return null;
 };

@@ -1,13 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { inventoryTransactionsApi, restockApi } from "../lib/api";
-import type { TransactionFilters, RestockDto } from "../lib/api";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { inventoryTransactionsApi, restockApi } from '../lib/api';
+import type { TransactionFilters, RestockDto } from '../lib/api';
 
 /**
  * Hook to fetch inventory transactions with optional filters
  */
 export function useInventoryTransactions(filters?: TransactionFilters) {
   return useQuery({
-    queryKey: ["inventory-transactions", filters],
+    queryKey: ['inventory-transactions', filters],
     queryFn: () => inventoryTransactionsApi.getAll(filters),
   });
 }
@@ -17,7 +17,7 @@ export function useInventoryTransactions(filters?: TransactionFilters) {
  */
 export function useItemTransactions(purchaseId?: string) {
   return useQuery({
-    queryKey: ["inventory-transactions", "item", purchaseId],
+    queryKey: ['inventory-transactions', 'item', purchaseId],
     queryFn: () => inventoryTransactionsApi.getByItem(purchaseId!),
     enabled: !!purchaseId,
   });
@@ -28,7 +28,7 @@ export function useItemTransactions(purchaseId?: string) {
  */
 export function useTransactionStats() {
   return useQuery({
-    queryKey: ["inventory-transactions", "stats"],
+    queryKey: ['inventory-transactions', 'stats'],
     queryFn: () => inventoryTransactionsApi.getStats(),
   });
 }
@@ -40,13 +40,12 @@ export function useRestock() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: RestockDto }) =>
-      restockApi.restock(id, data),
+    mutationFn: ({ id, data }: { id: string; data: RestockDto }) => restockApi.restock(id, data),
     onSuccess: () => {
       // Invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: ["purchases"] });
-      queryClient.invalidateQueries({ queryKey: ["inventory-transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["low-stock-alerts"] });
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['low-stock-alerts'] });
     },
   });
 }

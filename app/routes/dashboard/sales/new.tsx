@@ -1,23 +1,17 @@
-import { Link, useNavigate } from "react-router";
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { useCreateSale, useRecipes } from "~/hooks";
-import type { SaleCategory } from "~/lib/api";
+import { Link, useNavigate } from 'react-router';
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
+import { useCreateSale, useRecipes } from '~/hooks';
+import type { SaleCategory } from '~/lib/api';
 
 const saleCategoryLabels: Record<SaleCategory, string> = {
-  FOOD: "Food",
-  BEVERAGE: "Beverage",
-  CATERING: "Catering",
-  DELIVERY: "Delivery",
+  FOOD: 'Food',
+  BEVERAGE: 'Beverage',
+  CATERING: 'Catering',
+  DELIVERY: 'Delivery',
 };
 
 export default function NewSale() {
@@ -26,10 +20,10 @@ export default function NewSale() {
   const { data: recipes = [] } = useRecipes();
 
   const [formData, setFormData] = useState({
-    recipeId: "",
+    recipeId: '',
     quantitySold: 1,
-    dateSold: new Date().toISOString().split("T")[0],
-    category: "FOOD" as SaleCategory,
+    dateSold: new Date().toISOString().split('T')[0],
+    category: 'FOOD' as SaleCategory,
   });
 
   const selectedRecipe = recipes.find((r) => r.id === formData.recipeId);
@@ -37,9 +31,9 @@ export default function NewSale() {
   const totalAmount = unitPrice * formData.quantitySold;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
     }).format(amount);
   };
 
@@ -47,12 +41,12 @@ export default function NewSale() {
     e.preventDefault();
 
     if (!formData.recipeId) {
-      alert("Please select a recipe");
+      alert('Please select a recipe');
       return;
     }
 
     if (formData.quantitySold <= 0) {
-      alert("Quantity must be greater than 0");
+      alert('Quantity must be greater than 0');
       return;
     }
 
@@ -65,8 +59,8 @@ export default function NewSale() {
         category: formData.category,
       },
       {
-        onSuccess: () => navigate("/dashboard/sales"),
-        onError: (error) => console.error("Error adding sale:", error),
+        onSuccess: () => navigate('/dashboard/sales'),
+        onError: (error) => console.error('Error adding sale:', error),
       }
     );
   };
@@ -96,9 +90,7 @@ export default function NewSale() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Record Sale</h1>
-          <p className="text-muted-foreground">
-            Record a new sales transaction
-          </p>
+          <p className="text-muted-foreground">Record a new sales transaction</p>
         </div>
       </div>
 
@@ -109,9 +101,7 @@ export default function NewSale() {
             <Card>
               <CardHeader>
                 <CardTitle>Sale Details</CardTitle>
-                <CardDescription>
-                  Select the recipe sold and quantity
-                </CardDescription>
+                <CardDescription>Select the recipe sold and quantity</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -120,9 +110,7 @@ export default function NewSale() {
                     id="recipe"
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     value={formData.recipeId}
-                    onChange={(e) =>
-                      setFormData({ ...formData, recipeId: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, recipeId: e.target.value })}
                     required
                   >
                     <option value="">Select a recipe...</option>
@@ -158,9 +146,7 @@ export default function NewSale() {
                       id="date"
                       type="date"
                       value={formData.dateSold}
-                      onChange={(e) =>
-                        setFormData({ ...formData, dateSold: e.target.value })
-                      }
+                      onChange={(e) => setFormData({ ...formData, dateSold: e.target.value })}
                       required
                     />
                   </div>
@@ -180,13 +166,11 @@ export default function NewSale() {
                     }
                     required
                   >
-                    {Object.entries(saleCategoryLabels).map(
-                      ([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      )
-                    )}
+                    {Object.entries(saleCategoryLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
                   </select>
                   <p className="text-xs text-muted-foreground">
                     Categorize this sale for revenue breakdown reports
@@ -202,15 +186,9 @@ export default function NewSale() {
                         <Button
                           key={qty}
                           type="button"
-                          variant={
-                            formData.quantitySold === qty
-                              ? "default"
-                              : "outline"
-                          }
+                          variant={formData.quantitySold === qty ? 'default' : 'outline'}
                           size="sm"
-                          onClick={() =>
-                            setFormData({ ...formData, quantitySold: qty })
-                          }
+                          onClick={() => setFormData({ ...formData, quantitySold: qty })}
                         >
                           {qty}
                         </Button>
@@ -235,14 +213,10 @@ export default function NewSale() {
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Recipe</span>
-                        <span className="font-medium">
-                          {selectedRecipe?.name}
-                        </span>
+                        <span className="font-medium">{selectedRecipe?.name}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Unit Price
-                        </span>
+                        <span className="text-muted-foreground">Unit Price</span>
                         <span>{formatCurrency(unitPrice)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
@@ -311,7 +285,7 @@ export default function NewSale() {
                     Recording...
                   </>
                 ) : (
-                  "Record Sale"
+                  'Record Sale'
                 )}
               </Button>
               <Button type="button" variant="outline" asChild>

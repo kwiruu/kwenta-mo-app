@@ -1,11 +1,11 @@
 export const APP_CONFIG = {
-  name: "KwentaMo",
-  description: "A Web-Based Costing Assistant for Small Food Business Owners",
-  version: "1.0.0",
+  name: 'KwentaMo',
+  description: 'A Web-Based Costing Assistant for Small Food Business Owners',
+  version: '1.0.0',
 
   // API Configuration (to be updated when backend is ready)
   api: {
-    baseUrl: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
     timeout: 30000,
   },
 
@@ -19,7 +19,7 @@ export const APP_CONFIG = {
 
   // Business Configuration
   business: {
-    defaultCurrency: "PHP",
+    defaultCurrency: 'PHP',
     defaultOverheadRate: 0.15, // 15% overhead allocation
     lowStockThreshold: 10,
     profitMarginWarning: 0.1, // 10% minimum profit margin
@@ -34,7 +34,7 @@ export const APP_CONFIG = {
   // File Upload
   upload: {
     maxFileSize: 5 * 1024 * 1024, // 5MB
-    acceptedFormats: [".xlsx", ".xls", ".csv"],
+    acceptedFormats: ['.xlsx', '.xls', '.csv'],
   },
 } as const;
 

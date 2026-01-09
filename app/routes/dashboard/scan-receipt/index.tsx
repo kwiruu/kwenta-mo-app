@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-import { useNavigate } from "react-router";
+import { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { useNavigate } from 'react-router';
 import {
   Upload,
   FileImage,
@@ -19,15 +19,9 @@ import {
   CheckCircle,
   Brain,
   FileQuestionMark,
-} from "lucide-react";
-import { Button } from "~/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "~/components/ui/card";
+} from 'lucide-react';
+import { Button } from '~/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '~/components/ui/card';
 import {
   Table,
   TableBody,
@@ -35,24 +29,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+} from '~/components/ui/table';
+import { Badge } from '~/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select";
-import { Input } from "~/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { useToast } from "~/hooks/use-toast";
+} from '~/components/ui/select';
+import { Input } from '~/components/ui/input';
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
+import { useToast } from '~/hooks/use-toast';
 import {
   useScanReceipt,
   useSaveScannedItems,
   useLearnFromCorrections,
-} from "~/hooks/useReceiptScanner";
+} from '~/hooks/useReceiptScanner';
 import type {
   ScannedItem,
   ItemCategory,
@@ -61,7 +55,7 @@ import type {
   VendorInfo,
   TotalValidation,
   CategoryCorrection,
-} from "~/lib/api";
+} from '~/lib/api';
 
 // Extended scanned item with editable fields
 interface EditableScannedItem extends ScannedItem {
@@ -73,27 +67,27 @@ interface EditableScannedItem extends ScannedItem {
 }
 
 const INVENTORY_TYPES = [
-  { value: "RAW_MATERIAL", label: "Raw Material" },
-  { value: "PACKAGING", label: "Packaging" },
-  { value: "SUPPLIES", label: "Supplies" },
-  { value: "EQUIPMENT", label: "Equipment" },
+  { value: 'RAW_MATERIAL', label: 'Raw Material' },
+  { value: 'PACKAGING', label: 'Packaging' },
+  { value: 'SUPPLIES', label: 'Supplies' },
+  { value: 'EQUIPMENT', label: 'Equipment' },
 ];
 
 const EXPENSE_CATEGORIES = [
-  { value: "UTILITIES", label: "Utilities" },
-  { value: "RENT", label: "Rent" },
-  { value: "MAINTENANCE", label: "Maintenance" },
-  { value: "SUPPLIES", label: "Supplies" },
-  { value: "EQUIPMENT", label: "Equipment" },
-  { value: "SALARY", label: "Salary/Labor" },
-  { value: "OTHER", label: "Other" },
+  { value: 'UTILITIES', label: 'Utilities' },
+  { value: 'RENT', label: 'Rent' },
+  { value: 'MAINTENANCE', label: 'Maintenance' },
+  { value: 'SUPPLIES', label: 'Supplies' },
+  { value: 'EQUIPMENT', label: 'Equipment' },
+  { value: 'SALARY', label: 'Salary/Labor' },
+  { value: 'OTHER', label: 'Other' },
 ];
 
 const EXPENSE_FREQUENCIES = [
-  { value: "ONE_TIME", label: "One Time" },
-  { value: "DAILY", label: "Daily" },
-  { value: "WEEKLY", label: "Weekly" },
-  { value: "MONTHLY", label: "Monthly" },
+  { value: 'ONE_TIME', label: 'One Time' },
+  { value: 'DAILY', label: 'Daily' },
+  { value: 'WEEKLY', label: 'Weekly' },
+  { value: 'MONTHLY', label: 'Monthly' },
 ];
 
 export default function ScanReceiptPage() {
@@ -104,12 +98,10 @@ export default function ScanReceiptPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [items, setItems] = useState<EditableScannedItem[]>([]);
-  const [activeTab, setActiveTab] = useState<ItemCategory>("INVENTORY");
-  const [step, setStep] = useState<"upload" | "review">("upload");
+  const [activeTab, setActiveTab] = useState<ItemCategory>('INVENTORY');
+  const [step, setStep] = useState<'upload' | 'review'>('upload');
   const [vendorInfo, setVendorInfo] = useState<VendorInfo | undefined>();
-  const [totalValidation, setTotalValidation] = useState<
-    TotalValidation | undefined
-  >();
+  const [totalValidation, setTotalValidation] = useState<TotalValidation | undefined>();
 
   // Mutations
   const scanMutation = useScanReceipt();
@@ -129,9 +121,9 @@ export default function ScanReceiptPage() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "image/jpeg": [".jpg", ".jpeg"],
-      "image/png": [".png"],
-      "image/webp": [".webp"],
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/webp': ['.webp'],
     },
     maxFiles: 1,
     maxSize: 10 * 1024 * 1024, // 10MB
@@ -149,33 +141,28 @@ export default function ScanReceiptPage() {
       setTotalValidation(result.totalValidation);
 
       // Convert to editable items with IDs
-      const editableItems: EditableScannedItem[] = result.items.map(
-        (item, index) => ({
-          ...item,
-          id: `item-${index}`,
-          inventoryType: item.inventoryType || "RAW_MATERIAL",
-          expenseCategory: item.expenseType || "OTHER",
-          expenseFrequency: "ONE_TIME",
-          originalCategory: item.category, // Track for learning
-        })
-      );
+      const editableItems: EditableScannedItem[] = result.items.map((item, index) => ({
+        ...item,
+        id: `item-${index}`,
+        inventoryType: item.inventoryType || 'RAW_MATERIAL',
+        expenseCategory: item.expenseType || 'OTHER',
+        expenseFrequency: 'ONE_TIME',
+        originalCategory: item.category, // Track for learning
+      }));
 
       setItems(editableItems);
-      setStep("review");
+      setStep('review');
 
-      const vendorMsg = result.vendor?.name
-        ? ` from ${result.vendor.name}`
-        : "";
+      const vendorMsg = result.vendor?.name ? ` from ${result.vendor.name}` : '';
       toast({
-        title: "Receipt scanned!",
+        title: 'Receipt scanned!',
         description: `Found ${result.items.length} items${vendorMsg} (${result.inventoryCount} inventory, ${result.expenseCount} expenses, ${result.unknownCount} needs review)`,
       });
     } catch (error) {
       toast({
-        variant: "destructive",
-        title: "Scan failed",
-        description:
-          error instanceof Error ? error.message : "Failed to scan receipt",
+        variant: 'destructive',
+        title: 'Scan failed',
+        description: error instanceof Error ? error.message : 'Failed to scan receipt',
       });
     }
   };
@@ -183,22 +170,14 @@ export default function ScanReceiptPage() {
   // Move item to different category
   const moveItem = (itemId: string, newCategory: ItemCategory) => {
     setItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId ? { ...item, category: newCategory } : item
-      )
+      prev.map((item) => (item.id === itemId ? { ...item, category: newCategory } : item))
     );
   };
 
   // Update item field
-  const updateItem = (
-    itemId: string,
-    field: string,
-    value: string | number
-  ) => {
+  const updateItem = (itemId: string, field: string, value: string | number) => {
     setItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId ? { ...item, [field]: value } : item
-      )
+      prev.map((item) => (item.id === itemId ? { ...item, [field]: value } : item))
     );
   };
 
@@ -217,16 +196,16 @@ export default function ScanReceiptPage() {
       .filter(
         (item) =>
           item.originalCategory !== item.category ||
-          (item.category === "INVENTORY" && item.inventoryType) ||
-          (item.category === "EXPENSE" && item.expenseCategory)
+          (item.category === 'INVENTORY' && item.inventoryType) ||
+          (item.category === 'EXPENSE' && item.expenseCategory)
       )
       .map((item) => ({
         itemName: item.name,
         category: item.category,
         subCategory:
-          item.category === "INVENTORY"
+          item.category === 'INVENTORY'
             ? item.inventoryType
-            : item.category === "EXPENSE"
+            : item.category === 'EXPENSE'
               ? item.expenseCategory
               : undefined,
         vendor: vendorInfo?.name,
@@ -235,31 +214,27 @@ export default function ScanReceiptPage() {
 
   // Handle save
   const handleSave = async () => {
-    const inventoryItems: SaveInventoryItem[] = getItemsByCategory(
-      "INVENTORY"
-    ).map((item) => ({
+    const inventoryItems: SaveInventoryItem[] = getItemsByCategory('INVENTORY').map((item) => ({
       name: item.name,
       quantity: item.quantity,
       unit: item.unit,
       unitCost: item.unitCost,
       totalCost: item.totalCost,
-      inventoryType: item.inventoryType || "RAW_MATERIAL",
+      inventoryType: item.inventoryType || 'RAW_MATERIAL',
     }));
 
-    const expenseItems: SaveExpenseItem[] = getItemsByCategory("EXPENSE").map(
-      (item) => ({
-        name: item.name,
-        amount: item.totalCost,
-        category: item.expenseCategory || "OTHER",
-        frequency: item.expenseFrequency || "ONE_TIME",
-      })
-    );
+    const expenseItems: SaveExpenseItem[] = getItemsByCategory('EXPENSE').map((item) => ({
+      name: item.name,
+      amount: item.totalCost,
+      category: item.expenseCategory || 'OTHER',
+      frequency: item.expenseFrequency || 'ONE_TIME',
+    }));
 
     if (inventoryItems.length === 0 && expenseItems.length === 0) {
       toast({
-        variant: "destructive",
-        title: "Nothing to save",
-        description: "Please categorize at least one item before saving",
+        variant: 'destructive',
+        title: 'Nothing to save',
+        description: 'Please categorize at least one item before saving',
       });
       return;
     }
@@ -278,18 +253,17 @@ export default function ScanReceiptPage() {
       }
 
       toast({
-        title: "Items saved!",
-        description: `Saved ${result.inventorySaved} inventory items and ${result.expensesSaved} expenses${corrections.length > 0 ? `. Learning from ${corrections.length} categorizations.` : ""}`,
+        title: 'Items saved!',
+        description: `Saved ${result.inventorySaved} inventory items and ${result.expensesSaved} expenses${corrections.length > 0 ? `. Learning from ${corrections.length} categorizations.` : ''}`,
       });
 
       // Navigate back to inventory
-      navigate("/dashboard/inventory");
+      navigate('/dashboard/inventory');
     } catch (error) {
       toast({
-        variant: "destructive",
-        title: "Save failed",
-        description:
-          error instanceof Error ? error.message : "Failed to save items",
+        variant: 'destructive',
+        title: 'Save failed',
+        description: error instanceof Error ? error.message : 'Failed to save items',
       });
     }
   };
@@ -299,7 +273,7 @@ export default function ScanReceiptPage() {
     setSelectedFile(null);
     setPreviewUrl(null);
     setItems([]);
-    setStep("upload");
+    setStep('upload');
     setVendorInfo(undefined);
     setTotalValidation(undefined);
     scanMutation.reset();
@@ -311,7 +285,7 @@ export default function ScanReceiptPage() {
       <TableCell>
         <Input
           value={item.name}
-          onChange={(e) => updateItem(item.id, "name", e.target.value)}
+          onChange={(e) => updateItem(item.id, 'name', e.target.value)}
           className="min-w-[150px]"
         />
       </TableCell>
@@ -320,14 +294,12 @@ export default function ScanReceiptPage() {
           <Input
             type="number"
             value={item.quantity}
-            onChange={(e) =>
-              updateItem(item.id, "quantity", parseFloat(e.target.value) || 0)
-            }
+            onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
             className="w-16"
           />
           <Input
             value={item.unit}
-            onChange={(e) => updateItem(item.id, "unit", e.target.value)}
+            onChange={(e) => updateItem(item.id, 'unit', e.target.value)}
             className="w-16"
           />
         </div>
@@ -336,21 +308,17 @@ export default function ScanReceiptPage() {
         <Input
           type="number"
           value={item.unitCost}
-          onChange={(e) =>
-            updateItem(item.id, "unitCost", parseFloat(e.target.value) || 0)
-          }
+          onChange={(e) => updateItem(item.id, 'unitCost', parseFloat(e.target.value) || 0)}
           className="w-24"
           step="0.01"
         />
       </TableCell>
-      <TableCell className="font-medium">
-        ₱{item.totalCost.toFixed(2)}
-      </TableCell>
-      {item.category === "INVENTORY" && (
+      <TableCell className="font-medium">₱{item.totalCost.toFixed(2)}</TableCell>
+      {item.category === 'INVENTORY' && (
         <TableCell>
           <Select
             value={item.inventoryType}
-            onValueChange={(v) => updateItem(item.id, "inventoryType", v)}
+            onValueChange={(v) => updateItem(item.id, 'inventoryType', v)}
           >
             <SelectTrigger className="w-32">
               <SelectValue />
@@ -365,12 +333,12 @@ export default function ScanReceiptPage() {
           </Select>
         </TableCell>
       )}
-      {item.category === "EXPENSE" && (
+      {item.category === 'EXPENSE' && (
         <>
           <TableCell>
             <Select
               value={item.expenseCategory}
-              onValueChange={(v) => updateItem(item.id, "expenseCategory", v)}
+              onValueChange={(v) => updateItem(item.id, 'expenseCategory', v)}
             >
               <SelectTrigger className="w-28">
                 <SelectValue />
@@ -387,7 +355,7 @@ export default function ScanReceiptPage() {
           <TableCell>
             <Select
               value={item.expenseFrequency}
-              onValueChange={(v) => updateItem(item.id, "expenseFrequency", v)}
+              onValueChange={(v) => updateItem(item.id, 'expenseFrequency', v)}
             >
               <SelectTrigger className="w-24">
                 <SelectValue />
@@ -405,31 +373,31 @@ export default function ScanReceiptPage() {
       )}
       <TableCell>
         <div className="flex gap-1">
-          {item.category !== "INVENTORY" && (
+          {item.category !== 'INVENTORY' && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => moveItem(item.id, "INVENTORY")}
+              onClick={() => moveItem(item.id, 'INVENTORY')}
               title="Move to Inventory"
             >
               <Package className="h-4 w-4" />
             </Button>
           )}
-          {item.category !== "EXPENSE" && (
+          {item.category !== 'EXPENSE' && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => moveItem(item.id, "EXPENSE")}
+              onClick={() => moveItem(item.id, 'EXPENSE')}
               title="Move to Expenses"
             >
               <Receipt className="h-4 w-4" />
             </Button>
           )}
-          {item.category !== "UNKNOWN" && (
+          {item.category !== 'UNKNOWN' && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => moveItem(item.id, "UNKNOWN")}
+              onClick={() => moveItem(item.id, 'UNKNOWN')}
               title="Move to Review"
             >
               <HelpCircle className="h-4 w-4" />
@@ -452,11 +420,7 @@ export default function ScanReceiptPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate("/dashboard/inventory")}
-        >
+        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/inventory')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
@@ -467,23 +431,21 @@ export default function ScanReceiptPage() {
         </div>
       </div>
 
-      {step === "upload" && (
+      {step === 'upload' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Upload Area */}
           <Card>
             <CardHeader>
               <CardTitle>Upload Receipt</CardTitle>
-              <CardDescription>
-                Drag and drop an image or click to browse
-              </CardDescription>
+              <CardDescription>Drag and drop an image or click to browse</CardDescription>
             </CardHeader>
             <CardContent>
               <div
                 {...getRootProps()}
                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                   isDragActive
-                    ? "border-primary bg-primary/5"
-                    : "border-muted-foreground/25 hover:border-primary/50"
+                    ? 'border-primary bg-primary/5'
+                    : 'border-muted-foreground/25 hover:border-primary/50'
                 }`}
               >
                 <input {...getInputProps()} />
@@ -592,7 +554,7 @@ export default function ScanReceiptPage() {
                   </p>
                 </div>
               </div>
-                <div className="flex gap-3 items-center">
+              <div className="flex gap-3 items-center">
                 <div className="p-2 rounded-full bg-blue-100 text-blue-600">
                   <FileQuestionMark className="h-4 w-4" />
                 </div>
@@ -602,13 +564,13 @@ export default function ScanReceiptPage() {
                     Review the extracted items for accuracy
                   </p>
                 </div>
-              </div>  
+              </div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {step === "review" && (
+      {step === 'review' && (
         <div className="space-y-6">
           {/* Vendor Info & Total Validation */}
           <div className="grid gap-4 md:grid-cols-2">
@@ -625,19 +587,13 @@ export default function ScanReceiptPage() {
                   <div className="space-y-1 text-sm">
                     <p className="font-medium">{vendorInfo.name}</p>
                     {vendorInfo.address && (
-                      <p className="text-muted-foreground">
-                        {vendorInfo.address}
-                      </p>
+                      <p className="text-muted-foreground">{vendorInfo.address}</p>
                     )}
                     {vendorInfo.phone && (
-                      <p className="text-muted-foreground">
-                        📞 {vendorInfo.phone}
-                      </p>
+                      <p className="text-muted-foreground">📞 {vendorInfo.phone}</p>
                     )}
                     {vendorInfo.tin && (
-                      <p className="text-muted-foreground">
-                        TIN: {vendorInfo.tin}
-                      </p>
+                      <p className="text-muted-foreground">TIN: {vendorInfo.tin}</p>
                     )}
                   </div>
                 </CardContent>
@@ -646,29 +602,21 @@ export default function ScanReceiptPage() {
 
             {/* Total Validation Alert */}
             {totalValidation && (
-              <Alert
-                variant={totalValidation.isValid ? "default" : "destructive"}
-              >
+              <Alert variant={totalValidation.isValid ? 'default' : 'destructive'}>
                 {totalValidation.isValid ? (
                   <CheckCircle className="h-4 w-4" />
                 ) : (
                   <AlertTriangle className="h-4 w-4" />
                 )}
                 <AlertTitle>
-                  {totalValidation.isValid
-                    ? "Total Validated"
-                    : "Total Mismatch"}
+                  {totalValidation.isValid ? 'Total Validated' : 'Total Mismatch'}
                 </AlertTitle>
                 <AlertDescription>
                   <p>{totalValidation.message}</p>
                   <div className="mt-2 flex gap-4 text-sm">
-                    <span>
-                      Calculated: ₱{totalValidation.calculatedTotal.toFixed(2)}
-                    </span>
+                    <span>Calculated: ₱{totalValidation.calculatedTotal.toFixed(2)}</span>
                     {totalValidation.detectedTotal && (
-                      <span>
-                        Receipt: ₱{totalValidation.detectedTotal.toFixed(2)}
-                      </span>
+                      <span>Receipt: ₱{totalValidation.detectedTotal.toFixed(2)}</span>
                     )}
                     {totalValidation.difference > 0 && (
                       <span className="text-destructive">
@@ -682,35 +630,32 @@ export default function ScanReceiptPage() {
           </div>
 
           {/* Learning indicator */}
-          {items.some((item) => item.matchedWith?.startsWith("learned:")) && (
+          {items.some((item) => item.matchedWith?.startsWith('learned:')) && (
             <Alert>
               <Brain className="h-4 w-4" />
               <AlertTitle>Smart Categorization Active</AlertTitle>
               <AlertDescription>
-                Some items were categorized based on your previous corrections.
-                The system learns from your changes!
+                Some items were categorized based on your previous corrections. The system learns
+                from your changes!
               </AlertDescription>
             </Alert>
           )}
 
           {/* Category Tabs */}
-          <Tabs
-            value={activeTab}
-            onValueChange={(v) => setActiveTab(v as ItemCategory)}
-          >
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ItemCategory)}>
             <div className="flex items-center justify-between">
               <TabsList>
                 <TabsTrigger value="INVENTORY" className="gap-2">
                   <Package className="h-4 w-4" />
-                  Inventory ({getItemsByCategory("INVENTORY").length})
+                  Inventory ({getItemsByCategory('INVENTORY').length})
                 </TabsTrigger>
                 <TabsTrigger value="EXPENSE" className="gap-2">
                   <Receipt className="h-4 w-4" />
-                  Expenses ({getItemsByCategory("EXPENSE").length})
+                  Expenses ({getItemsByCategory('EXPENSE').length})
                 </TabsTrigger>
                 <TabsTrigger value="UNKNOWN" className="gap-2">
                   <HelpCircle className="h-4 w-4" />
-                  Needs Review ({getItemsByCategory("UNKNOWN").length})
+                  Needs Review ({getItemsByCategory('UNKNOWN').length})
                 </TabsTrigger>
               </TabsList>
               <div className="flex gap-2">
@@ -734,10 +679,9 @@ export default function ScanReceiptPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {getItemsByCategory("INVENTORY").length === 0 ? (
+                  {getItemsByCategory('INVENTORY').length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
-                      No inventory items detected. Move items here from other
-                      tabs.
+                      No inventory items detected. Move items here from other tabs.
                     </div>
                   ) : (
                     <Table>
@@ -751,9 +695,7 @@ export default function ScanReceiptPage() {
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
-                      <TableBody>
-                        {getItemsByCategory("INVENTORY").map(renderItemRow)}
-                      </TableBody>
+                      <TableBody>{getItemsByCategory('INVENTORY').map(renderItemRow)}</TableBody>
                     </Table>
                   )}
                 </CardContent>
@@ -768,12 +710,10 @@ export default function ScanReceiptPage() {
                     <Receipt className="h-5 w-5" />
                     Operating Expenses
                   </CardTitle>
-                  <CardDescription>
-                    These items will be added as operating expenses
-                  </CardDescription>
+                  <CardDescription>These items will be added as operating expenses</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {getItemsByCategory("EXPENSE").length === 0 ? (
+                  {getItemsByCategory('EXPENSE').length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       No expenses detected. Move items here from other tabs.
                     </div>
@@ -790,9 +730,7 @@ export default function ScanReceiptPage() {
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
-                      <TableBody>
-                        {getItemsByCategory("EXPENSE").map(renderItemRow)}
-                      </TableBody>
+                      <TableBody>{getItemsByCategory('EXPENSE').map(renderItemRow)}</TableBody>
                     </Table>
                   )}
                 </CardContent>
@@ -808,12 +746,11 @@ export default function ScanReceiptPage() {
                     Needs Review
                   </CardTitle>
                   <CardDescription>
-                    These items couldn't be automatically categorized. Please
-                    review and move them.
+                    These items couldn't be automatically categorized. Please review and move them.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {getItemsByCategory("UNKNOWN").length === 0 ? (
+                  {getItemsByCategory('UNKNOWN').length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Check className="h-8 w-8 mx-auto mb-2 text-green-500" />
                       All items have been categorized!
@@ -829,9 +766,7 @@ export default function ScanReceiptPage() {
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
-                      <TableBody>
-                        {getItemsByCategory("UNKNOWN").map(renderItemRow)}
-                      </TableBody>
+                      <TableBody>{getItemsByCategory('UNKNOWN').map(renderItemRow)}</TableBody>
                     </Table>
                   )}
                 </CardContent>
@@ -846,51 +781,39 @@ export default function ScanReceiptPage() {
                 <div className="flex gap-6">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-blue-600">
-                      {getItemsByCategory("INVENTORY").length}
+                      {getItemsByCategory('INVENTORY').length}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Inventory Items
-                    </p>
+                    <p className="text-sm text-muted-foreground">Inventory Items</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-green-600">
-                      {getItemsByCategory("EXPENSE").length}
+                      {getItemsByCategory('EXPENSE').length}
                     </p>
                     <p className="text-sm text-muted-foreground">Expenses</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-yellow-600">
-                      {getItemsByCategory("UNKNOWN").length}
+                      {getItemsByCategory('UNKNOWN').length}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Needs Review
-                    </p>
+                    <p className="text-sm text-muted-foreground">Needs Review</p>
                   </div>
                   <div className="border-l pl-6 text-center">
                     <p className="text-2xl font-bold">
-                      ₱
-                      {items
-                        .reduce((sum, item) => sum + item.totalCost, 0)
-                        .toFixed(2)}
+                      ₱{items.reduce((sum, item) => sum + item.totalCost, 0).toFixed(2)}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Total Amount
-                    </p>
+                    <p className="text-sm text-muted-foreground">Total Amount</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate("/dashboard/inventory")}
-                  >
+                  <Button variant="outline" onClick={() => navigate('/dashboard/inventory')}>
                     Cancel
                   </Button>
                   <Button
                     onClick={handleSave}
                     disabled={
                       saveMutation.isPending ||
-                      (getItemsByCategory("INVENTORY").length === 0 &&
-                        getItemsByCategory("EXPENSE").length === 0)
+                      (getItemsByCategory('INVENTORY').length === 0 &&
+                        getItemsByCategory('EXPENSE').length === 0)
                     }
                   >
                     {saveMutation.isPending ? (

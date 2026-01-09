@@ -12,12 +12,12 @@ export interface Business {
 }
 
 export type BusinessType =
-  | "carinderia"
-  | "food_stall"
-  | "restaurant"
-  | "catering"
-  | "bakery"
-  | "other";
+  | 'carinderia'
+  | 'food_stall'
+  | 'restaurant'
+  | 'catering'
+  | 'bakery'
+  | 'other';
 
 // Ingredient Types
 export interface Ingredient {
@@ -34,17 +34,17 @@ export interface Ingredient {
 }
 
 export type IngredientUnit =
-  | "kg"
-  | "g"
-  | "pcs"
-  | "L"
-  | "mL"
-  | "oz"
-  | "lb"
-  | "pack"
-  | "bottle"
-  | "can"
-  | "bundle";
+  | 'kg'
+  | 'g'
+  | 'pcs'
+  | 'L'
+  | 'mL'
+  | 'oz'
+  | 'lb'
+  | 'pack'
+  | 'bottle'
+  | 'can'
+  | 'bundle';
 
 // Recipe Types
 export interface Recipe {
@@ -74,23 +74,23 @@ export interface OperatingExpense {
   name: string;
   category: ExpenseCategory;
   amount: number;
-  frequency: "monthly" | "weekly" | "daily" | "yearly" | "quarterly";
+  frequency: 'monthly' | 'weekly' | 'daily' | 'yearly' | 'quarterly';
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export type ExpenseCategory =
-  | "rent"
-  | "utilities"
-  | "salaries"
-  | "marketing"
-  | "supplies"
-  | "maintenance"
-  | "equipment"
-  | "transportation"
-  | "permits"
-  | "other";
+  | 'rent'
+  | 'utilities'
+  | 'salaries'
+  | 'marketing'
+  | 'supplies'
+  | 'maintenance'
+  | 'equipment'
+  | 'transportation'
+  | 'permits'
+  | 'other';
 
 // Sales Types
 export interface SalesRecord {
@@ -125,11 +125,7 @@ export interface FinancialReport {
   generatedAt: Date;
 }
 
-export type ReportType =
-  | "cogs"
-  | "income_statement"
-  | "expense_report"
-  | "profit_summary";
+export type ReportType = 'cogs' | 'income_statement' | 'expense_report' | 'profit_summary';
 
 // File Upload Types
 export interface FileUpload {
@@ -138,9 +134,9 @@ export interface FileUpload {
   fileName: string;
   fileType: string;
   uploadType: UploadType;
-  status: "pending" | "processing" | "completed" | "failed";
+  status: 'pending' | 'processing' | 'completed' | 'failed';
   recordsProcessed: number;
   uploadedAt: Date;
 }
 
-export type UploadType = "ingredients" | "sales" | "expenses";
+export type UploadType = 'ingredients' | 'sales' | 'expenses';

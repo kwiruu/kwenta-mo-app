@@ -1,16 +1,10 @@
-import { Link } from "react-router";
-import { useState } from "react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Badge } from "~/components/ui/badge";
+import { Link } from 'react-router';
+import { useState } from 'react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Badge } from '~/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -18,61 +12,57 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { useSales, useSalesStats, useDeleteSale } from "~/hooks";
-import type { Sale } from "~/lib/api";
+} from '~/components/ui/table';
+import { useSales, useSalesStats, useDeleteSale } from '~/hooks';
+import type { Sale } from '~/lib/api';
 
 export default function SalesIndex() {
   const { data: sales = [], isLoading } = useSales();
   const { data: stats } = useSalesStats();
   const deleteSaleMutation = useDeleteSale();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateFilter, setDateFilter] = useState<
-    "all" | "today" | "week" | "month"
-  >("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
     }).format(amount);
   };
 
   const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString("en-PH", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return new Date(date).toLocaleDateString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this sale record?")) {
+    if (confirm('Are you sure you want to delete this sale record?')) {
       deleteSaleMutation.mutate(id);
     }
   };
 
   // Filter by search and date
   const filteredSales = sales.filter((sale) => {
-    const matchesSearch = sale.recipe?.name
-      ?.toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const matchesSearch = sale.recipe?.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (dateFilter === "all") return matchesSearch;
+    if (dateFilter === 'all') return matchesSearch;
 
     const saleDate = new Date(sale.saleDate);
     const now = new Date();
 
-    if (dateFilter === "today") {
+    if (dateFilter === 'today') {
       return matchesSearch && saleDate.toDateString() === now.toDateString();
     }
 
-    if (dateFilter === "week") {
+    if (dateFilter === 'week') {
       const weekAgo = new Date(now.getTime() - 7 * 86400000);
       return matchesSearch && saleDate >= weekAgo;
     }
 
-    if (dateFilter === "month") {
+    if (dateFilter === 'month') {
       const monthAgo = new Date(now.getTime() - 30 * 86400000);
       return matchesSearch && saleDate >= monthAgo;
     }
@@ -83,11 +73,9 @@ export default function SalesIndex() {
   // Use stats if available, otherwise calculate from filtered sales
   // Note: API returns Decimal fields as strings, so we convert to Number
   const totalRevenue =
-    stats?.totalRevenue ??
-    filteredSales.reduce((sum, s) => sum + Number(s.totalPrice), 0);
+    stats?.totalRevenue ?? filteredSales.reduce((sum, s) => sum + Number(s.totalPrice), 0);
   const totalProfit =
-    stats?.totalProfit ??
-    filteredSales.reduce((sum, s) => sum + Number(s.profit), 0);
+    stats?.totalProfit ?? filteredSales.reduce((sum, s) => sum + Number(s.profit), 0);
   const totalQuantity = filteredSales.reduce((sum, s) => sum + s.quantity, 0);
 
   // Show loading state
@@ -110,9 +98,7 @@ export default function SalesIndex() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Sales</h1>
-          <p className="text-muted-foreground">
-            Track and manage your daily sales
-          </p>
+          <p className="text-muted-foreground">Track and manage your daily sales</p>
         </div>
         <Button variant="green" asChild>
           <Link to="/dashboard/sales/new">
@@ -160,16 +146,14 @@ export default function SalesIndex() {
           />
         </div>
         <div className="flex gap-2">
-          {(["all", "today", "week", "month"] as const).map((filter) => (
+          {(['all', 'today', 'week', 'month'] as const).map((filter) => (
             <Button
               key={filter}
-              variant={dateFilter === filter ? "green" : "outline"}
+              variant={dateFilter === filter ? 'green' : 'outline'}
               size="sm"
               onClick={() => setDateFilter(filter)}
             >
-              {filter === "all"
-                ? "All Time"
-                : filter.charAt(0).toUpperCase() + filter.slice(1)}
+              {filter === 'all' ? 'All Time' : filter.charAt(0).toUpperCase() + filter.slice(1)}
             </Button>
           ))}
         </div>
@@ -191,16 +175,14 @@ export default function SalesIndex() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">
-              {formatCurrency(totalRevenue)}
-            </div>
+            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">Total Revenue</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div
-              className={`text-2xl font-bold ${totalProfit >= 0 ? "text-primary" : "text-destructive"}`}
+              className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-primary' : 'text-destructive'}`}
             >
               {formatCurrency(totalProfit)}
             </div>
@@ -236,13 +218,9 @@ export default function SalesIndex() {
                   const isProfitable = saleProfit >= 0;
                   return (
                     <TableRow key={sale.id}>
-                      <TableCell className="font-medium">
-                        {formatDate(sale.saleDate)}
-                      </TableCell>
-                      <TableCell>{sale.recipe?.name ?? "—"}</TableCell>
-                      <TableCell className="text-center">
-                        {sale.quantity}
-                      </TableCell>
+                      <TableCell className="font-medium">{formatDate(sale.saleDate)}</TableCell>
+                      <TableCell>{sale.recipe?.name ?? '—'}</TableCell>
+                      <TableCell className="text-center">{sale.quantity}</TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(Number(sale.unitPrice))}
                       </TableCell>
@@ -253,9 +231,7 @@ export default function SalesIndex() {
                         {formatCurrency(Number(sale.costOfGoods))}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Badge
-                          variant={isProfitable ? "lightgreen" : "destructive"}
-                        >
+                        <Badge variant={isProfitable ? 'lightgreen' : 'destructive'}>
                           {formatCurrency(saleProfit)}
                         </Badge>
                       </TableCell>

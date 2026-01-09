@@ -1,69 +1,57 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router";
-import { ArrowLeft, Package, Save, Trash2 } from "lucide-react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
+import { ArrowLeft, Package, Save, Trash2 } from 'lucide-react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import {
-  useIngredient,
-  useUpdateIngredient,
-  useDeleteIngredient,
-} from "~/hooks";
-import { APP_CONFIG } from "~/config/app";
-import type { IngredientUnit } from "~/types";
+} from '~/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { useIngredient, useUpdateIngredient, useDeleteIngredient } from '~/hooks';
+import { APP_CONFIG } from '~/config/app';
+import type { IngredientUnit } from '~/types';
 
 export function meta() {
   return [
     { title: `Edit Ingredient - ${APP_CONFIG.name}` },
-    { name: "description", content: "Edit ingredient details" },
+    { name: 'description', content: 'Edit ingredient details' },
   ];
 }
 
 const ingredientUnits: { value: IngredientUnit; label: string }[] = [
-  { value: "kg", label: "Kilogram (kg)" },
-  { value: "g", label: "Gram (g)" },
-  { value: "L", label: "Liter (L)" },
-  { value: "mL", label: "Milliliter (mL)" },
-  { value: "pcs", label: "Pieces (pcs)" },
-  { value: "pack", label: "Pack" },
-  { value: "bottle", label: "Bottle" },
-  { value: "can", label: "Can" },
-  { value: "bundle", label: "Bundle" },
+  { value: 'kg', label: 'Kilogram (kg)' },
+  { value: 'g', label: 'Gram (g)' },
+  { value: 'L', label: 'Liter (L)' },
+  { value: 'mL', label: 'Milliliter (mL)' },
+  { value: 'pcs', label: 'Pieces (pcs)' },
+  { value: 'pack', label: 'Pack' },
+  { value: 'bottle', label: 'Bottle' },
+  { value: 'can', label: 'Can' },
+  { value: 'bundle', label: 'Bundle' },
 ];
 
 export default function EditIngredientPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: ingredient, isLoading: isLoadingIngredient } = useIngredient(
-    id!
-  );
+  const { data: ingredient, isLoading: isLoadingIngredient } = useIngredient(id!);
   const updateIngredientMutation = useUpdateIngredient();
   const deleteIngredientMutation = useDeleteIngredient();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
-    name: "",
-    unit: "" as IngredientUnit,
-    pricePerUnit: "",
-    currentStock: "",
-    reorderLevel: "",
-    supplier: "",
+    name: '',
+    unit: '' as IngredientUnit,
+    pricePerUnit: '',
+    currentStock: '',
+    reorderLevel: '',
+    supplier: '',
   });
 
   // Load ingredient data when it's fetched
@@ -72,10 +60,10 @@ export default function EditIngredientPage() {
       setFormData({
         name: ingredient.name,
         unit: ingredient.unit as IngredientUnit,
-        pricePerUnit: ingredient.costPerUnit.toString(),
-        currentStock: ingredient.currentStock.toString(),
+        pricePerUnit: ingredient.unitCost.toString(),
+        currentStock: ingredient.quantity.toString(),
         reorderLevel: ingredient.reorderLevel.toString(),
-        supplier: ingredient.supplier || "",
+        supplier: ingredient.supplier || '',
       });
     }
   }, [ingredient]);
@@ -103,12 +91,9 @@ export default function EditIngredientPage() {
             <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
               <Package className="h-8 w-8 text-gray-400" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Ingredient Not Found
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Ingredient Not Found</h2>
             <p className="text-gray-500 mb-4">
-              The ingredient you're looking for doesn't exist or has been
-              deleted.
+              The ingredient you're looking for doesn't exist or has been deleted.
             </p>
             <Button className="bg-primary hover:bg-primary/90" asChild>
               <Link to="/dashboard/ingredients">Go to Ingredients</Link>
@@ -123,19 +108,19 @@ export default function EditIngredientPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "Ingredient name is required";
+      newErrors.name = 'Ingredient name is required';
     }
     if (!formData.unit) {
-      newErrors.unit = "Please select a unit";
+      newErrors.unit = 'Please select a unit';
     }
     if (!formData.pricePerUnit || parseFloat(formData.pricePerUnit) <= 0) {
-      newErrors.pricePerUnit = "Enter a valid price";
+      newErrors.pricePerUnit = 'Enter a valid price';
     }
     if (!formData.currentStock || parseFloat(formData.currentStock) < 0) {
-      newErrors.currentStock = "Enter current stock amount";
+      newErrors.currentStock = 'Enter current stock amount';
     }
     if (!formData.reorderLevel || parseFloat(formData.reorderLevel) < 0) {
-      newErrors.reorderLevel = "Enter reorder level";
+      newErrors.reorderLevel = 'Enter reorder level';
     }
 
     setErrors(newErrors);
@@ -151,36 +136,32 @@ export default function EditIngredientPage() {
       {
         id: id!,
         data: {
-          name: formData.name.trim(),
+          itemName: formData.name.trim(),
           unit: formData.unit,
-          costPerUnit: parseFloat(formData.pricePerUnit),
-          currentStock: parseFloat(formData.currentStock),
+          unitCost: parseFloat(formData.pricePerUnit),
+          quantity: parseFloat(formData.currentStock),
           reorderLevel: parseFloat(formData.reorderLevel),
           supplier: formData.supplier.trim() || undefined,
         },
       },
       {
-        onSuccess: () => navigate("/dashboard/ingredients"),
-        onError: (error) => console.error("Error updating ingredient:", error),
+        onSuccess: () => navigate('/dashboard/ingredients'),
+        onError: (error) => console.error('Error updating ingredient:', error),
       }
     );
   };
 
   const handleDelete = async () => {
     deleteIngredientMutation.mutate(id!, {
-      onSuccess: () => navigate("/dashboard/ingredients"),
-      onError: (error) => console.error("Error deleting ingredient:", error),
+      onSuccess: () => navigate('/dashboard/ingredients'),
+      onError: (error) => console.error('Error deleting ingredient:', error),
     });
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Back Button */}
-      <Button
-        variant="ghost"
-        asChild
-        className="-ml-2 text-gray-600 hover:text-gray-900"
-      >
+      <Button variant="ghost" asChild className="-ml-2 text-gray-600 hover:text-gray-900">
         <Link to="/dashboard/ingredients">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Ingredients
@@ -190,12 +171,8 @@ export default function EditIngredientPage() {
       {/* Page Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Edit Ingredient
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Update the details for {ingredient.name}
-          </p>
+          <h1 className="text-2xl font-semibold text-gray-900">Edit Ingredient</h1>
+          <p className="text-gray-500 mt-1">Update the details for {ingredient.name}</p>
         </div>
         {!showDeleteConfirm ? (
           <Button
@@ -215,10 +192,7 @@ export default function EditIngredientPage() {
             >
               Cancel
             </Button>
-            <Button
-              className="bg-red-500 hover:bg-red-600 text-white"
-              onClick={handleDelete}
-            >
+            <Button className="bg-red-500 hover:bg-red-600 text-white" onClick={handleDelete}>
               Confirm Delete
             </Button>
           </div>
@@ -248,14 +222,10 @@ export default function EditIngredientPage() {
                 id="name"
                 placeholder="e.g., Rice, Pork Belly, Cooking Oil"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className={errors.name ? "border-red-300" : "border-gray-200"}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className={errors.name ? 'border-red-300' : 'border-gray-200'}
               />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
             </div>
 
             {/* Unit and Price Row */}
@@ -274,7 +244,7 @@ export default function EditIngredientPage() {
                       unit: e.target.value as IngredientUnit,
                     })
                   }
-                  className={`flex h-10 w-full rounded-md border ${errors.unit ? "border-red-300" : "border-gray-200"} bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}
+                  className={`flex h-10 w-full rounded-md border ${errors.unit ? 'border-red-300' : 'border-gray-200'} bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}
                 >
                   <option value="">Select unit</option>
                   {ingredientUnits.map((unit) => (
@@ -283,9 +253,7 @@ export default function EditIngredientPage() {
                     </option>
                   ))}
                 </select>
-                {errors.unit && (
-                  <p className="text-sm text-red-500">{errors.unit}</p>
-                )}
+                {errors.unit && <p className="text-sm text-red-500">{errors.unit}</p>}
               </div>
 
               {/* Price Per Unit */}
@@ -300,12 +268,8 @@ export default function EditIngredientPage() {
                   step="0.01"
                   placeholder="e.g., 55.00"
                   value={formData.pricePerUnit}
-                  onChange={(e) =>
-                    setFormData({ ...formData, pricePerUnit: e.target.value })
-                  }
-                  className={
-                    errors.pricePerUnit ? "border-red-300" : "border-gray-200"
-                  }
+                  onChange={(e) => setFormData({ ...formData, pricePerUnit: e.target.value })}
+                  className={errors.pricePerUnit ? 'border-red-300' : 'border-gray-200'}
                 />
                 {errors.pricePerUnit && (
                   <p className="text-sm text-red-500">{errors.pricePerUnit}</p>
@@ -327,12 +291,8 @@ export default function EditIngredientPage() {
                   step="0.01"
                   placeholder="e.g., 10"
                   value={formData.currentStock}
-                  onChange={(e) =>
-                    setFormData({ ...formData, currentStock: e.target.value })
-                  }
-                  className={
-                    errors.currentStock ? "border-red-300" : "border-gray-200"
-                  }
+                  onChange={(e) => setFormData({ ...formData, currentStock: e.target.value })}
+                  className={errors.currentStock ? 'border-red-300' : 'border-gray-200'}
                 />
                 {errors.currentStock && (
                   <p className="text-sm text-red-500">{errors.currentStock}</p>
@@ -351,12 +311,8 @@ export default function EditIngredientPage() {
                   step="0.01"
                   placeholder="e.g., 5"
                   value={formData.reorderLevel}
-                  onChange={(e) =>
-                    setFormData({ ...formData, reorderLevel: e.target.value })
-                  }
-                  className={
-                    errors.reorderLevel ? "border-red-300" : "border-gray-200"
-                  }
+                  onChange={(e) => setFormData({ ...formData, reorderLevel: e.target.value })}
+                  className={errors.reorderLevel ? 'border-red-300' : 'border-gray-200'}
                 />
                 {errors.reorderLevel && (
                   <p className="text-sm text-red-500">{errors.reorderLevel}</p>
@@ -373,9 +329,7 @@ export default function EditIngredientPage() {
                 id="supplier"
                 placeholder="e.g., Carbon Market, Supplier Name"
                 value={formData.supplier}
-                onChange={(e) =>
-                  setFormData({ ...formData, supplier: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
                 className="border-gray-200"
               />
             </div>
@@ -384,12 +338,7 @@ export default function EditIngredientPage() {
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 mt-6">
-          <Button
-            type="button"
-            variant="outline"
-            className="border-gray-200 text-gray-700"
-            asChild
-          >
+          <Button type="button" variant="outline" className="border-gray-200 text-gray-700" asChild>
             <Link to="/dashboard/ingredients">Cancel</Link>
           </Button>
           <Button
@@ -398,7 +347,7 @@ export default function EditIngredientPage() {
             className="bg-primary hover:bg-primary/90"
           >
             {updateIngredientMutation.isPending ? (
-              "Saving..."
+              'Saving...'
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />

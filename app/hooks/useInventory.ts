@@ -1,21 +1,19 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   inventoryApi,
   type CreateInventoryPeriodDto,
   type CreateInventorySnapshotDto,
-} from "~/lib/api";
+} from '~/lib/api';
 
 export const inventoryKeys = {
-  all: ["inventory"] as const,
-  periods: () => [...inventoryKeys.all, "periods"] as const,
+  all: ['inventory'] as const,
+  periods: () => [...inventoryKeys.all, 'periods'] as const,
   period: (id: string) => [...inventoryKeys.periods(), id] as const,
-  periodSummary: (id: string) =>
-    [...inventoryKeys.periods(), id, "summary"] as const,
-  latestPeriod: () => [...inventoryKeys.periods(), "latest"] as const,
-  activePeriod: () => [...inventoryKeys.periods(), "active"] as const,
-  snapshots: (periodId: string) =>
-    [...inventoryKeys.all, "snapshots", periodId] as const,
-  snapshot: (id: string) => [...inventoryKeys.all, "snapshot", id] as const,
+  periodSummary: (id: string) => [...inventoryKeys.periods(), id, 'summary'] as const,
+  latestPeriod: () => [...inventoryKeys.periods(), 'latest'] as const,
+  activePeriod: () => [...inventoryKeys.periods(), 'active'] as const,
+  snapshots: (periodId: string) => [...inventoryKeys.all, 'snapshots', periodId] as const,
+  snapshot: (id: string) => [...inventoryKeys.all, 'snapshot', id] as const,
 };
 
 // ==================== PERIODS ====================
@@ -73,8 +71,7 @@ export function useCreateInventoryPeriod() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateInventoryPeriodDto) =>
-      inventoryApi.createPeriod(data),
+    mutationFn: (data: CreateInventoryPeriodDto) => inventoryApi.createPeriod(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inventoryKeys.periods() });
     },
@@ -85,13 +82,8 @@ export function useUpdateInventoryPeriod() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<CreateInventoryPeriodDto>;
-    }) => inventoryApi.updatePeriod(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateInventoryPeriodDto> }) =>
+      inventoryApi.updatePeriod(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: inventoryKeys.period(id) });
       queryClient.invalidateQueries({ queryKey: inventoryKeys.periods() });
@@ -132,8 +124,7 @@ export function useCreateInventorySnapshot() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateInventorySnapshotDto) =>
-      inventoryApi.createSnapshot(data),
+    mutationFn: (data: CreateInventorySnapshotDto) => inventoryApi.createSnapshot(data),
     onSuccess: (_, { periodId }) => {
       queryClient.invalidateQueries({
         queryKey: inventoryKeys.snapshots(periodId),
@@ -161,13 +152,8 @@ export function useUpdateInventorySnapshot() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<CreateInventorySnapshotDto>;
-    }) => inventoryApi.updateSnapshot(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateInventorySnapshotDto> }) =>
+      inventoryApi.updateSnapshot(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
     },
@@ -196,7 +182,7 @@ export function useCopyFromPurchases() {
       snapshotType,
     }: {
       periodId: string;
-      snapshotType: "BEGINNING" | "ENDING";
+      snapshotType: 'BEGINNING' | 'ENDING';
     }) => inventoryApi.copyFromPurchases(periodId, snapshotType),
     onSuccess: (_, { periodId }) => {
       queryClient.invalidateQueries({

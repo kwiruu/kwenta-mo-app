@@ -1,26 +1,26 @@
-import { getAccessToken } from "./supabase";
+import { getAccessToken } from './supabase';
 
 // API URLs
-const LOCAL_API = "http://localhost:3000/api";
-const PRODUCTION_API = "https://kwenta-mo-api.onrender.com/api";
+const LOCAL_API = 'http://localhost:3000/api';
+const PRODUCTION_API = 'https://kwenta-mo-api.onrender.com/api';
 
 // Function to get API URL at runtime
 function getApiUrl(): string {
   // Check environment variable first
   const envUseProduction = import.meta.env.VITE_USE_PRODUCTION_API;
 
-  if (envUseProduction === "true") {
+  if (envUseProduction === 'true') {
     return import.meta.env.VITE_API_URL_PRODUCTION || PRODUCTION_API;
   }
 
-  if (envUseProduction === "false") {
+  if (envUseProduction === 'false') {
     return import.meta.env.VITE_API_URL_LOCAL || LOCAL_API;
   }
 
   // Auto-detect based on hostname (runtime check)
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    if (hostname === "localhost" || hostname === "127.0.0.1") {
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return import.meta.env.VITE_API_URL_LOCAL || LOCAL_API;
     }
   }
@@ -31,7 +31,7 @@ function getApiUrl(): string {
 
 const API_URL = getApiUrl();
 
-console.log("API URL:", API_URL);
+console.log('API URL:', API_URL);
 
 const REQUEST_TIMEOUT = 15000; // 15 seconds timeout
 
@@ -47,18 +47,11 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestOptions = {}
-  ): Promise<T> {
-    const {
-      skipAuth = false,
-      timeout = REQUEST_TIMEOUT,
-      ...fetchOptions
-    } = options;
+  private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+    const { skipAuth = false, timeout = REQUEST_TIMEOUT, ...fetchOptions } = options;
 
     const headers: HeadersInit = {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       ...options.headers,
     };
 
@@ -66,8 +59,7 @@ class ApiClient {
     if (!skipAuth) {
       const token = await getAccessToken();
       if (token) {
-        (headers as Record<string, string>)["Authorization"] =
-          `Bearer ${token}`;
+        (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
       }
     }
 
@@ -85,27 +77,23 @@ class ApiClient {
       clearTimeout(timeoutId);
 
       // Handle non-JSON responses
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("text/csv")) {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/csv')) {
         return response.text() as unknown as T;
       }
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new ApiError(
-          data.message || "An error occurred",
-          response.status,
-          data
-        );
+        throw new ApiError(data.message || 'An error occurred', response.status, data);
       }
 
       return data;
     } catch (error) {
       clearTimeout(timeoutId);
 
-      if (error instanceof Error && error.name === "AbortError") {
-        throw new ApiError("Request timed out", 408, null);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new ApiError('Request timed out', 408, null);
       }
       throw error;
     }
@@ -113,38 +101,30 @@ class ApiClient {
 
   // GET request
   async get<T>(endpoint: string, options?: RequestOptions): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: "GET" });
+    return this.request<T>(endpoint, { ...options, method: 'GET' });
   }
 
   // POST request
-  async post<T>(
-    endpoint: string,
-    body?: unknown,
-    options?: RequestOptions
-  ): Promise<T> {
+  async post<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
-      method: "POST",
+      method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
     });
   }
 
   // PUT request
-  async put<T>(
-    endpoint: string,
-    body?: unknown,
-    options?: RequestOptions
-  ): Promise<T> {
+  async put<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
-      method: "PUT",
+      method: 'PUT',
       body: body ? JSON.stringify(body) : undefined,
     });
   }
 
   // DELETE request
   async delete<T>(endpoint: string, options?: RequestOptions): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: "DELETE" });
+    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 }
 
@@ -155,7 +135,7 @@ export class ApiError extends Error {
 
   constructor(message: string, status: number, data?: unknown) {
     super(message);
-    this.name = "ApiError";
+    this.name = 'ApiError';
     this.status = status;
     this.data = data;
   }
@@ -166,8 +146,8 @@ export const api = new ApiClient(API_URL);
 
 // ============ AUTH API ============
 export const authApi = {
-  syncUser: (name?: string) => api.post("/auth/sync", { name }),
-  getMe: () => api.get("/auth/me"),
+  syncUser: (name?: string) => api.post('/auth/sync', { name }),
+  getMe: () => api.get('/auth/me'),
 };
 
 // ============ USERS API ============
@@ -207,9 +187,8 @@ export interface UpdateBusinessDto {
 }
 
 export const usersApi = {
-  getProfile: (): Promise<UserProfile> => api.get("/users/profile"),
-  updateBusiness: (data: UpdateBusinessDto): Promise<Business> =>
-    api.put("/users/business", data),
+  getProfile: (): Promise<UserProfile> => api.get('/users/profile'),
+  updateBusiness: (data: UpdateBusinessDto): Promise<Business> => api.put('/users/business', data),
 };
 
 // ============ INGREDIENTS API (LEGACY - use purchasesApi) ============
@@ -226,14 +205,12 @@ export const ingredientsApi = {
   create: (data: CreateIngredientDto): Promise<Ingredient> =>
     purchasesApi.create({
       ...data,
-      itemType: data.itemType || "RAW_MATERIAL",
+      itemType: data.itemType || 'RAW_MATERIAL',
     }),
   createBulk: (ingredients: CreateIngredientDto[]): Promise<Ingredient[]> =>
     purchasesApi.createBulk(ingredients),
-  update: (
-    id: string,
-    data: Partial<CreateIngredientDto>
-  ): Promise<Ingredient> => purchasesApi.update(id, data),
+  update: (id: string, data: Partial<CreateIngredientDto>): Promise<Ingredient> =>
+    purchasesApi.update(id, data),
   delete: (id: string): Promise<void> => purchasesApi.delete(id),
   getLowStock: (): Promise<Ingredient[]> => purchasesApi.getLowStockAlerts(),
 };
@@ -286,21 +263,20 @@ export interface RecipeCost {
 export const recipesApi = {
   getAll: (search?: string): Promise<Recipe[]> => {
     const params = new URLSearchParams();
-    if (search) params.append("search", search);
+    if (search) params.append('search', search);
     const query = params.toString();
-    return api.get(`/recipes${query ? `?${query}` : ""}`);
+    return api.get(`/recipes${query ? `?${query}` : ''}`);
   },
   getById: (id: string): Promise<Recipe> => api.get(`/recipes/${id}`),
   getCost: (id: string): Promise<RecipeCost> => api.get(`/recipes/${id}/cost`),
-  create: (data: CreateRecipeDto): Promise<Recipe> =>
-    api.post("/recipes", data),
+  create: (data: CreateRecipeDto): Promise<Recipe> => api.post('/recipes', data),
   update: (id: string, data: Partial<CreateRecipeDto>): Promise<Recipe> =>
     api.put(`/recipes/${id}`, data),
   delete: (id: string): Promise<void> => api.delete(`/recipes/${id}`),
 };
 
 // ============ SALES API ============
-export type SaleCategory = "FOOD" | "BEVERAGE" | "CATERING" | "DELIVERY";
+export type SaleCategory = 'FOOD' | 'BEVERAGE' | 'CATERING' | 'DELIVERY';
 
 export interface Sale {
   id: string;
@@ -335,20 +311,20 @@ export interface SalesStats {
 export const salesApi = {
   getAll: (startDate?: string, endDate?: string): Promise<Sale[]> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/sales${query ? `?${query}` : ""}`);
+    return api.get(`/sales${query ? `?${query}` : ''}`);
   },
   getById: (id: string): Promise<Sale> => api.get(`/sales/${id}`),
   getStats: (startDate?: string, endDate?: string): Promise<SalesStats> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/sales/stats${query ? `?${query}` : ""}`);
+    return api.get(`/sales/stats${query ? `?${query}` : ''}`);
   },
-  create: (data: CreateSaleDto): Promise<Sale> => api.post("/sales", data),
+  create: (data: CreateSaleDto): Promise<Sale> => api.post('/sales', data),
   update: (id: string, data: Partial<CreateSaleDto>): Promise<Sale> =>
     api.put(`/sales/${id}`, data),
   delete: (id: string): Promise<void> => api.delete(`/sales/${id}`),
@@ -356,37 +332,32 @@ export const salesApi = {
 
 // ============ EXPENSES API ============
 export type ExpenseCategory =
-  | "INGREDIENTS"
-  | "LABOR"
-  | "UTILITIES"
-  | "RENT"
-  | "EQUIPMENT"
-  | "MARKETING"
-  | "TRANSPORTATION"
-  | "PACKAGING"
-  | "DELIVERY_FEES"
-  | "TRANSACTION_FEES"
-  | "SUPPLIES"
-  | "MAINTENANCE"
-  | "INSURANCE_LICENSES"
-  | "FIXED_SALARIES"
-  | "DEPRECIATION"
-  | "PERMITS_LICENSES"
-  | "INTERNET"
-  | "TAX_EXPENSE"
-  | "INTEREST_EXPENSE"
-  | "BANK_CHARGES"
-  | "SALARIES"
-  | "OTHER";
+  | 'INGREDIENTS'
+  | 'LABOR'
+  | 'UTILITIES'
+  | 'RENT'
+  | 'EQUIPMENT'
+  | 'MARKETING'
+  | 'TRANSPORTATION'
+  | 'PACKAGING'
+  | 'DELIVERY_FEES'
+  | 'TRANSACTION_FEES'
+  | 'SUPPLIES'
+  | 'MAINTENANCE'
+  | 'INSURANCE_LICENSES'
+  | 'FIXED_SALARIES'
+  | 'DEPRECIATION'
+  | 'PERMITS_LICENSES'
+  | 'INTERNET'
+  | 'TAX_EXPENSE'
+  | 'INTEREST_EXPENSE'
+  | 'BANK_CHARGES'
+  | 'SALARIES'
+  | 'OTHER';
 
-export type ExpenseType = "FIXED" | "VARIABLE" | "OPERATING" | "OTHER";
+export type ExpenseType = 'FIXED' | 'VARIABLE' | 'OPERATING' | 'OTHER';
 
-export type ExpenseFrequency =
-  | "DAILY"
-  | "WEEKLY"
-  | "MONTHLY"
-  | "QUARTERLY"
-  | "YEARLY";
+export type ExpenseFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
 
 export interface Expense {
   id: string;
@@ -421,24 +392,23 @@ export const expensesApi = {
     endDate?: string
   ): Promise<Expense[]> => {
     const params = new URLSearchParams();
-    if (category) params.append("category", category);
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (category) params.append('category', category);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/expenses${query ? `?${query}` : ""}`);
+    return api.get(`/expenses${query ? `?${query}` : ''}`);
   },
   getById: (id: string): Promise<Expense> => api.get(`/expenses/${id}`),
   getStats: (startDate?: string, endDate?: string): Promise<ExpenseStats> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/expenses/stats${query ? `?${query}` : ""}`);
+    return api.get(`/expenses/stats${query ? `?${query}` : ''}`);
   },
-  create: (data: CreateExpenseDto): Promise<Expense> =>
-    api.post("/expenses", data),
+  create: (data: CreateExpenseDto): Promise<Expense> => api.post('/expenses', data),
   createBulk: (expenses: CreateExpenseDto[]): Promise<Expense[]> =>
-    api.post("/expenses/bulk", { expenses }),
+    api.post('/expenses/bulk', { expenses }),
   update: (id: string, data: Partial<CreateExpenseDto>): Promise<Expense> =>
     api.put(`/expenses/${id}`, data),
   delete: (id: string): Promise<void> => api.delete(`/expenses/${id}`),
@@ -511,67 +481,59 @@ export interface ChartDataPoint {
 }
 
 export interface ChartDataResponse {
-  period: "daily" | "weekly" | "monthly";
+  period: 'daily' | 'weekly' | 'monthly';
   data: ChartDataPoint[];
 }
 
 export const reportsApi = {
   getCOGS: (startDate?: string, endDate?: string): Promise<COGSReport> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/reports/cogs${query ? `?${query}` : ""}`);
+    return api.get(`/reports/cogs${query ? `?${query}` : ''}`);
   },
-  getIncomeStatement: (
-    startDate?: string,
-    endDate?: string
-  ): Promise<IncomeStatement> => {
+  getIncomeStatement: (startDate?: string, endDate?: string): Promise<IncomeStatement> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/reports/income-statement${query ? `?${query}` : ""}`);
+    return api.get(`/reports/income-statement${query ? `?${query}` : ''}`);
   },
-  getProfitSummary: (
-    startDate?: string,
-    endDate?: string
-  ): Promise<ProfitSummary> => {
+  getProfitSummary: (startDate?: string, endDate?: string): Promise<ProfitSummary> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/reports/profit-summary${query ? `?${query}` : ""}`);
+    return api.get(`/reports/profit-summary${query ? `?${query}` : ''}`);
   },
-  getDashboard: (): Promise<DashboardSummary> => api.get("/reports/dashboard"),
-  getChartData: (
-    period: "daily" | "weekly" | "monthly" = "daily"
-  ): Promise<ChartDataResponse> =>
+  getDashboard: (): Promise<DashboardSummary> => api.get('/reports/dashboard'),
+  getChartData: (period: 'daily' | 'weekly' | 'monthly' = 'daily'): Promise<ChartDataResponse> =>
     api.get(`/reports/chart-data?period=${period}`),
   exportCSV: (
-    type: "sales" | "expenses" | "ingredients",
+    type: 'sales' | 'expenses' | 'ingredients',
     startDate?: string,
     endDate?: string
   ): Promise<string> => {
     const params = new URLSearchParams();
-    params.append("type", type);
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    params.append('type', type);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     return api.get(`/reports/export/csv?${params.toString()}`);
   },
   exportExcel: async (
-    type: "sales" | "expenses",
+    type: 'sales' | 'expenses',
     startDate?: string,
     endDate?: string
   ): Promise<Blob> => {
     const params = new URLSearchParams();
-    params.append("type", type);
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    params.append('type', type);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
 
     const token = await getAccessToken();
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}/reports/export/excel?${params.toString()}`,
+      `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/reports/export/excel?${params.toString()}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -580,7 +542,7 @@ export const reportsApi = {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to export Excel file");
+      throw new Error('Failed to export Excel file');
     }
 
     return response.blob();
@@ -589,20 +551,20 @@ export const reportsApi = {
 
 // ============ INVENTORY TYPES ============
 export type InventoryType =
-  | "RAW_MATERIAL"
-  | "PACKAGING"
-  | "INGREDIENT"
-  | "SPICE"
-  | "CONDIMENT"
-  | "BEVERAGE"
-  | "DAIRY"
-  | "PRODUCE"
-  | "PROTEIN"
-  | "GRAIN"
-  | "OIL"
-  | "SUPPLY"
-  | "EQUIPMENT"
-  | "OTHER";
+  | 'RAW_MATERIAL'
+  | 'PACKAGING'
+  | 'INGREDIENT'
+  | 'SPICE'
+  | 'CONDIMENT'
+  | 'BEVERAGE'
+  | 'DAIRY'
+  | 'PRODUCE'
+  | 'PROTEIN'
+  | 'GRAIN'
+  | 'OIL'
+  | 'SUPPLY'
+  | 'EQUIPMENT'
+  | 'OTHER';
 
 // ============ PURCHASES API (THE INVENTORY) ============
 // Purchase IS the inventory item now - they are merged
@@ -662,30 +624,27 @@ export const purchasesApi = {
     supplier?: string
   ): Promise<Purchase[]> => {
     const params = new URLSearchParams();
-    if (itemType) params.append("itemType", itemType);
-    if (periodId) params.append("periodId", periodId);
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
-    if (supplier) params.append("supplier", supplier);
+    if (itemType) params.append('itemType', itemType);
+    if (periodId) params.append('periodId', periodId);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (supplier) params.append('supplier', supplier);
     const query = params.toString();
-    return api.get(`/purchases${query ? `?${query}` : ""}`);
+    return api.get(`/purchases${query ? `?${query}` : ''}`);
   },
   getById: (id: string): Promise<Purchase> => api.get(`/purchases/${id}`),
   getStats: (startDate?: string, endDate?: string): Promise<PurchaseStats> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/purchases/stats${query ? `?${query}` : ""}`);
+    return api.get(`/purchases/stats${query ? `?${query}` : ''}`);
   },
-  getLowStockAlerts: (): Promise<Purchase[]> =>
-    api.get("/purchases/alerts/low-stock"),
-  getInventoryItems: (): Promise<Purchase[]> =>
-    api.get("/purchases/inventory-items"),
-  create: (data: CreatePurchaseDto): Promise<Purchase> =>
-    api.post("/purchases", data),
+  getLowStockAlerts: (): Promise<Purchase[]> => api.get('/purchases/alerts/low-stock'),
+  getInventoryItems: (): Promise<Purchase[]> => api.get('/purchases/inventory-items'),
+  create: (data: CreatePurchaseDto): Promise<Purchase> => api.post('/purchases', data),
   createBulk: (purchases: CreatePurchaseDto[]): Promise<Purchase[]> =>
-    api.post("/purchases/bulk", purchases),
+    api.post('/purchases/bulk', purchases),
   update: (id: string, data: Partial<CreatePurchaseDto>): Promise<Purchase> =>
     api.put(`/purchases/${id}`, data),
   delete: (id: string): Promise<void> => api.delete(`/purchases/${id}`),
@@ -693,21 +652,15 @@ export const purchasesApi = {
 
 // Legacy inventoryItemsApi - now redirects to purchases
 export const inventoryItemsApi = {
-  getAll: (
-    _search?: string,
-    itemType?: InventoryType
-  ): Promise<InventoryItem[]> => {
+  getAll: (_search?: string, itemType?: InventoryType): Promise<InventoryItem[]> => {
     return purchasesApi.getAll(itemType);
   },
   getById: (id: string): Promise<InventoryItem> => purchasesApi.getById(id),
-  create: (data: CreateInventoryItemDto): Promise<InventoryItem> =>
-    purchasesApi.create(data),
+  create: (data: CreateInventoryItemDto): Promise<InventoryItem> => purchasesApi.create(data),
   createBulk: (items: CreateInventoryItemDto[]): Promise<InventoryItem[]> =>
     purchasesApi.createBulk(items),
-  update: (
-    id: string,
-    data: Partial<CreateInventoryItemDto>
-  ): Promise<InventoryItem> => purchasesApi.update(id, data),
+  update: (id: string, data: Partial<CreateInventoryItemDto>): Promise<InventoryItem> =>
+    purchasesApi.update(id, data),
   delete: (id: string): Promise<void> => purchasesApi.delete(id),
   getLowStock: (): Promise<InventoryItem[]> => purchasesApi.getLowStockAlerts(),
 };
@@ -732,7 +685,7 @@ export interface InventorySnapshot {
   purchaseId?: string;
   itemName: string;
   itemType: InventoryType;
-  snapshotType: "BEGINNING" | "ENDING";
+  snapshotType: 'BEGINNING' | 'ENDING';
   quantity: number;
   unitCost: number;
   totalValue: number;
@@ -751,7 +704,7 @@ export interface CreateInventorySnapshotDto {
   purchaseId?: string;
   itemName: string;
   itemType: InventoryType;
-  snapshotType: "BEGINNING" | "ENDING";
+  snapshotType: 'BEGINNING' | 'ENDING';
   quantity: number;
   unitCost: number;
 }
@@ -774,58 +727,45 @@ export interface InventorySummary {
 
 export const inventoryApi = {
   // Periods
-  getAllPeriods: (): Promise<InventoryPeriod[]> =>
-    api.get("/inventory/periods"),
-  getActivePeriod: (): Promise<InventoryPeriod> =>
-    api.get("/inventory/periods/active"),
-  getLatestPeriod: (): Promise<InventoryPeriod | null> =>
-    api.get("/inventory/periods/latest"),
+  getAllPeriods: (): Promise<InventoryPeriod[]> => api.get('/inventory/periods'),
+  getActivePeriod: (): Promise<InventoryPeriod> => api.get('/inventory/periods/active'),
+  getLatestPeriod: (): Promise<InventoryPeriod | null> => api.get('/inventory/periods/latest'),
   setActivePeriod: (id: string): Promise<InventoryPeriod> =>
     api.put(`/inventory/periods/${id}/activate`, {}),
-  getPeriodById: (id: string): Promise<InventoryPeriod> =>
-    api.get(`/inventory/periods/${id}`),
+  getPeriodById: (id: string): Promise<InventoryPeriod> => api.get(`/inventory/periods/${id}`),
   getPeriodSummary: (id: string): Promise<InventorySummary> =>
     api.get(`/inventory/periods/${id}/summary`),
   createPeriod: (data: CreateInventoryPeriodDto): Promise<InventoryPeriod> =>
-    api.post("/inventory/periods", data),
-  updatePeriod: (
-    id: string,
-    data: Partial<CreateInventoryPeriodDto>
-  ): Promise<InventoryPeriod> => api.put(`/inventory/periods/${id}`, data),
-  deletePeriod: (id: string): Promise<void> =>
-    api.delete(`/inventory/periods/${id}`),
+    api.post('/inventory/periods', data),
+  updatePeriod: (id: string, data: Partial<CreateInventoryPeriodDto>): Promise<InventoryPeriod> =>
+    api.put(`/inventory/periods/${id}`, data),
+  deletePeriod: (id: string): Promise<void> => api.delete(`/inventory/periods/${id}`),
 
   // Snapshots
   getSnapshots: (periodId: string): Promise<InventorySnapshot[]> =>
     api.get(`/inventory/periods/${periodId}/snapshots`),
   getSnapshotById: (id: string): Promise<InventorySnapshot> =>
     api.get(`/inventory/snapshots/${id}`),
-  createSnapshot: (
-    data: CreateInventorySnapshotDto
-  ): Promise<InventorySnapshot> => api.post("/inventory/snapshots", data),
-  createBulkSnapshots: (
-    snapshots: CreateInventorySnapshotDto[]
-  ): Promise<InventorySnapshot[]> =>
-    api.post("/inventory/snapshots/bulk", snapshots),
+  createSnapshot: (data: CreateInventorySnapshotDto): Promise<InventorySnapshot> =>
+    api.post('/inventory/snapshots', data),
+  createBulkSnapshots: (snapshots: CreateInventorySnapshotDto[]): Promise<InventorySnapshot[]> =>
+    api.post('/inventory/snapshots/bulk', snapshots),
   updateSnapshot: (
     id: string,
     data: Partial<CreateInventorySnapshotDto>
   ): Promise<InventorySnapshot> => api.put(`/inventory/snapshots/${id}`, data),
-  deleteSnapshot: (id: string): Promise<void> =>
-    api.delete(`/inventory/snapshots/${id}`),
+  deleteSnapshot: (id: string): Promise<void> => api.delete(`/inventory/snapshots/${id}`),
 
   // Helpers
   copyFromPurchases: (
     periodId: string,
-    snapshotType: "BEGINNING" | "ENDING"
+    snapshotType: 'BEGINNING' | 'ENDING'
   ): Promise<InventorySnapshot[]> =>
-    api.post(
-      `/inventory/periods/${periodId}/copy-from-purchases?snapshotType=${snapshotType}`
-    ),
+    api.post(`/inventory/periods/${periodId}/copy-from-purchases?snapshotType=${snapshotType}`),
 };
 
 // ============ INVENTORY TRANSACTIONS API ============
-export type TransactionType = "INITIAL" | "RESTOCK" | "SALE";
+export type TransactionType = 'INITIAL' | 'RESTOCK' | 'SALE';
 
 export interface InventoryTransaction {
   id: string;
@@ -863,17 +803,16 @@ export interface TransactionStats {
 export const inventoryTransactionsApi = {
   getAll: (filters?: TransactionFilters): Promise<InventoryTransaction[]> => {
     const params = new URLSearchParams();
-    if (filters?.purchaseId) params.append("purchaseId", filters.purchaseId);
-    if (filters?.type) params.append("type", filters.type);
-    if (filters?.startDate) params.append("startDate", filters.startDate);
-    if (filters?.endDate) params.append("endDate", filters.endDate);
+    if (filters?.purchaseId) params.append('purchaseId', filters.purchaseId);
+    if (filters?.type) params.append('type', filters.type);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
     const query = params.toString();
-    return api.get(`/inventory-transactions${query ? `?${query}` : ""}`);
+    return api.get(`/inventory-transactions${query ? `?${query}` : ''}`);
   },
   getByItem: (purchaseId: string): Promise<InventoryTransaction[]> =>
     api.get(`/inventory-transactions/item/${purchaseId}`),
-  getStats: (): Promise<TransactionStats> =>
-    api.get("/inventory-transactions/stats"),
+  getStats: (): Promise<TransactionStats> => api.get('/inventory-transactions/stats'),
 };
 
 // Restock API - add stock to existing item
@@ -1055,124 +994,88 @@ export interface RecipeCostBreakdown {
 export const financialReportsApi = {
   getCOGS: (startDate: string, endDate: string): Promise<FinancialCOGS> => {
     const params = new URLSearchParams();
-    params.append("startDate", startDate);
-    params.append("endDate", endDate);
+    params.append('startDate', startDate);
+    params.append('endDate', endDate);
     return api.get(`/reports/financial/cogs?${params.toString()}`);
   },
-  getOperatingExpenses: (
-    startDate?: string,
-    endDate?: string
-  ): Promise<OperatingExpenses> => {
+  getOperatingExpenses: (startDate?: string, endDate?: string): Promise<OperatingExpenses> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/reports/financial/opex${query ? `?${query}` : ""}`);
+    return api.get(`/reports/financial/opex${query ? `?${query}` : ''}`);
   },
-  getVariableCosts: (
-    startDate?: string,
-    endDate?: string
-  ): Promise<VariableCosts> => {
+  getVariableCosts: (startDate?: string, endDate?: string): Promise<VariableCosts> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(
-      `/reports/financial/variable-costs${query ? `?${query}` : ""}`
-    );
+    return api.get(`/reports/financial/variable-costs${query ? `?${query}` : ''}`);
   },
-  getFixedCosts: (
-    startDate?: string,
-    endDate?: string
-  ): Promise<FixedCosts> => {
+  getFixedCosts: (startDate?: string, endDate?: string): Promise<FixedCosts> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/reports/financial/fixed-costs${query ? `?${query}` : ""}`);
+    return api.get(`/reports/financial/fixed-costs${query ? `?${query}` : ''}`);
   },
-  getSalesRevenue: (
-    startDate?: string,
-    endDate?: string
-  ): Promise<SalesRevenue> => {
+  getSalesRevenue: (startDate?: string, endDate?: string): Promise<SalesRevenue> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(
-      `/reports/financial/sales-revenue${query ? `?${query}` : ""}`
-    );
+    return api.get(`/reports/financial/sales-revenue${query ? `?${query}` : ''}`);
   },
-  getGrossProfit: (
-    startDate?: string,
-    endDate?: string
-  ): Promise<GrossProfit> => {
+  getGrossProfit: (startDate?: string, endDate?: string): Promise<GrossProfit> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(
-      `/reports/financial/gross-profit${query ? `?${query}` : ""}`
-    );
+    return api.get(`/reports/financial/gross-profit${query ? `?${query}` : ''}`);
   },
-  getOperatingIncome: (
-    startDate?: string,
-    endDate?: string
-  ): Promise<OperatingIncome> => {
+  getOperatingIncome: (startDate?: string, endDate?: string): Promise<OperatingIncome> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(
-      `/reports/financial/operating-income${query ? `?${query}` : ""}`
-    );
+    return api.get(`/reports/financial/operating-income${query ? `?${query}` : ''}`);
   },
-  getOtherExpenses: (
-    startDate?: string,
-    endDate?: string
-  ): Promise<OtherExpenses> => {
+  getOtherExpenses: (startDate?: string, endDate?: string): Promise<OtherExpenses> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(
-      `/reports/financial/other-expenses${query ? `?${query}` : ""}`
-    );
+    return api.get(`/reports/financial/other-expenses${query ? `?${query}` : ''}`);
   },
   getNetProfit: (startDate?: string, endDate?: string): Promise<NetProfit> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(`/reports/financial/net-profit${query ? `?${query}` : ""}`);
+    return api.get(`/reports/financial/net-profit${query ? `?${query}` : ''}`);
   },
-  getFullIncomeStatement: (
-    startDate?: string,
-    endDate?: string
-  ): Promise<FullIncomeStatement> => {
+  getFullIncomeStatement: (startDate?: string, endDate?: string): Promise<FullIncomeStatement> => {
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
     const query = params.toString();
-    return api.get(
-      `/reports/financial/income-statement${query ? `?${query}` : ""}`
-    );
+    return api.get(`/reports/financial/income-statement${query ? `?${query}` : ''}`);
   },
   getRecipeCost: (recipeId: string): Promise<RecipeCostBreakdown> =>
     api.get(`/reports/financial/recipe-cost/${recipeId}`),
 };
 
 // ============ RECEIPT SCANNER TYPES ============
-export type ItemCategory = "INVENTORY" | "EXPENSE" | "UNKNOWN";
+export type ItemCategory = 'INVENTORY' | 'EXPENSE' | 'UNKNOWN';
 
 export type ScannerExpenseType =
-  | "UTILITIES"
-  | "RENT"
-  | "MAINTENANCE"
-  | "SUPPLIES"
-  | "EQUIPMENT"
-  | "SALARY"
-  | "OTHER";
+  | 'UTILITIES'
+  | 'RENT'
+  | 'MAINTENANCE'
+  | 'SUPPLIES'
+  | 'EQUIPMENT'
+  | 'SALARY'
+  | 'OTHER';
 
 export interface ScannedItem {
   name: string;
@@ -1261,10 +1164,10 @@ export const receiptScannerApi = {
   scanReceipt: async (file: File): Promise<ScanResult> => {
     const token = await getAccessToken();
     const formData = new FormData();
-    formData.append("receipt", file);
+    formData.append('receipt', file);
 
     const response = await fetch(`${API_URL}/receipt/scan`, {
-      method: "POST",
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -1273,28 +1176,20 @@ export const receiptScannerApi = {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new ApiError(
-        error.message || "Failed to scan receipt",
-        response.status,
-        error
-      );
+      throw new ApiError(error.message || 'Failed to scan receipt', response.status, error);
     }
 
     return response.json();
   },
 
-  saveItems: (data: SaveScannedItemsDto): Promise<SaveResult> =>
-    api.post("/receipt/save", data),
+  saveItems: (data: SaveScannedItemsDto): Promise<SaveResult> => api.post('/receipt/save', data),
 
   // Save category corrections for learning
-  learnFromCorrections: (
-    corrections: CategoryCorrection[]
-  ): Promise<{ savedCount: number }> =>
-    api.post("/receipt/learn", { corrections }),
+  learnFromCorrections: (corrections: CategoryCorrection[]): Promise<{ savedCount: number }> =>
+    api.post('/receipt/learn', { corrections }),
 
   // Get learning statistics
-  getLearningStats: (): Promise<LearningStats> =>
-    api.get("/receipt/learning-stats"),
+  getLearningStats: (): Promise<LearningStats> => api.get('/receipt/learning-stats'),
 
   parseText: (
     text: string
@@ -1303,5 +1198,5 @@ export const receiptScannerApi = {
     inventoryCount: number;
     expenseCount: number;
     unknownCount: number;
-  }> => api.post("/receipt/parse-text", { text }),
+  }> => api.post('/receipt/parse-text', { text }),
 };

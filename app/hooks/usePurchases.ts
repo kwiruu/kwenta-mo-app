@@ -1,14 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  purchasesApi,
-  type CreatePurchaseDto,
-  type Purchase,
-  type InventoryType,
-} from "~/lib/api";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { purchasesApi, type CreatePurchaseDto, type Purchase, type InventoryType } from '~/lib/api';
 
 export const purchaseKeys = {
-  all: ["purchases"] as const,
-  lists: () => [...purchaseKeys.all, "list"] as const,
+  all: ['purchases'] as const,
+  lists: () => [...purchaseKeys.all, 'list'] as const,
   list: (filters: {
     itemType?: InventoryType;
     periodId?: string;
@@ -16,11 +11,11 @@ export const purchaseKeys = {
     endDate?: string;
     supplier?: string;
   }) => [...purchaseKeys.lists(), filters] as const,
-  details: () => [...purchaseKeys.all, "detail"] as const,
+  details: () => [...purchaseKeys.all, 'detail'] as const,
   detail: (id: string) => [...purchaseKeys.details(), id] as const,
   stats: (startDate?: string, endDate?: string) =>
-    [...purchaseKeys.all, "stats", { startDate, endDate }] as const,
-  lowStockAlerts: () => [...purchaseKeys.all, "low-stock-alerts"] as const,
+    [...purchaseKeys.all, 'stats', { startDate, endDate }] as const,
+  lowStockAlerts: () => [...purchaseKeys.all, 'low-stock-alerts'] as const,
 };
 
 export function usePurchases(filters?: {
@@ -80,8 +75,7 @@ export function useCreateBulkPurchases() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (purchases: CreatePurchaseDto[]) =>
-      purchasesApi.createBulk(purchases),
+    mutationFn: (purchases: CreatePurchaseDto[]) => purchasesApi.createBulk(purchases),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: purchaseKeys.all });
     },
@@ -92,13 +86,8 @@ export function useUpdatePurchase() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<CreatePurchaseDto>;
-    }) => purchasesApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreatePurchaseDto> }) =>
+      purchasesApi.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: purchaseKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: purchaseKeys.lists() });
@@ -118,9 +107,11 @@ export function useDeletePurchase() {
 }
 
 // Get purchases as inventory items (for recipe selection)
-export function useInventoryItems() {
+// Note: This overlaps with useInventoryItems from useInventoryItems.ts
+// Both query the same endpoint but are maintained for backwards compatibility
+export function usePurchasesAsInventoryItems() {
   return useQuery({
-    queryKey: [...purchaseKeys.all, "inventory-items"] as const,
+    queryKey: [...purchaseKeys.all, 'inventory-items'] as const,
     queryFn: () => purchasesApi.getInventoryItems(),
   });
 }
