@@ -614,31 +614,49 @@ export default function ReportsIndex() {
                   {(incomeStatement?.revenue?.foodSales ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Food Sales</span>
-                      <span>{formatCurrency(incomeStatement?.revenue?.foodSales ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.revenue?.foodSales ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
                   {(incomeStatement?.revenue?.beverageSales ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Beverage Sales</span>
-                      <span>{formatCurrency(incomeStatement?.revenue?.beverageSales ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.revenue?.beverageSales ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
                   {(incomeStatement?.revenue?.cateringSales ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Catering Sales</span>
-                      <span>{formatCurrency(incomeStatement?.revenue?.cateringSales ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.revenue?.cateringSales ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
                   {(incomeStatement?.revenue?.deliverySales ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Delivery Sales</span>
-                      <span>{formatCurrency(incomeStatement?.revenue?.deliverySales ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.revenue?.deliverySales ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between font-semibold border-t pt-2">
                     <span>Total Revenue</span>
                     <span>
-                      {formatCurrency(incomeStatement?.revenue?.totalRevenue ?? 0)}
+                      {formatCurrency(
+                        incomeStatement?.revenue?.totalRevenue ?? 0
+                      )}
                     </span>
                   </div>
                 </div>
@@ -678,55 +696,93 @@ export default function ReportsIndex() {
                   {(incomeStatement?.operatingExpenses?.rent ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Rent</span>
-                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.rent ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.operatingExpenses?.rent ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
                   {(incomeStatement?.operatingExpenses?.utilities ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Utilities</span>
-                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.utilities ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.operatingExpenses?.utilities ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
                   {(incomeStatement?.operatingExpenses?.salaries ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Salaries</span>
-                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.salaries ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.operatingExpenses?.salaries ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
                   {(incomeStatement?.operatingExpenses?.marketing ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Marketing</span>
-                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.marketing ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.operatingExpenses?.marketing ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
                   {(incomeStatement?.operatingExpenses?.supplies ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Supplies</span>
-                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.supplies ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.operatingExpenses?.supplies ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
-                  {(incomeStatement?.operatingExpenses?.maintenance ?? 0) > 0 && (
+                  {(incomeStatement?.operatingExpenses?.maintenance ?? 0) >
+                    0 && (
                     <div className="flex justify-between">
                       <span>Maintenance</span>
-                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.maintenance ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.operatingExpenses?.maintenance ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
-                  {(incomeStatement?.operatingExpenses?.insuranceLicenses ?? 0) > 0 && (
+                  {(incomeStatement?.operatingExpenses?.insuranceLicenses ??
+                    0) > 0 && (
                     <div className="flex justify-between">
                       <span>Insurance & Licenses</span>
-                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.insuranceLicenses ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.operatingExpenses
+                            ?.insuranceLicenses ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
-                  {(incomeStatement?.operatingExpenses?.miscellaneous ?? 0) > 0 && (
+                  {(incomeStatement?.operatingExpenses?.miscellaneous ?? 0) >
+                    0 && (
                     <div className="flex justify-between">
                       <span>Miscellaneous</span>
-                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.miscellaneous ?? 0)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.operatingExpenses?.miscellaneous ?? 0
+                        )}
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between font-semibold border-t pt-2">
                     <span>Total Operating Expenses</span>
                     <span>
-                      {formatCurrency(incomeStatement?.operatingExpenses?.total ?? 0)}
+                      {formatCurrency(
+                        incomeStatement?.operatingExpenses?.total ?? 0
+                      )}
                     </span>
                   </div>
                 </div>
@@ -1106,9 +1162,7 @@ export default function ReportsIndex() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Food Sales</span>
                       <span className="font-medium">
-                        {formatCurrency(
-                          incomeStatement?.revenue?.foodSales
-                        )}
+                        {formatCurrency(incomeStatement?.revenue?.foodSales)}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -1179,7 +1233,11 @@ export default function ReportsIndex() {
                     <Separator />
                     <div className="flex justify-between font-semibold text-orange-700">
                       <span>Total COGS</span>
-                      <span>{formatCurrency(incomeStatement?.costOfGoodsSold ?? cogs?.cogs)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.costOfGoodsSold ?? cogs?.cogs
+                        )}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1193,10 +1251,18 @@ export default function ReportsIndex() {
                     </span>
                     <div className="text-right">
                       <span className="text-xl font-bold text-green-700">
-                        {formatCurrency(incomeStatement?.grossProfit ?? grossProfit?.grossProfit)}
+                        {formatCurrency(
+                          incomeStatement?.grossProfit ??
+                            grossProfit?.grossProfit
+                        )}
                       </span>
                       <p className="text-xs text-green-600">
-                        {(incomeStatement?.grossProfitMargin ?? grossProfit?.grossProfitMargin ?? 0).toFixed(1)}% margin
+                        {(
+                          incomeStatement?.grossProfitMargin ??
+                          grossProfit?.grossProfitMargin ??
+                          0
+                        ).toFixed(1)}
+                        % margin
                       </p>
                     </div>
                   </div>
@@ -1215,7 +1281,9 @@ export default function ReportsIndex() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Rent</span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.operatingExpenses.rent)}
+                              {formatCurrency(
+                                incomeStatement.operatingExpenses.rent
+                              )}
                             </span>
                           </div>
                         )}
@@ -1223,7 +1291,9 @@ export default function ReportsIndex() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Utilities</span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.operatingExpenses.utilities)}
+                              {formatCurrency(
+                                incomeStatement.operatingExpenses.utilities
+                              )}
                             </span>
                           </div>
                         )}
@@ -1231,7 +1301,9 @@ export default function ReportsIndex() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Salaries</span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.operatingExpenses.salaries)}
+                              {formatCurrency(
+                                incomeStatement.operatingExpenses.salaries
+                              )}
                             </span>
                           </div>
                         )}
@@ -1239,7 +1311,9 @@ export default function ReportsIndex() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Marketing</span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.operatingExpenses.marketing)}
+                              {formatCurrency(
+                                incomeStatement.operatingExpenses.marketing
+                              )}
                             </span>
                           </div>
                         )}
@@ -1247,7 +1321,9 @@ export default function ReportsIndex() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Supplies</span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.operatingExpenses.supplies)}
+                              {formatCurrency(
+                                incomeStatement.operatingExpenses.supplies
+                              )}
                             </span>
                           </div>
                         )}
@@ -1255,23 +1331,34 @@ export default function ReportsIndex() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Maintenance</span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.operatingExpenses.maintenance)}
+                              {formatCurrency(
+                                incomeStatement.operatingExpenses.maintenance
+                              )}
                             </span>
                           </div>
                         )}
-                        {incomeStatement.operatingExpenses.insuranceLicenses > 0 && (
+                        {incomeStatement.operatingExpenses.insuranceLicenses >
+                          0 && (
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Insurance & Licenses</span>
+                            <span className="text-gray-600">
+                              Insurance & Licenses
+                            </span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.operatingExpenses.insuranceLicenses)}
+                              {formatCurrency(
+                                incomeStatement.operatingExpenses
+                                  .insuranceLicenses
+                              )}
                             </span>
                           </div>
                         )}
-                        {incomeStatement.operatingExpenses.miscellaneous > 0 && (
+                        {incomeStatement.operatingExpenses.miscellaneous >
+                          0 && (
                           <div className="flex justify-between">
                             <span className="text-gray-600">Miscellaneous</span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.operatingExpenses.miscellaneous)}
+                              {formatCurrency(
+                                incomeStatement.operatingExpenses.miscellaneous
+                              )}
                             </span>
                           </div>
                         )}
@@ -1298,7 +1385,12 @@ export default function ReportsIndex() {
                     <Separator />
                     <div className="flex justify-between font-semibold text-purple-700">
                       <span>Total Operating Expenses</span>
-                      <span>{formatCurrency(incomeStatement?.operatingExpenses?.total ?? opex?.total)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.operatingExpenses?.total ??
+                            opex?.total
+                        )}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1311,7 +1403,10 @@ export default function ReportsIndex() {
                       Operating Income
                     </span>
                     <span className="text-xl font-bold text-purple-700">
-                      {formatCurrency(incomeStatement?.operatingIncome ?? operatingIncome?.operatingIncome)}
+                      {formatCurrency(
+                        incomeStatement?.operatingIncome ??
+                          operatingIncome?.operatingIncome
+                      )}
                     </span>
                   </div>
                 </div>
@@ -1329,15 +1424,21 @@ export default function ReportsIndex() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Tax Expense</span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.otherExpenses.taxExpense)}
+                              {formatCurrency(
+                                incomeStatement.otherExpenses.taxExpense
+                              )}
                             </span>
                           </div>
                         )}
                         {incomeStatement.otherExpenses.interestExpense > 0 && (
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Interest Expense</span>
+                            <span className="text-gray-600">
+                              Interest Expense
+                            </span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.otherExpenses.interestExpense)}
+                              {formatCurrency(
+                                incomeStatement.otherExpenses.interestExpense
+                              )}
                             </span>
                           </div>
                         )}
@@ -1345,7 +1446,9 @@ export default function ReportsIndex() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Depreciation</span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.otherExpenses.depreciation)}
+                              {formatCurrency(
+                                incomeStatement.otherExpenses.depreciation
+                              )}
                             </span>
                           </div>
                         )}
@@ -1353,7 +1456,9 @@ export default function ReportsIndex() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Bank Charges</span>
                             <span className="font-medium">
-                              {formatCurrency(incomeStatement.otherExpenses.bankCharges)}
+                              {formatCurrency(
+                                incomeStatement.otherExpenses.bankCharges
+                              )}
                             </span>
                           </div>
                         )}
@@ -1362,7 +1467,12 @@ export default function ReportsIndex() {
                     ) : null}
                     <div className="flex justify-between font-medium text-gray-700">
                       <span>Total Other Expenses</span>
-                      <span>{formatCurrency(incomeStatement?.otherExpenses?.total ?? otherExpenses?.total)}</span>
+                      <span>
+                        {formatCurrency(
+                          incomeStatement?.otherExpenses?.total ??
+                            otherExpenses?.total
+                        )}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1370,7 +1480,8 @@ export default function ReportsIndex() {
                 {/* Net Profit */}
                 <div
                   className={`rounded-lg p-6 ${
-                    (incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >= 0
+                    (incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >=
+                    0
                       ? "bg-green-100"
                       : "bg-red-100"
                   }`}
@@ -1378,12 +1489,16 @@ export default function ReportsIndex() {
                   <div className="flex justify-between items-center">
                     <span
                       className={`text-lg font-bold flex items-center gap-2 ${
-                        (incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >= 0
+                        (incomeStatement?.netProfit ??
+                          netProfit?.netProfit ??
+                          0) >= 0
                           ? "text-green-800"
                           : "text-red-800"
                       }`}
                     >
-                      {(incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >= 0 ? (
+                      {(incomeStatement?.netProfit ??
+                        netProfit?.netProfit ??
+                        0) >= 0 ? (
                         <TrendingUp className="h-5 w-5" />
                       ) : (
                         <TrendingDown className="h-5 w-5" />
@@ -1393,21 +1508,32 @@ export default function ReportsIndex() {
                     <div className="text-right">
                       <span
                         className={`text-2xl font-bold ${
-                          (incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >= 0
+                          (incomeStatement?.netProfit ??
+                            netProfit?.netProfit ??
+                            0) >= 0
                             ? "text-green-700"
                             : "text-red-700"
                         }`}
                       >
-                        {formatCurrency(incomeStatement?.netProfit ?? netProfit?.netProfit)}
+                        {formatCurrency(
+                          incomeStatement?.netProfit ?? netProfit?.netProfit
+                        )}
                       </span>
                       <p
                         className={`text-sm ${
-                          (incomeStatement?.netProfit ?? netProfit?.netProfit ?? 0) >= 0
+                          (incomeStatement?.netProfit ??
+                            netProfit?.netProfit ??
+                            0) >= 0
                             ? "text-green-600"
                             : "text-red-600"
                         }`}
                       >
-                        {(incomeStatement?.netProfitMargin ?? netProfit?.netProfitMargin ?? 0).toFixed(1)}% margin
+                        {(
+                          incomeStatement?.netProfitMargin ??
+                          netProfit?.netProfitMargin ??
+                          0
+                        ).toFixed(1)}
+                        % margin
                       </p>
                     </div>
                   </div>
