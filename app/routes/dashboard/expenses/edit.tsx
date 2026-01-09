@@ -1,54 +1,48 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router";
-import { ArrowLeft, Receipt, Save, Trash2 } from "lucide-react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
+import { ArrowLeft, Receipt, Save, Trash2 } from 'lucide-react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
+import { Textarea } from '~/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { useExpense, useUpdateExpense, useDeleteExpense } from "~/hooks";
-import { APP_CONFIG } from "~/config/app";
-import type { ExpenseCategory } from "~/lib/api";
+} from '~/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { useExpense, useUpdateExpense, useDeleteExpense } from '~/hooks';
+import { APP_CONFIG } from '~/config/app';
+import type { ExpenseCategory } from '~/lib/api';
 
 export function meta() {
   return [
     { title: `Edit Expense - ${APP_CONFIG.name}` },
-    { name: "description", content: "Edit operating expense details" },
+    { name: 'description', content: 'Edit operating expense details' },
   ];
 }
 
 const expenseCategories: { value: ExpenseCategory; label: string }[] = [
-  { value: "RENT", label: "Rent" },
-  { value: "UTILITIES", label: "Utilities" },
-  { value: "LABOR", label: "Salaries" },
-  { value: "EQUIPMENT", label: "Equipment" },
-  { value: "MARKETING", label: "Marketing" },
-  { value: "PACKAGING", label: "Supplies" },
-  { value: "TRANSPORTATION", label: "Transportation" },
-  { value: "INGREDIENTS", label: "Ingredients" },
-  { value: "OTHER", label: "Other" },
+  { value: 'RENT', label: 'Rent' },
+  { value: 'UTILITIES', label: 'Utilities' },
+  { value: 'LABOR', label: 'Salaries' },
+  { value: 'EQUIPMENT', label: 'Equipment' },
+  { value: 'MARKETING', label: 'Marketing' },
+  { value: 'PACKAGING', label: 'Supplies' },
+  { value: 'TRANSPORTATION', label: 'Transportation' },
+  { value: 'INGREDIENTS', label: 'Ingredients' },
+  { value: 'OTHER', label: 'Other' },
 ];
 
 const frequencyOptions = [
-  { value: "DAILY", label: "Daily" },
-  { value: "WEEKLY", label: "Weekly" },
-  { value: "MONTHLY", label: "Monthly" },
-  { value: "QUARTERLY", label: "Quarterly" },
-  { value: "YEARLY", label: "Yearly" },
+  { value: 'DAILY', label: 'Daily' },
+  { value: 'WEEKLY', label: 'Weekly' },
+  { value: 'MONTHLY', label: 'Monthly' },
+  { value: 'QUARTERLY', label: 'Quarterly' },
+  { value: 'YEARLY', label: 'Yearly' },
 ];
 
 export default function EditExpensePage() {
@@ -61,12 +55,12 @@ export default function EditExpensePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
-    description: "",
-    category: "" as ExpenseCategory,
-    amount: "",
-    expenseDate: new Date().toISOString().split("T")[0],
-    frequency: "MONTHLY",
-    notes: "",
+    description: '',
+    category: '' as ExpenseCategory,
+    amount: '',
+    expenseDate: new Date().toISOString().split('T')[0],
+    frequency: 'MONTHLY',
+    notes: '',
   });
 
   // Load expense data
@@ -76,9 +70,9 @@ export default function EditExpensePage() {
         description: expense.description,
         category: expense.category,
         amount: expense.amount.toString(),
-        frequency: expense.frequency || "MONTHLY",
-        expenseDate: new Date(expense.expenseDate).toISOString().split("T")[0],
-        notes: expense.notes || "",
+        frequency: expense.frequency || 'MONTHLY',
+        expenseDate: new Date(expense.expenseDate).toISOString().split('T')[0],
+        notes: expense.notes || '',
       });
     }
   }, [expense]);
@@ -106,9 +100,7 @@ export default function EditExpensePage() {
             <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
               <Receipt className="h-8 w-8 text-gray-400" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Expense Not Found
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Expense Not Found</h2>
             <p className="text-gray-500 mb-4">
               The expense you're looking for doesn't exist or has been deleted.
             </p>
@@ -125,16 +117,16 @@ export default function EditExpensePage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.description.trim()) {
-      newErrors.description = "Expense description is required";
+      newErrors.description = 'Expense description is required';
     }
     if (!formData.category) {
-      newErrors.category = "Please select a category";
+      newErrors.category = 'Please select a category';
     }
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = "Enter a valid amount";
+      newErrors.amount = 'Enter a valid amount';
     }
     if (!formData.frequency) {
-      newErrors.frequency = "Please select frequency";
+      newErrors.frequency = 'Please select frequency';
     }
 
     setErrors(newErrors);
@@ -153,27 +145,22 @@ export default function EditExpensePage() {
           category: formData.category,
           description: formData.description.trim(),
           amount: parseFloat(formData.amount),
-          frequency: formData.frequency as
-            | "DAILY"
-            | "WEEKLY"
-            | "MONTHLY"
-            | "QUARTERLY"
-            | "YEARLY",
+          frequency: formData.frequency as 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY',
           expenseDate: formData.expenseDate,
           notes: formData.notes.trim() || undefined,
         },
       },
       {
-        onSuccess: () => navigate("/dashboard/expenses"),
-        onError: (error) => console.error("Error updating expense:", error),
+        onSuccess: () => navigate('/dashboard/expenses'),
+        onError: (error) => console.error('Error updating expense:', error),
       }
     );
   };
 
   const handleDelete = async () => {
     deleteExpenseMutation.mutate(id!, {
-      onSuccess: () => navigate("/dashboard/expenses"),
-      onError: (error) => console.error("Error deleting expense:", error),
+      onSuccess: () => navigate('/dashboard/expenses'),
+      onError: (error) => console.error('Error deleting expense:', error),
     });
   };
 
@@ -181,15 +168,15 @@ export default function EditExpensePage() {
   const calculateMonthly = () => {
     const amount = parseFloat(formData.amount) || 0;
     switch (formData.frequency) {
-      case "DAILY":
+      case 'DAILY':
         return amount * 30;
-      case "WEEKLY":
+      case 'WEEKLY':
         return amount * 4;
-      case "MONTHLY":
+      case 'MONTHLY':
         return amount;
-      case "QUARTERLY":
+      case 'QUARTERLY':
         return amount / 3;
-      case "YEARLY":
+      case 'YEARLY':
         return amount / 12;
       default:
         return amount;
@@ -197,20 +184,16 @@ export default function EditExpensePage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
     }).format(amount);
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Back Button */}
-      <Button
-        variant="ghost"
-        asChild
-        className="-ml-2 text-gray-600 hover:text-gray-900"
-      >
+      <Button variant="ghost" asChild className="-ml-2 text-gray-600 hover:text-gray-900">
         <Link to="/dashboard/expenses">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Expenses
@@ -221,9 +204,7 @@ export default function EditExpensePage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Edit Expense</h1>
-          <p className="text-gray-500 mt-1">
-            Update the details for {expense.description}
-          </p>
+          <p className="text-gray-500 mt-1">Update the details for {expense.description}</p>
         </div>
         {!showDeleteConfirm ? (
           <Button
@@ -243,10 +224,7 @@ export default function EditExpensePage() {
             >
               Cancel
             </Button>
-            <Button
-              className="bg-red-500 hover:bg-red-600 text-white"
-              onClick={handleDelete}
-            >
+            <Button className="bg-red-500 hover:bg-red-600 text-white" onClick={handleDelete}>
               Confirm Delete
             </Button>
           </div>
@@ -276,16 +254,10 @@ export default function EditExpensePage() {
                 id="description"
                 placeholder="e.g., Store Rent, Electricity Bill"
                 value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className={
-                  errors.description ? "border-red-300" : "border-gray-200"
-                }
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className={errors.description ? 'border-red-300' : 'border-gray-200'}
               />
-              {errors.description && (
-                <p className="text-sm text-red-500">{errors.description}</p>
-              )}
+              {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
             </div>
 
             {/* Category */}
@@ -302,11 +274,7 @@ export default function EditExpensePage() {
                   })
                 }
               >
-                <SelectTrigger
-                  className={
-                    errors.category ? "border-red-300" : "border-gray-200"
-                  }
-                >
+                <SelectTrigger className={errors.category ? 'border-red-300' : 'border-gray-200'}>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -317,9 +285,7 @@ export default function EditExpensePage() {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.category && (
-                <p className="text-sm text-red-500">{errors.category}</p>
-              )}
+              {errors.category && <p className="text-sm text-red-500">{errors.category}</p>}
             </div>
 
             {/* Amount, Frequency and Date Row */}
@@ -336,16 +302,10 @@ export default function EditExpensePage() {
                   step="0.01"
                   placeholder="e.g., 5000"
                   value={formData.amount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, amount: e.target.value })
-                  }
-                  className={
-                    errors.amount ? "border-red-300" : "border-gray-200"
-                  }
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  className={errors.amount ? 'border-red-300' : 'border-gray-200'}
                 />
-                {errors.amount && (
-                  <p className="text-sm text-red-500">{errors.amount}</p>
-                )}
+                {errors.amount && <p className="text-sm text-red-500">{errors.amount}</p>}
               </div>
 
               {/* Frequency */}
@@ -355,14 +315,10 @@ export default function EditExpensePage() {
                 </Label>
                 <Select
                   value={formData.frequency}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, frequency: value })
-                  }
+                  onValueChange={(value) => setFormData({ ...formData, frequency: value })}
                 >
                   <SelectTrigger
-                    className={
-                      errors.frequency ? "border-red-300" : "border-gray-200"
-                    }
+                    className={errors.frequency ? 'border-red-300' : 'border-gray-200'}
                   >
                     <SelectValue placeholder="Select frequency" />
                   </SelectTrigger>
@@ -374,9 +330,7 @@ export default function EditExpensePage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.frequency && (
-                  <p className="text-sm text-red-500">{errors.frequency}</p>
-                )}
+                {errors.frequency && <p className="text-sm text-red-500">{errors.frequency}</p>}
               </div>
 
               {/* Expense Date */}
@@ -388,9 +342,7 @@ export default function EditExpensePage() {
                   id="expenseDate"
                   type="date"
                   value={formData.expenseDate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, expenseDate: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, expenseDate: e.target.value })}
                   className="border-gray-200"
                 />
               </div>
@@ -415,9 +367,7 @@ export default function EditExpensePage() {
                 id="notes"
                 placeholder="Any additional details about this expense..."
                 value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={3}
                 className="border-gray-200"
               />
@@ -427,12 +377,7 @@ export default function EditExpensePage() {
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 mt-6">
-          <Button
-            type="button"
-            variant="outline"
-            className="border-gray-200 text-gray-700"
-            asChild
-          >
+          <Button type="button" variant="outline" className="border-gray-200 text-gray-700" asChild>
             <Link to="/dashboard/expenses">Cancel</Link>
           </Button>
           <Button
@@ -441,7 +386,7 @@ export default function EditExpensePage() {
             className="bg-primary hover:bg-primary/90"
           >
             {updateExpenseMutation.isPending ? (
-              "Saving..."
+              'Saving...'
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />

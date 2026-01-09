@@ -1,21 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  salesApi,
-  type Sale,
-  type CreateSaleDto,
-  type SalesStats,
-} from "~/lib/api";
-import { useAuthStore } from "~/stores/authStore";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { salesApi, type Sale, type CreateSaleDto, type SalesStats } from '~/lib/api';
+import { useAuthStore } from '~/stores/authStore';
 
 // Query keys for cache management
 export const salesKeys = {
-  all: ["sales"] as const,
-  lists: () => [...salesKeys.all, "list"] as const,
+  all: ['sales'] as const,
+  lists: () => [...salesKeys.all, 'list'] as const,
   list: (filters?: { startDate?: string; endDate?: string }) =>
     [...salesKeys.lists(), filters] as const,
-  details: () => [...salesKeys.all, "detail"] as const,
+  details: () => [...salesKeys.all, 'detail'] as const,
   detail: (id: string) => [...salesKeys.details(), id] as const,
-  stats: () => [...salesKeys.all, "stats"] as const,
+  stats: () => [...salesKeys.all, 'stats'] as const,
   statsWithDate: (startDate?: string, endDate?: string) =>
     [...salesKeys.stats(), { startDate, endDate }] as const,
 };

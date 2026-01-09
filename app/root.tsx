@@ -5,37 +5,37 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-} from "react-router";
-import { useEffect } from "react";
-import { QueryClientProvider } from "@tanstack/react-query";
+} from 'react-router';
+import { useEffect } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 
-import type { Route } from "./+types/root";
-import "./app.css";
-import { useAuthStore } from "~/stores/authStore";
-import { queryClient } from "~/lib/queryClient";
-import { Toaster } from "~/components/ui/toaster";
+import type { Route } from './+types/root';
+import './app.css';
+import { useAuthStore } from '~/stores/authStore';
+import { queryClient } from '~/lib/queryClient';
+import { Toaster } from '~/components/ui/toaster';
 
 export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
+    rel: 'preconnect',
+    href: 'https://fonts.gstatic.com',
+    crossOrigin: 'anonymous',
   },
   {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Flex:wght@400;500;600;700&display=swap",
+    rel: 'stylesheet',
+    href: 'https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Flex:wght@400;500;600;700&display=swap',
   },
   {
-    rel: "icon",
-    type: "image/png",
-    href: "/favicon-96x96.png",
-    sizes: "96x96",
+    rel: 'icon',
+    type: 'image/png',
+    href: '/favicon-96x96.png',
+    sizes: '96x96',
   },
-  { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-  { rel: "shortcut icon", href: "/favicon.ico" },
-  { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
-  { rel: "manifest", href: "/site.webmanifest" },
+  { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+  { rel: 'shortcut icon', href: '/favicon.ico' },
+  { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+  { rel: 'manifest', href: '/site.webmanifest' },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -73,16 +73,14 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
+  let message = 'Oops!';
+  let details = 'An unexpected error occurred.';
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
+    message = error.status === 404 ? '404' : 'Error';
     details =
-      error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
+      error.status === 404 ? 'The requested page could not be found.' : error.statusText || details;
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;
     stack = error.stack;

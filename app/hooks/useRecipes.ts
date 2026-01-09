@@ -1,20 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  recipesApi,
-  type Recipe,
-  type CreateRecipeDto,
-  type RecipeCost,
-} from "~/lib/api";
-import { useAuthStore } from "~/stores/authStore";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { recipesApi, type Recipe, type CreateRecipeDto, type RecipeCost } from '~/lib/api';
+import { useAuthStore } from '~/stores/authStore';
 
 // Query keys for cache management
 export const recipeKeys = {
-  all: ["recipes"] as const,
-  lists: () => [...recipeKeys.all, "list"] as const,
+  all: ['recipes'] as const,
+  lists: () => [...recipeKeys.all, 'list'] as const,
   list: (search?: string) => [...recipeKeys.lists(), { search }] as const,
-  details: () => [...recipeKeys.all, "detail"] as const,
+  details: () => [...recipeKeys.all, 'detail'] as const,
   detail: (id: string) => [...recipeKeys.details(), id] as const,
-  costs: () => [...recipeKeys.all, "cost"] as const,
+  costs: () => [...recipeKeys.all, 'cost'] as const,
   cost: (id: string) => [...recipeKeys.costs(), id] as const,
 };
 
@@ -68,18 +63,10 @@ export function useUpdateRecipe() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<CreateRecipeDto>;
-    }) => recipesApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateRecipeDto> }) =>
+      recipesApi.update(id, data),
     onSuccess: (updatedRecipe) => {
-      queryClient.setQueryData(
-        recipeKeys.detail(updatedRecipe.id),
-        updatedRecipe
-      );
+      queryClient.setQueryData(recipeKeys.detail(updatedRecipe.id), updatedRecipe);
       queryClient.invalidateQueries({ queryKey: recipeKeys.lists() });
       // Also invalidate cost since ingredients may have changed
       queryClient.invalidateQueries({

@@ -1,24 +1,18 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router";
-import { ArrowLeft, Warehouse, Save, Calendar, FileText } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { useCreateInventoryPeriod } from "~/hooks";
-import { APP_CONFIG } from "~/config/app";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { ArrowLeft, Warehouse, Save, Calendar, FileText } from 'lucide-react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
+import { Textarea } from '~/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { useCreateInventoryPeriod } from '~/hooks';
+import { APP_CONFIG } from '~/config/app';
 
 export function meta() {
   return [
     { title: `New Inventory Period - ${APP_CONFIG.name}` },
-    { name: "description", content: "Create a new inventory period" },
+    { name: 'description', content: 'Create a new inventory period' },
   ];
 }
 
@@ -33,27 +27,27 @@ export default function NewInventoryPeriodPage() {
   const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
   const [formData, setFormData] = useState({
-    name: `${today.toLocaleString("en-US", { month: "long" })} ${today.getFullYear()}`,
-    startDate: firstDayOfMonth.toISOString().split("T")[0],
-    endDate: lastDayOfMonth.toISOString().split("T")[0],
-    notes: "",
+    name: `${today.toLocaleString('en-US', { month: 'long' })} ${today.getFullYear()}`,
+    startDate: firstDayOfMonth.toISOString().split('T')[0],
+    endDate: lastDayOfMonth.toISOString().split('T')[0],
+    notes: '',
   });
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "Period name is required";
+      newErrors.name = 'Period name is required';
     }
     if (!formData.startDate) {
-      newErrors.startDate = "Start date is required";
+      newErrors.startDate = 'Start date is required';
     }
     if (!formData.endDate) {
-      newErrors.endDate = "End date is required";
+      newErrors.endDate = 'End date is required';
     }
     if (formData.startDate && formData.endDate) {
       if (new Date(formData.startDate) > new Date(formData.endDate)) {
-        newErrors.endDate = "End date must be after start date";
+        newErrors.endDate = 'End date must be after start date';
       }
     }
 
@@ -77,7 +71,7 @@ export default function NewInventoryPeriodPage() {
           // Navigate to the period detail page
           navigate(`/dashboard/inventory/${data.id}`);
         },
-        onError: (error) => console.error("Error creating period:", error),
+        onError: (error) => console.error('Error creating period:', error),
       }
     );
   };
@@ -92,23 +86,19 @@ export default function NewInventoryPeriodPage() {
       ...formData,
       name:
         months === 1
-          ? `${now.toLocaleString("en-US", { month: "long" })} ${now.getFullYear()}`
+          ? `${now.toLocaleString('en-US', { month: 'long' })} ${now.getFullYear()}`
           : months === 3
             ? `Q${Math.ceil((now.getMonth() + 1) / 3)} ${now.getFullYear()}`
             : `${now.getFullYear()}`,
-      startDate: start.toISOString().split("T")[0],
-      endDate: end.toISOString().split("T")[0],
+      startDate: start.toISOString().split('T')[0],
+      endDate: end.toISOString().split('T')[0],
     });
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Back Button */}
-      <Button
-        variant="ghost"
-        asChild
-        className="-ml-2 text-gray-600 hover:text-gray-900"
-      >
+      <Button variant="ghost" asChild className="-ml-2 text-gray-600 hover:text-gray-900">
         <Link to="/dashboard/inventory">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Inventory
@@ -117,9 +107,7 @@ export default function NewInventoryPeriodPage() {
 
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
-          New Inventory Period
-        </h1>
+        <h1 className="text-2xl font-semibold text-gray-900">New Inventory Period</h1>
         <p className="text-gray-500 mt-1">
           Create a new period to track beginning and ending inventory
         </p>
@@ -143,20 +131,10 @@ export default function NewInventoryPeriodPage() {
             <div className="space-y-2">
               <Label className="text-gray-700">Quick Period Selection</Label>
               <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuickPeriod(1)}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => setQuickPeriod(1)}>
                   This Month
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuickPeriod(3)}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => setQuickPeriod(3)}>
                   This Quarter
                 </Button>
                 <Button
@@ -181,15 +159,11 @@ export default function NewInventoryPeriodPage() {
                   id="name"
                   placeholder="e.g., January 2025, Q1 2025"
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className={`pl-10 ${errors.name ? "border-red-300" : "border-gray-200"}`}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className={`pl-10 ${errors.name ? 'border-red-300' : 'border-gray-200'}`}
                 />
               </div>
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
             </div>
 
             {/* Date Range */}
@@ -204,15 +178,11 @@ export default function NewInventoryPeriodPage() {
                     id="startDate"
                     type="date"
                     value={formData.startDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, startDate: e.target.value })
-                    }
-                    className={`pl-10 ${errors.startDate ? "border-red-300" : "border-gray-200"}`}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    className={`pl-10 ${errors.startDate ? 'border-red-300' : 'border-gray-200'}`}
                   />
                 </div>
-                {errors.startDate && (
-                  <p className="text-sm text-red-500">{errors.startDate}</p>
-                )}
+                {errors.startDate && <p className="text-sm text-red-500">{errors.startDate}</p>}
               </div>
 
               <div className="space-y-2">
@@ -225,15 +195,11 @@ export default function NewInventoryPeriodPage() {
                     id="endDate"
                     type="date"
                     value={formData.endDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, endDate: e.target.value })
-                    }
-                    className={`pl-10 ${errors.endDate ? "border-red-300" : "border-gray-200"}`}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    className={`pl-10 ${errors.endDate ? 'border-red-300' : 'border-gray-200'}`}
                   />
                 </div>
-                {errors.endDate && (
-                  <p className="text-sm text-red-500">{errors.endDate}</p>
-                )}
+                {errors.endDate && <p className="text-sm text-red-500">{errors.endDate}</p>}
               </div>
             </div>
 
@@ -246,7 +212,7 @@ export default function NewInventoryPeriodPage() {
                     (new Date(formData.endDate).getTime() -
                       new Date(formData.startDate).getTime()) /
                       (1000 * 60 * 60 * 24)
-                  ) + 1}{" "}
+                  ) + 1}{' '}
                   days
                 </p>
               </div>
@@ -261,9 +227,7 @@ export default function NewInventoryPeriodPage() {
                 id="notes"
                 placeholder="Any notes about this inventory period..."
                 value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="border-gray-200"
                 rows={3}
               />
@@ -289,7 +253,7 @@ export default function NewInventoryPeriodPage() {
                 type="button"
                 variant="outline"
                 className="flex-1"
-                onClick={() => navigate("/dashboard/inventory")}
+                onClick={() => navigate('/dashboard/inventory')}
               >
                 Cancel
               </Button>
@@ -299,7 +263,7 @@ export default function NewInventoryPeriodPage() {
                 disabled={createMutation.isPending}
               >
                 {createMutation.isPending ? (
-                  "Creating..."
+                  'Creating...'
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />

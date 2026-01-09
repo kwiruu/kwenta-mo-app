@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient } from '@tanstack/react-query';
 
 // Create a QueryClient with sensible defaults
 export const queryClient = new QueryClient({
@@ -13,13 +13,13 @@ export const queryClient = new QueryClient({
       // Don't refetch on window focus
       refetchOnWindowFocus: false,
       // Timeout for network requests (handled in api.ts, but this prevents indefinite pending)
-      networkMode: "offlineFirst",
+      networkMode: 'offlineFirst',
     },
     mutations: {
       // Don't retry mutations by default
       retry: 0,
       // Ensure mutations don't hang
-      networkMode: "offlineFirst",
+      networkMode: 'offlineFirst',
     },
   },
 });

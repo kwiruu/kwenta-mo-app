@@ -1,16 +1,10 @@
-import { Link, useNavigate } from "react-router";
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { useCreateRecipe, usePurchases, useActivePeriod } from "~/hooks";
+import { Link, useNavigate } from 'react-router';
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
+import { useCreateRecipe, usePurchases, useActivePeriod } from '~/hooks';
 
 interface RecipeIngredientInput {
   ingredientId: string;
@@ -27,27 +21,24 @@ export default function NewRecipe() {
   const { data: activePeriod } = useActivePeriod();
   const { data: purchases = [] } = usePurchases({
     periodId: activePeriod?.id,
-    status: "PURCHASED",
   });
 
   const [formData, setFormData] = useState({
-    name: "",
+    name: '',
     sellingPrice: 0,
     prepTimeMinutes: 0,
     laborRatePerHour: 80,
     isActive: true,
   });
 
-  const [recipeIngredients, setRecipeIngredients] = useState<
-    RecipeIngredientInput[]
-  >([]);
-  const [selectedIngredientId, setSelectedIngredientId] = useState("");
+  const [recipeIngredients, setRecipeIngredients] = useState<RecipeIngredientInput[]>([]);
+  const [selectedIngredientId, setSelectedIngredientId] = useState('');
   const [ingredientQuantity, setIngredientQuantity] = useState(0);
 
   // Group purchased items by item name and calculate average cost
   const displayIngredients = purchases.reduce(
     (acc, purchase) => {
-      const itemName = purchase.name || "Unknown";
+      const itemName = purchase.name || 'Unknown';
       const existing = acc.find((item) => item.name === itemName);
       if (existing) {
         // Average the costs if multiple purchases of same item
@@ -62,7 +53,7 @@ export default function NewRecipe() {
           id: purchase.id,
           name: itemName,
           pricePerUnit: Number(purchase.unitCost),
-          unit: purchase.unit || "unit",
+          unit: purchase.unit || 'unit',
           totalQuantity: Number(purchase.quantity),
         });
       }
@@ -80,16 +71,12 @@ export default function NewRecipe() {
   const addIngredient = () => {
     if (!selectedIngredientId || ingredientQuantity <= 0) return;
 
-    const ingredient = displayIngredients.find(
-      (i) => i.id === selectedIngredientId
-    );
+    const ingredient = displayIngredients.find((i) => i.id === selectedIngredientId);
     if (!ingredient) return;
 
     // Check if already added
-    if (
-      recipeIngredients.some((ri) => ri.ingredientId === selectedIngredientId)
-    ) {
-      alert("This ingredient is already added. Edit the quantity instead.");
+    if (recipeIngredients.some((ri) => ri.ingredientId === selectedIngredientId)) {
+      alert('This ingredient is already added. Edit the quantity instead.');
       return;
     }
 
@@ -106,14 +93,12 @@ export default function NewRecipe() {
       },
     ]);
 
-    setSelectedIngredientId("");
+    setSelectedIngredientId('');
     setIngredientQuantity(0);
   };
 
   const removeIngredient = (ingredientId: string) => {
-    setRecipeIngredients(
-      recipeIngredients.filter((ri) => ri.ingredientId !== ingredientId)
-    );
+    setRecipeIngredients(recipeIngredients.filter((ri) => ri.ingredientId !== ingredientId));
   };
 
   const updateIngredientQuantity = (ingredientId: string, quantity: number) => {
@@ -131,21 +116,17 @@ export default function NewRecipe() {
   };
 
   // Cost calculations (will be done by backend)
-  const materialCost = recipeIngredients.reduce(
-    (sum, ri) => sum + ri.totalCost,
-    0
-  );
+  const materialCost = recipeIngredients.reduce((sum, ri) => sum + ri.totalCost, 0);
   const laborCost = (formData.prepTimeMinutes / 60) * formData.laborRatePerHour;
   const overheadAllocation = materialCost * 0.15;
   const totalCost = materialCost + laborCost + overheadAllocation;
   const grossProfit = formData.sellingPrice - totalCost;
-  const profitMargin =
-    formData.sellingPrice > 0 ? (grossProfit / formData.sellingPrice) * 100 : 0;
+  const profitMargin = formData.sellingPrice > 0 ? (grossProfit / formData.sellingPrice) * 100 : 0;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
     }).format(amount);
   };
 
@@ -153,12 +134,12 @@ export default function NewRecipe() {
     e.preventDefault();
 
     if (!formData.name) {
-      alert("Please enter a recipe name");
+      alert('Please enter a recipe name');
       return;
     }
 
     if (recipeIngredients.length === 0) {
-      alert("Please add at least one ingredient");
+      alert('Please add at least one ingredient');
       return;
     }
 
@@ -173,8 +154,8 @@ export default function NewRecipe() {
         })),
       },
       {
-        onSuccess: () => navigate("/dashboard/recipes"),
-        onError: (error) => console.error("Error adding recipe:", error),
+        onSuccess: () => navigate('/dashboard/recipes'),
+        onError: (error) => console.error('Error adding recipe:', error),
       }
     );
   };
@@ -204,9 +185,7 @@ export default function NewRecipe() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">New Recipe</h1>
-          <p className="text-muted-foreground">
-            Create a new recipe and calculate its costs
-          </p>
+          <p className="text-muted-foreground">Create a new recipe and calculate its costs</p>
         </div>
       </div>
 
@@ -217,9 +196,7 @@ export default function NewRecipe() {
             <Card>
               <CardHeader>
                 <CardTitle>Recipe Details</CardTitle>
-                <CardDescription>
-                  Basic information about your recipe
-                </CardDescription>
+                <CardDescription>Basic information about your recipe</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -228,9 +205,7 @@ export default function NewRecipe() {
                     id="name"
                     placeholder="e.g., Chicken Adobo"
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
                   />
                 </div>
@@ -243,7 +218,7 @@ export default function NewRecipe() {
                       type="number"
                       min="0"
                       step="0.01"
-                      value={formData.sellingPrice || ""}
+                      value={formData.sellingPrice || ''}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
@@ -259,7 +234,7 @@ export default function NewRecipe() {
                       id="prepTime"
                       type="number"
                       min="0"
-                      value={formData.prepTimeMinutes || ""}
+                      value={formData.prepTimeMinutes || ''}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
@@ -277,7 +252,7 @@ export default function NewRecipe() {
                     type="number"
                     min="0"
                     step="0.01"
-                    value={formData.laborRatePerHour || ""}
+                    value={formData.laborRatePerHour || ''}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
@@ -296,9 +271,7 @@ export default function NewRecipe() {
             <Card>
               <CardHeader>
                 <CardTitle>Ingredients</CardTitle>
-                <CardDescription>
-                  Add ingredients and their quantities
-                </CardDescription>
+                <CardDescription>Add ingredients and their quantities</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Add Ingredient Form */}
@@ -313,8 +286,7 @@ export default function NewRecipe() {
                       <option value="">Choose ingredient...</option>
                       {displayIngredients.map((ing) => (
                         <option key={ing.id} value={ing.id}>
-                          {ing.name} ({formatCurrency(ing.pricePerUnit)}/
-                          {ing.unit})
+                          {ing.name} ({formatCurrency(ing.pricePerUnit)}/{ing.unit})
                         </option>
                       ))}
                     </select>
@@ -325,10 +297,8 @@ export default function NewRecipe() {
                       type="number"
                       min="0"
                       step="1"
-                      value={ingredientQuantity || ""}
-                      onChange={(e) =>
-                        setIngredientQuantity(parseFloat(e.target.value) || 0)
-                      }
+                      value={ingredientQuantity || ''}
+                      onChange={(e) => setIngredientQuantity(parseFloat(e.target.value) || 0)}
                     />
                   </div>
                   <Button type="button" onClick={addIngredient} variant="green">
@@ -342,13 +312,9 @@ export default function NewRecipe() {
                     <table className="w-full text-sm">
                       <thead className="bg-muted/50">
                         <tr>
-                          <th className="text-left p-3 font-medium">
-                            Ingredient
-                          </th>
+                          <th className="text-left p-3 font-medium">Ingredient</th>
                           <th className="text-center p-3 font-medium">Qty</th>
-                          <th className="text-right p-3 font-medium">
-                            Unit Cost
-                          </th>
+                          <th className="text-right p-3 font-medium">Unit Cost</th>
                           <th className="text-right p-3 font-medium">Total</th>
                           <th className="p-3 w-10"></th>
                         </tr>
@@ -381,9 +347,7 @@ export default function NewRecipe() {
                             <td className="p-3">
                               <button
                                 type="button"
-                                onClick={() =>
-                                  removeIngredient(ri.ingredientId)
-                                }
+                                onClick={() => removeIngredient(ri.ingredientId)}
                                 className="text-destructive hover:text-destructive/80"
                               >
                                 <svg
@@ -421,9 +385,7 @@ export default function NewRecipe() {
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <p>No ingredients added yet.</p>
-                    <p className="text-sm">
-                      Add ingredients to calculate costs.
-                    </p>
+                    <p className="text-sm">Add ingredients to calculate costs.</p>
                   </div>
                 )}
               </CardContent>
@@ -447,16 +409,14 @@ export default function NewRecipe() {
                     <span className="text-muted-foreground">
                       Labor Cost
                       <span className="block text-xs">
-                        ({formData.prepTimeMinutes} min ×{" "}
+                        ({formData.prepTimeMinutes} min ×{' '}
                         {formatCurrency(formData.laborRatePerHour)}/hr)
                       </span>
                     </span>
                     <span>{formatCurrency(laborCost)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      Overhead (15%)
-                    </span>
+                    <span className="text-muted-foreground">Overhead (15%)</span>
                     <span>{formatCurrency(overheadAllocation)}</span>
                   </div>
                   <div className="border-t pt-3">
@@ -474,25 +434,13 @@ export default function NewRecipe() {
                   </div>
                   <div className="flex justify-between font-semibold">
                     <span>Gross Profit</span>
-                    <span
-                      className={
-                        grossProfit >= 0
-                          ? "text-lightgreenz"
-                          : "text-destructive"
-                      }
-                    >
+                    <span className={grossProfit >= 0 ? 'text-lightgreenz' : 'text-destructive'}>
                       {formatCurrency(grossProfit)}
                     </span>
                   </div>
                   <div className="flex justify-between font-semibold">
                     <span>Profit Margin</span>
-                    <span
-                      className={
-                        profitMargin >= 0
-                          ? "text-lightgreenz"
-                          : "text-destructive"
-                      }
-                    >
+                    <span className={profitMargin >= 0 ? 'text-lightgreenz' : 'text-destructive'}>
                       {profitMargin.toFixed(2)}%
                     </span>
                   </div>
@@ -500,9 +448,7 @@ export default function NewRecipe() {
 
                 {/* Margin Indicator */}
                 <div className="pt-4">
-                  <div className="text-sm text-muted-foreground mb-2">
-                    Margin Status
-                  </div>
+                  <div className="text-sm text-muted-foreground mb-2">Margin Status</div>
                   {profitMargin >= 20 ? (
                     <div className="flex items-center gap-2 text-greenz">
                       <svg
@@ -595,7 +541,7 @@ export default function NewRecipe() {
                     Saving...
                   </>
                 ) : (
-                  "Save Recipe"
+                  'Save Recipe'
                 )}
               </Button>
               <Button type="button" variant="outline" asChild>

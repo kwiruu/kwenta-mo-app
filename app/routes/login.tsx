@@ -1,8 +1,8 @@
-import { Link, useNavigate } from "react-router";
-import { useState, useEffect } from "react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import { Link, useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
 import {
   Card,
   CardContent,
@@ -10,14 +10,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card";
-import { APP_CONFIG } from "~/config/app";
-import { useAuthStore } from "~/stores/authStore";
+} from '~/components/ui/card';
+import { APP_CONFIG } from '~/config/app';
+import { useAuthStore } from '~/stores/authStore';
 
 export function meta() {
   return [
     { title: `Login - ${APP_CONFIG.name}` },
-    { name: "description", content: "Login to your KwentaMo account" },
+    { name: 'description', content: 'Login to your KwentaMo account' },
   ];
 }
 
@@ -33,15 +33,15 @@ export default function LoginPage() {
   } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
 
@@ -56,24 +56,24 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
+    setError('');
 
     const result = await signIn(formData.email, formData.password);
 
     if (result.success) {
-      navigate("/dashboard");
+      navigate('/dashboard');
     } else {
-      setError(result.message || "Invalid email or password");
+      setError(result.message || 'Invalid email or password');
     }
 
     setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
-    setError("");
+    setError('');
     const result = await signInWithGoogle();
     if (!result.success) {
-      setError(result.message || "Google sign in failed");
+      setError(result.message || 'Google sign in failed');
     }
     // Redirect handled by Supabase OAuth
   };
@@ -84,19 +84,13 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-4">
           <Link to="/" className="inline-flex items-center">
-            <img
-              src="/logo-text.svg"
-              alt="Kwenta MO"
-              className="h-10 mx-auto"
-            />
+            <img src="/logo-text.svg" alt="Kwenta MO" className="h-10 mx-auto" />
           </Link>
         </div>
 
         <Card className="border-0">
           <CardHeader className="space-y-1 text-center pb-2">
-            <CardTitle className="text-2xl font-semibold text-gray-900">
-              Welcome back
-            </CardTitle>
+            <CardTitle className="text-2xl font-semibold text-gray-900">Welcome back</CardTitle>
             <CardDescription className="text-gray-500">
               Enter your credentials to access your account
             </CardDescription>
@@ -117,9 +111,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="you@example.com"
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                   disabled={isLoading}
                   className="h-11"
@@ -130,10 +122,7 @@ export default function LoginPage() {
                   <Label htmlFor="password" className="text-gray-700">
                     Password
                   </Label>
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-primary hover:underline"
-                  >
+                  <Link to="/forgot-password" className="text-sm text-primary hover:underline">
                     Forgot password?
                   </Link>
                 </div>
@@ -142,9 +131,7 @@ export default function LoginPage() {
                   type="password"
                   placeholder="••••••••"
                   value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   disabled={isLoading}
                   className="h-11"
@@ -152,13 +139,8 @@ export default function LoginPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-3 pt-2">
-              <Button
-                type="submit"
-                className="w-full h-11"
-                variant="green"
-                disabled={isLoading}
-              >
-                {isLoading ? "Signing in..." : "Sign In"}
+              <Button type="submit" className="w-full h-11" variant="green" disabled={isLoading}>
+                {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
 
               {/* Google Sign In */}
@@ -190,11 +172,8 @@ export default function LoginPage() {
                 Sign in with Google
               </Button>
               <p className="text-sm text-gray-500 text-center">
-                Don't have an account?{" "}
-                <Link
-                  to="/register"
-                  className="text-primary font-medium hover:underline"
-                >
+                Don't have an account?{' '}
+                <Link to="/register" className="text-primary font-medium hover:underline">
                   Sign up
                 </Link>
               </p>

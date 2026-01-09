@@ -1,5 +1,5 @@
-import { Outlet, Link, useLocation, useNavigate } from "react-router";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { Outlet, Link, useLocation, useNavigate } from 'react-router';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import {
   LayoutDashboard,
   Receipt,
@@ -12,35 +12,33 @@ import {
   ChefHat,
   ShoppingCart,
   Warehouse,
-} from "lucide-react";
-import { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator";
-import { cn } from "~/lib/utils";
-import { APP_CONFIG } from "~/config/app";
-import { clearTokenCache } from "~/lib/supabase";
-import { useAuthStore } from "~/stores/authStore";
-import { useBusinessStore } from "~/stores/businessStore";
-import { useUserProfile } from "~/hooks/useBusiness";
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Button } from '~/components/ui/button';
+import { Separator } from '~/components/ui/separator';
+import { cn } from '~/lib/utils';
+import { APP_CONFIG } from '~/config/app';
+import { clearTokenCache } from '~/lib/supabase';
+import { useAuthStore } from '~/stores/authStore';
+import { useBusinessStore } from '~/stores/businessStore';
+import { useUserProfile } from '~/hooks/useBusiness';
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   {
-    name: "Business Profile",
-    href: "/dashboard/business-profile",
+    name: 'Business Profile',
+    href: '/dashboard/business-profile',
     icon: Building2,
   },
-  { name: "Recipes", href: "/dashboard/recipes", icon: ChefHat },
-  { name: "Inventory", href: "/dashboard/inventory", icon: Warehouse },
-  { name: "Expenses", href: "/dashboard/expenses", icon: Receipt },
-  { name: "Sales", href: "/dashboard/sales", icon: ShoppingCart },
-  { name: "Reports", href: "/dashboard/reports", icon: FileText },
+  { name: 'Recipes', href: '/dashboard/recipes', icon: ChefHat },
+  { name: 'Inventory', href: '/dashboard/inventory', icon: Warehouse },
+  { name: 'Expenses', href: '/dashboard/expenses', icon: Receipt },
+  { name: 'Sales', href: '/dashboard/sales', icon: ShoppingCart },
+  { name: 'Reports', href: '/dashboard/reports', icon: FileText },
 ];
 
-const secondaryNavigation = [
-  { name: "Settings", href: "/dashboard/settings", icon: Settings },
-];
+const secondaryNavigation = [{ name: 'Settings', href: '/dashboard/settings', icon: Settings }];
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -48,32 +46,15 @@ export default function DashboardLayout() {
   const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, isAuthenticated, isLoading, signOut } = useAuthStore();
-  const { currentBusiness, setCurrentBusiness } = useBusinessStore();
+  const { business } = useBusinessStore();
 
   // Fetch profile from API
   const { data: profile } = useUserProfile();
 
-  // Sync API data with store for header display
-  useEffect(() => {
-    if (profile?.business && !currentBusiness) {
-      setCurrentBusiness({
-        id: profile.business.id,
-        name: profile.business.businessName,
-        type: profile.business.businessType,
-        location: profile.business.address,
-        employeeCount: profile.business.employeeCount,
-        avgMonthlySales: profile.business.avgMonthlySales,
-        rawMaterialSource: profile.business.rawMaterialSource,
-        createdAt: new Date(profile.business.createdAt),
-        updatedAt: new Date(profile.business.updatedAt),
-      });
-    }
-  }, [profile, currentBusiness, setCurrentBusiness]);
-
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      navigate("/login");
+      navigate('/login');
     }
   }, [isAuthenticated, isLoading, navigate]);
 
@@ -81,9 +62,8 @@ export default function DashboardLayout() {
     // Clear all cached data
     clearTokenCache();
     queryClient.clear();
-    setCurrentBusiness(null as any);
     await signOut();
-    navigate("/login");
+    navigate('/login');
   };
 
   // Show loading while checking auth
@@ -118,8 +98,8 @@ export default function DashboardLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 transform transition-transform duration-200 ease-in-out lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          'fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 transform transition-transform duration-200 ease-in-out lg:translate-x-0',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <div className="flex h-full flex-col">
@@ -143,18 +123,17 @@ export default function DashboardLayout() {
             {navigation.map((item) => {
               const isActive =
                 location.pathname === item.href ||
-                (item.href !== "/dashboard" &&
-                  location.pathname.startsWith(item.href));
+                (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
                     isActive
-                      ? "bg-white border text-greenz"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      ? 'bg-white border text-greenz'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   )}
                 >
                   <item.icon className="h-[18px] w-[18px]" />
@@ -174,10 +153,10 @@ export default function DashboardLayout() {
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
                     isActive
-                      ? "bg-primary text-white border border-primary"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      ? 'bg-primary text-white border border-primary'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   )}
                 >
                   <item.icon className="h-[18px] w-[18px]" />
@@ -212,11 +191,9 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-4">
             <div className="text-right">
               <span className="text-sm font-medium text-gray-900">
-                {currentBusiness?.name || user?.email || "My Business"}
+                {business?.businessName || user?.email || 'My Business'}
               </span>
-              {currentBusiness?.name && (
-                <p className="text-xs text-gray-500">{user?.email}</p>
-              )}
+              {business?.businessName && <p className="text-xs text-gray-500">{user?.email}</p>}
             </div>
           </div>
         </header>

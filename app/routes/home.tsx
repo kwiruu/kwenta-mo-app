@@ -1,15 +1,9 @@
-import { Link } from "react-router";
-import { useState, useEffect } from "react";
-import type { Route } from "./+types/home";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { APP_CONFIG } from "~/config/app";
+import { Link } from 'react-router';
+import { useState, useEffect } from 'react';
+import type { Route } from './+types/home';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { APP_CONFIG } from '~/config/app';
 import {
   BarChart3,
   FileUp,
@@ -26,12 +20,12 @@ import {
   Menu,
   X,
   Target,
-} from "lucide-react";
+} from 'lucide-react';
 
-export function meta({}: Route.MetaArgs) {
+export function meta(_args: Route.MetaArgs) {
   return [
     { title: `${APP_CONFIG.name} - Food Business Costing Assistant` },
-    { name: "description", content: APP_CONFIG.description },
+    { name: 'description', content: APP_CONFIG.description },
   ];
 }
 
@@ -39,7 +33,7 @@ export function meta({}: Route.MetaArgs) {
 function AnimatedCounter({
   end,
   duration = 2000,
-  suffix = "",
+  suffix = '',
 }: {
   end: number;
   duration?: number;
@@ -98,13 +92,13 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         <span className="font-medium text-gray-900">{question}</span>
         <ChevronDown
           className={`h-5 w-5 text-gray-400 transition-transform duration-300 ${
-            isOpen ? "rotate-180" : ""
+            isOpen ? 'rotate-180' : ''
           }`}
         />
       </button>
       <div
         className={`overflow-hidden transition-all duration-300 ${
-          isOpen ? "max-h-96 pb-5" : "max-h-0"
+          isOpen ? 'max-h-96 pb-5' : 'max-h-0'
         }`}
       >
         <p className="text-gray-500 leading-relaxed">{answer}</p>
@@ -121,170 +115,156 @@ export default function Home() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const features = [
     {
       icon: BarChart3,
-      title: "Cost Management",
-      description: "Track ingredients, labor, and overhead expenses with ease",
+      title: 'Cost Management',
+      description: 'Track ingredients, labor, and overhead expenses with ease',
       details:
-        "Accurately compute COGS, operating expenses, and profit margins for your food products.",
-      color: "bg-primary/10 text-primary",
+        'Accurately compute COGS, operating expenses, and profit margins for your food products.',
+      color: 'bg-primary/10 text-primary',
     },
     {
       icon: FileUp,
-      title: "Bulk Upload",
-      description: "Import data from Excel or CSV files",
-      details:
-        "Save time by uploading ingredients, expenses, and sales data in bulk.",
-      color: "bg-secondary/10 text-lightgreenz",
+      title: 'Bulk Upload',
+      description: 'Import data from Excel or CSV files',
+      details: 'Save time by uploading ingredients, expenses, and sales data in bulk.',
+      color: 'bg-secondary/10 text-lightgreenz',
     },
     {
       icon: PieChart,
-      title: "Financial Reports",
-      description: "Generate comprehensive financial statements",
-      details:
-        "Income statements, profit summaries, and expense reports at your fingertips.",
-      color: "bg-lightgreenz/10 text-greenz",
+      title: 'Financial Reports',
+      description: 'Generate comprehensive financial statements',
+      details: 'Income statements, profit summaries, and expense reports at your fingertips.',
+      color: 'bg-lightgreenz/10 text-greenz',
     },
     {
       icon: ChefHat,
-      title: "Recipe Costing",
-      description: "Calculate exact costs per dish",
-      details:
-        "Break down ingredient costs and determine profitable pricing for each menu item.",
-      color: "bg-amber-100 text-amber-600",
+      title: 'Recipe Costing',
+      description: 'Calculate exact costs per dish',
+      details: 'Break down ingredient costs and determine profitable pricing for each menu item.',
+      color: 'bg-amber-100 text-amber-600',
     },
     {
       icon: TrendingUp,
-      title: "Sales Tracking",
-      description: "Monitor daily and monthly sales",
-      details:
-        "Track revenue, identify top performers, and spot trends in your business.",
-      color: "bg-blue-100 text-blue-600",
+      title: 'Sales Tracking',
+      description: 'Monitor daily and monthly sales',
+      details: 'Track revenue, identify top performers, and spot trends in your business.',
+      color: 'bg-blue-100 text-blue-600',
     },
     {
       icon: Calculator,
-      title: "Profit Analysis",
-      description: "Understand your profit margins",
-      details:
-        "Get clear insights into what's making money and what needs attention.",
-      color: "bg-purple-100 text-purple-600",
+      title: 'Profit Analysis',
+      description: 'Understand your profit margins',
+      details: "Get clear insights into what's making money and what needs attention.",
+      color: 'bg-purple-100 text-purple-600',
     },
   ];
 
   const steps = [
     {
-      step: "01",
-      title: "Set Up Your Profile",
-      description:
-        "Enter your business details and customize settings for your food business.",
+      step: '01',
+      title: 'Set Up Your Profile',
+      description: 'Enter your business details and customize settings for your food business.',
     },
     {
-      step: "02",
-      title: "Add Your Ingredients",
-      description:
-        "Input your ingredients with costs, or bulk upload from a spreadsheet.",
+      step: '02',
+      title: 'Add Your Ingredients',
+      description: 'Input your ingredients with costs, or bulk upload from a spreadsheet.',
     },
     {
-      step: "03",
-      title: "Create Recipes",
-      description:
-        "Build recipes using your ingredients to automatically calculate costs.",
+      step: '03',
+      title: 'Create Recipes',
+      description: 'Build recipes using your ingredients to automatically calculate costs.',
     },
     {
-      step: "04",
-      title: "Track & Analyze",
-      description:
-        "Record sales, monitor expenses, and generate insightful reports.",
+      step: '04',
+      title: 'Track & Analyze',
+      description: 'Record sales, monitor expenses, and generate insightful reports.',
     },
   ];
 
   const stats = [
-    { value: 100, suffix: "%", label: "Accurate Calculations" },
-    { value: 0, suffix: "", label: "Setup Fee" },
-    { value: 24, suffix: "/7", label: "Access" },
-    { value: 100, suffix: "%", label: "Free to Start" },
+    { value: 100, suffix: '%', label: 'Accurate Calculations' },
+    { value: 0, suffix: '', label: 'Setup Fee' },
+    { value: 24, suffix: '/7', label: 'Access' },
+    { value: 100, suffix: '%', label: 'Free to Start' },
   ];
 
   const testimonials: never[] = [];
 
   const faqs = [
     {
-      question: "Is KwentaMo free to use?",
+      question: 'Is KwentaMo free to use?',
       answer:
-        "Yes! KwentaMo offers a free tier perfect for small food businesses. You can manage ingredients, create recipes, and generate basic reports at no cost.",
+        'Yes! KwentaMo offers a free tier perfect for small food businesses. You can manage ingredients, create recipes, and generate basic reports at no cost.',
     },
     {
-      question: "Can I import my existing data?",
+      question: 'Can I import my existing data?',
       answer:
-        "Absolutely! You can bulk upload ingredients, expenses, and sales data from Excel or CSV files. We also provide templates to make the process even easier.",
+        'Absolutely! You can bulk upload ingredients, expenses, and sales data from Excel or CSV files. We also provide templates to make the process even easier.',
     },
     {
-      question: "How accurate is the costing calculation?",
+      question: 'How accurate is the costing calculation?',
       answer:
-        "Our calculations are based on your actual ingredient costs and quantities. The accuracy depends on the data you input, but our system ensures precise computations down to the centavo.",
+        'Our calculations are based on your actual ingredient costs and quantities. The accuracy depends on the data you input, but our system ensures precise computations down to the centavo.',
     },
     {
-      question: "Is my business data secure?",
+      question: 'Is my business data secure?',
       answer:
-        "Yes, we take security seriously. Your data is encrypted and stored securely. We never share your business information with third parties.",
+        'Yes, we take security seriously. Your data is encrypted and stored securely. We never share your business information with third parties.',
     },
     {
-      question: "Can I access KwentaMo on my phone?",
+      question: 'Can I access KwentaMo on my phone?',
       answer:
-        "Yes! KwentaMo is fully responsive and works great on mobile devices. You can manage your business from anywhere.",
+        'Yes! KwentaMo is fully responsive and works great on mobile devices. You can manage your business from anywhere.',
     },
   ];
 
   const pricingPlans = [
     {
-      name: "Free",
-      price: "₱0",
-      period: "forever",
-      description: "Perfect for getting started",
-      features: [
-        "Up to 50 ingredients",
-        "Up to 20 recipes",
-        "Basic reports",
-        "Email support",
-      ],
-      cta: "Get Started",
+      name: 'Free',
+      price: '₱0',
+      period: 'forever',
+      description: 'Perfect for getting started',
+      features: ['Up to 50 ingredients', 'Up to 20 recipes', 'Basic reports', 'Email support'],
+      cta: 'Get Started',
       highlighted: false,
     },
     {
-      name: "Pro",
-      price: "₱499",
-      period: "per month",
-      description: "For growing businesses",
+      name: 'Pro',
+      price: '₱499',
+      period: 'per month',
+      description: 'For growing businesses',
       features: [
-        "Unlimited ingredients",
-        "Unlimited recipes",
-        "Advanced reports",
-        "Bulk upload",
-        "Priority support",
-        "Export to PDF/Excel",
+        'Unlimited ingredients',
+        'Unlimited recipes',
+        'Advanced reports',
+        'Bulk upload',
+        'Priority support',
+        'Export to PDF/Excel',
       ],
-      cta: "Start Free Trial",
+      cta: 'Start Free Trial',
       highlighted: true,
     },
     {
-      name: "Business",
-      price: "₱999",
-      period: "per month",
-      description: "For established operations",
+      name: 'Business',
+      price: '₱999',
+      period: 'per month',
+      description: 'For established operations',
       features: [
-        "Everything in Pro",
-        "Multiple branches",
-        "Team access",
-        "API access",
-        "Dedicated support",
-        "Custom integrations",
+        'Everything in Pro',
+        'Multiple branches',
+        'Team access',
+        'API access',
+        'Dedicated support',
+        'Custom integrations',
       ],
-      cta: "Contact Sales",
+      cta: 'Contact Sales',
       highlighted: false,
     },
   ];
@@ -294,7 +274,7 @@ export default function Home() {
       {/* Header */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? "bg-white/95 backdrop-blur-md shadow-sm" : "bg-transparent"
+          scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'
         }`}
       >
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -304,28 +284,16 @@ export default function Home() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8 text-sm">
-            <a
-              href="#features"
-              className="text-gray-600 hover:text-primary transition-colors"
-            >
+            <a href="#features" className="text-gray-600 hover:text-primary transition-colors">
               Features
             </a>
-            <a
-              href="#how-it-works"
-              className="text-gray-600 hover:text-primary transition-colors"
-            >
+            <a href="#how-it-works" className="text-gray-600 hover:text-primary transition-colors">
               How It Works
             </a>
-            <a
-              href="#pricing"
-              className="text-gray-600 hover:text-primary transition-colors"
-            >
+            <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">
               Pricing
             </a>
-            <a
-              href="#faq"
-              className="text-gray-600 hover:text-primary transition-colors"
-            >
+            <a href="#faq" className="text-gray-600 hover:text-primary transition-colors">
               FAQ
             </a>
           </nav>
@@ -340,15 +308,8 @@ export default function Home() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
+          <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
 
@@ -361,7 +322,7 @@ export default function Home() {
                 className="text-gray-600 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Features{" "}
+                Features{' '}
               </a>
               <a
                 href="#how-it-works"
@@ -400,7 +361,6 @@ export default function Home() {
       <main>
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 px-6 overflow-hidden bg-gradient-to-br from-lightgreenz/10 via-white to-greenz/5">
-
           {/* Food Images */}
           <div className="absolute left-0 top-1/2 -translate-y-1/2 hidden lg:block animate-in fade-in slide-in-from-left duration-1000 delay-700">
             <img
@@ -418,7 +378,8 @@ export default function Home() {
           </div>
 
           <div className="container mx-auto max-w-5xl text-center relative z-10">
-            {/* Badge */}<div className="h-20"></div>
+            {/* Badge */}
+            <div className="h-20"></div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-gray-900 mb-6 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
               Smart Costing for Your
@@ -426,9 +387,8 @@ export default function Home() {
             </h1>
 
             <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-              Track ingredients, calculate recipe costs, and maximize
-              profits—all in one simple platform designed for small food
-              businesses in Cebu City.
+              Track ingredients, calculate recipe costs, and maximize profits—all in one simple
+              platform designed for small food businesses in Cebu City.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
@@ -442,12 +402,7 @@ export default function Home() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-base px-8 h-12"
-                asChild
-              >
+              <Button size="lg" variant="outline" className="text-base px-8 h-12" asChild>
                 <Link to="/login">Sign In</Link>
               </Button>
             </div>
@@ -487,7 +442,10 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-20 px-6 scroll-mt-20 bg-gradient-to-b from-white via-lightgreenz/5 to-white">
+        <section
+          id="features"
+          className="py-20 px-6 scroll-mt-20 bg-gradient-to-b from-white via-lightgreenz/5 to-white"
+        >
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4">
@@ -510,9 +468,7 @@ export default function Home() {
                     >
                       <feature.icon className="h-6 w-6" />
                     </div>
-                    <CardTitle className="text-lg font-semibold">
-                      {feature.title}
-                    </CardTitle>
+                    <CardTitle className="text-lg font-semibold">{feature.title}</CardTitle>
                     <CardDescription className="text-gray-500">
                       {feature.description}
                     </CardDescription>
@@ -549,12 +505,8 @@ export default function Home() {
                     <div className="hidden lg:block absolute top-8 left-1/2 w-full h-0.5 bg-gradient-to-r from-primary/30 to-primary/10" />
                   )}
                   <div className="relative bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary/20 hover:shadow-lg transition-all duration-300">
-                    <div className="text-4xl font-bold text-primary/20 mb-4">
-                      {step.step}
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {step.title}
-                    </h3>
+                    <div className="text-4xl font-bold text-primary/20 mb-4">{step.step}</div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
                     <p className="text-sm text-gray-500">{step.description}</p>
                   </div>
                 </div>
@@ -571,8 +523,7 @@ export default function Home() {
                 Be among the first users
               </h2>
               <p className="text-gray-500 max-w-lg mx-auto text-lg">
-                Join us as an early adopter and help shape the future of food
-                business costing
+                Join us as an early adopter and help shape the future of food business costing
               </p>
             </div>
 
@@ -582,9 +533,7 @@ export default function Home() {
                   <div className="h-16 w-16 rounded-full bg-greenz flex items-center justify-center mx-auto mb-4">
                     <ChefHat className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Early Access
-                  </h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">Early Access</h3>
                   <p className="text-gray-500 text-sm">
                     Get started today with full access to all features
                   </p>
@@ -595,9 +544,7 @@ export default function Home() {
                   <div className="h-16 w-16 rounded-full bg-midgreenz flex items-center justify-center mx-auto mb-4">
                     <TrendingUp className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Shape the Product
-                  </h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">Shape the Product</h3>
                   <p className="text-gray-500 text-sm">
                     Your feedback will directly influence future features
                   </p>
@@ -608,9 +555,7 @@ export default function Home() {
                   <div className="h-16 w-16 rounded-full bg-lightgreenz flex items-center justify-center mx-auto mb-4">
                     <Star className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Exclusive Benefits
-                  </h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">Exclusive Benefits</h3>
                   <p className="text-gray-500 text-sm">
                     Early adopters get special perks and priority support
                   </p>
@@ -691,24 +636,21 @@ export default function Home() {
         </section> */}
 
         {/* FAQ Section */}
-        <section id="faq" className="py-20 px-6 scroll-mt-20 bg-gradient-to-b from-white to-greenz/5">
+        <section
+          id="faq"
+          className="py-20 px-6 scroll-mt-20 bg-gradient-to-b from-white to-greenz/5"
+        >
           <div className="container mx-auto max-w-2xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4">
                 Frequently asked questions
               </h2>
-              <p className="text-gray-500 text-lg">
-                Everything you need to know
-              </p>
+              <p className="text-gray-500 text-lg">Everything you need to know</p>
             </div>
 
             <div className="divide-y divide-gray-100">
               {faqs.map((faq, index) => (
-                <FAQItem
-                  key={index}
-                  question={faq.question}
-                  answer={faq.answer}
-                />
+                <FAQItem key={index} question={faq.question} answer={faq.answer} />
               ))}
             </div>
           </div>
@@ -727,8 +669,8 @@ export default function Home() {
                   Ready to take control of your costs?
                 </h2>
                 <p className="text-white/80 mb-8 text-lg max-w-lg mx-auto">
-                  Join hundreds of food entrepreneurs who are already saving
-                  time and maximizing profits.
+                  Join hundreds of food entrepreneurs who are already saving time and maximizing
+                  profits.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
@@ -763,34 +705,25 @@ export default function Home() {
             <div className="md:col-span-2">
               <img src="/logo-text.svg" alt="Kwenta MO" className="h-8 mb-4" />
               <p className="text-sm text-gray-500 max-w-xs">
-                Smart costing solutions for Filipino food businesses. Track
-                costs, calculate profits, and grow your business.
+                Smart costing solutions for Filipino food businesses. Track costs, calculate
+                profits, and grow your business.
               </p>
             </div>
             <div>
               <h4 className="font-medium text-gray-900 mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-gray-500">
                 <li>
-                  <a
-                    href="#features"
-                    className="hover:text-primary transition-colors"
-                  >
+                  <a href="#features" className="hover:text-primary transition-colors">
                     Features
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#pricing"
-                    className="hover:text-primary transition-colors"
-                  >
+                  <a href="#pricing" className="hover:text-primary transition-colors">
                     Pricing
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#faq"
-                    className="hover:text-primary transition-colors"
-                  >
+                  <a href="#faq" className="hover:text-primary transition-colors">
                     FAQ
                   </a>
                 </li>
@@ -814,14 +747,11 @@ export default function Home() {
           </div>
           <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-400">
-              © 2025 {APP_CONFIG.name}. A capstone project for BSBA Financial
-              Management students.
+              © 2025 {APP_CONFIG.name}. A capstone project for BSBA Financial Management students.
             </p>
             <div className="flex items-center gap-4">
               <Shield className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-400">
-                Secured with Supabase
-              </span>
+              <span className="text-sm text-gray-400">Secured with Supabase</span>
             </div>
           </div>
         </div>

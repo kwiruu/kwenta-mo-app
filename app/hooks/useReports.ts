@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
 import {
   reportsApi,
   type COGSReport,
@@ -6,24 +6,24 @@ import {
   type ProfitSummary,
   type DashboardSummary,
   type ChartDataResponse,
-} from "~/lib/api";
-import { useAuthStore } from "~/stores/authStore";
+} from '~/lib/api';
+import { useAuthStore } from '~/stores/authStore';
 
 // Query keys for cache management
 export const reportKeys = {
-  all: ["reports"] as const,
-  cogs: () => [...reportKeys.all, "cogs"] as const,
+  all: ['reports'] as const,
+  cogs: () => [...reportKeys.all, 'cogs'] as const,
   cogsWithDate: (startDate?: string, endDate?: string) =>
     [...reportKeys.cogs(), { startDate, endDate }] as const,
-  income: () => [...reportKeys.all, "income"] as const,
+  income: () => [...reportKeys.all, 'income'] as const,
   incomeWithDate: (startDate?: string, endDate?: string) =>
     [...reportKeys.income(), { startDate, endDate }] as const,
-  profit: () => [...reportKeys.all, "profit"] as const,
+  profit: () => [...reportKeys.all, 'profit'] as const,
   profitWithDate: (startDate?: string, endDate?: string) =>
     [...reportKeys.profit(), { startDate, endDate }] as const,
-  dashboard: () => [...reportKeys.all, "dashboard"] as const,
-  chartData: (period: "daily" | "weekly" | "monthly") =>
-    [...reportKeys.all, "chart", period] as const,
+  dashboard: () => [...reportKeys.all, 'dashboard'] as const,
+  chartData: (period: 'daily' | 'weekly' | 'monthly') =>
+    [...reportKeys.all, 'chart', period] as const,
 };
 
 // Fetch COGS report
@@ -71,7 +71,7 @@ export function useDashboardSummary() {
 }
 
 // Fetch chart data for revenue & expenses overview
-export function useChartData(period: "daily" | "weekly" | "monthly" = "daily") {
+export function useChartData(period: 'daily' | 'weekly' | 'monthly' = 'daily') {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuthStore();
 
   return useQuery({

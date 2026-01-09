@@ -6,7 +6,13 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "lint": "eslint . --ext ts,tsx",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "format": "prettier --write \"app/**/*.{ts,tsx,js,jsx}\"",
+    "format:check": "prettier --check \"app/**/*.{ts,tsx,js,jsx}\"",
+    "ci": "npm run lint && npm run format:check && npm run typecheck",
+    "ci:local": "npm run ci"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -44,13 +50,19 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@eslint/js": "^9.18.0",
     "@react-router/dev": "7.10.1",
     "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^22",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react": "^7.37.3",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "prettier": "^3.4.2",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.20.0",
     "vite": "^7.1.7",
     "vite-tsconfig-paths": "^5.1.4"
   }

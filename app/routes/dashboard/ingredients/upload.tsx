@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router";
+import { useState, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router';
 import {
   ArrowLeft,
   Upload,
@@ -8,16 +8,10 @@ import {
   CheckCircle2,
   X,
   Download,
-} from "lucide-react";
-import * as XLSX from "xlsx";
-import { Button } from "~/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+} from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { Button } from '~/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import {
   Table,
   TableBody,
@@ -25,18 +19,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
-import { useCreateBulkIngredients } from "~/hooks";
-import { APP_CONFIG } from "~/config/app";
-import type { IngredientUnit } from "~/types";
+} from '~/components/ui/table';
+import { Badge } from '~/components/ui/badge';
+import { useCreateBulkIngredients } from '~/hooks';
+import { APP_CONFIG } from '~/config/app';
+import type { IngredientUnit } from '~/types';
 
 export function meta() {
   return [
     { title: `Upload Ingredients - ${APP_CONFIG.name}` },
     {
-      name: "description",
-      content: "Bulk upload ingredients from Excel or CSV",
+      name: 'description',
+      content: 'Bulk upload ingredients from Excel or CSV',
     },
   ];
 }
@@ -53,15 +47,15 @@ interface ParsedIngredient {
 }
 
 const validUnits: IngredientUnit[] = [
-  "kg",
-  "g",
-  "L",
-  "mL",
-  "pcs",
-  "pack",
-  "bottle",
-  "can",
-  "bundle",
+  'kg',
+  'g',
+  'L',
+  'mL',
+  'pcs',
+  'pack',
+  'bottle',
+  'can',
+  'bundle',
 ];
 
 export default function IngredientsUploadPage() {
@@ -77,38 +71,32 @@ export default function IngredientsUploadPage() {
   const validateRow = (row: Record<string, unknown>): ParsedIngredient => {
     const errors: string[] = [];
 
-    const name = String(row["Name"] || row["name"] || "").trim();
-    const unitRaw = String(row["Unit"] || row["unit"] || "")
+    const name = String(row['Name'] || row['name'] || '').trim();
+    const unitRaw = String(row['Unit'] || row['unit'] || '')
       .toLowerCase()
       .trim();
-    const priceRaw =
-      row["Price Per Unit"] || row["price_per_unit"] || row["Price"] || 0;
-    const stockRaw =
-      row["Current Stock"] || row["current_stock"] || row["Stock"] || 0;
-    const reorderRaw =
-      row["Reorder Level"] || row["reorder_level"] || row["Reorder"] || 0;
-    const supplier = String(row["Supplier"] || row["supplier"] || "").trim();
+    const priceRaw = row['Price Per Unit'] || row['price_per_unit'] || row['Price'] || 0;
+    const stockRaw = row['Current Stock'] || row['current_stock'] || row['Stock'] || 0;
+    const reorderRaw = row['Reorder Level'] || row['reorder_level'] || row['Reorder'] || 0;
+    const supplier = String(row['Supplier'] || row['supplier'] || '').trim();
 
-    if (!name) errors.push("Name is required");
+    if (!name) errors.push('Name is required');
 
-    const unit = validUnits.find(
-      (u) => u.toLowerCase() === unitRaw
-    ) as IngredientUnit;
+    const unit = validUnits.find((u) => u.toLowerCase() === unitRaw) as IngredientUnit;
     if (!unit) errors.push(`Invalid unit: ${unitRaw}`);
 
     const pricePerUnit = parseFloat(String(priceRaw));
-    if (isNaN(pricePerUnit) || pricePerUnit <= 0) errors.push("Invalid price");
+    if (isNaN(pricePerUnit) || pricePerUnit <= 0) errors.push('Invalid price');
 
     const currentStock = parseFloat(String(stockRaw));
-    if (isNaN(currentStock) || currentStock < 0) errors.push("Invalid stock");
+    if (isNaN(currentStock) || currentStock < 0) errors.push('Invalid stock');
 
     const reorderLevel = parseFloat(String(reorderRaw));
-    if (isNaN(reorderLevel) || reorderLevel < 0)
-      errors.push("Invalid reorder level");
+    if (isNaN(reorderLevel) || reorderLevel < 0) errors.push('Invalid reorder level');
 
     return {
       name,
-      unit: unit || "pcs",
+      unit: unit || 'pcs',
       pricePerUnit: isNaN(pricePerUnit) ? 0 : pricePerUnit,
       currentStock: isNaN(currentStock) ? 0 : currentStock,
       reorderLevel: isNaN(reorderLevel) ? 0 : reorderLevel,
@@ -127,25 +115,21 @@ export default function IngredientsUploadPage() {
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
+        const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
         if (jsonData.length === 0) {
-          setUploadError("The file appears to be empty");
+          setUploadError('The file appears to be empty');
           return;
         }
 
-        const parsed = jsonData.map((row) =>
-          validateRow(row as Record<string, unknown>)
-        );
+        const parsed = jsonData.map((row) => validateRow(row as Record<string, unknown>));
         setParsedData(parsed);
       } catch (error) {
-        console.error("Parse error:", error);
-        setUploadError(
-          "Failed to parse file. Please ensure it's a valid Excel or CSV file."
-        );
+        console.error('Parse error:', error);
+        setUploadError("Failed to parse file. Please ensure it's a valid Excel or CSV file.");
       }
     };
     reader.readAsArrayBuffer(file);
@@ -179,7 +163,7 @@ export default function IngredientsUploadPage() {
   const handleImport = async () => {
     const validItems = parsedData.filter((item) => item.isValid);
     if (validItems.length === 0) {
-      setUploadError("No valid items to import");
+      setUploadError('No valid items to import');
       return;
     }
 
@@ -187,22 +171,22 @@ export default function IngredientsUploadPage() {
 
     createBulkIngredientsMutation.mutate(
       validItems.map((item) => ({
-        name: item.name,
-        itemType: "RAW_MATERIAL" as const,
+        itemName: item.name,
+        itemType: 'RAW_MATERIAL' as const,
         unit: item.unit,
-        costPerUnit: item.pricePerUnit,
-        currentStock: item.currentStock,
+        unitCost: item.pricePerUnit,
+        quantity: item.currentStock,
         reorderLevel: item.reorderLevel,
         supplier: item.supplier,
       })),
       {
         onSuccess: () => {
           setUploadSuccess(true);
-          setTimeout(() => navigate("/dashboard/ingredients"), 1500);
+          setTimeout(() => navigate('/dashboard/ingredients'), 1500);
         },
         onError: (error) => {
-          console.error("Import error:", error);
-          setUploadError("Failed to import ingredients");
+          console.error('Import error:', error);
+          setUploadError('Failed to import ingredients');
           setIsLoading(false);
         },
       }
@@ -212,27 +196,27 @@ export default function IngredientsUploadPage() {
   const downloadTemplate = () => {
     const template = [
       {
-        Name: "Rice",
-        Unit: "kg",
-        "Price Per Unit": 55,
-        "Current Stock": 25,
-        "Reorder Level": 10,
-        Supplier: "Carbon Market",
+        Name: 'Rice',
+        Unit: 'kg',
+        'Price Per Unit': 55,
+        'Current Stock': 25,
+        'Reorder Level': 10,
+        Supplier: 'Carbon Market',
       },
       {
-        Name: "Pork Belly",
-        Unit: "kg",
-        "Price Per Unit": 280,
-        "Current Stock": 5,
-        "Reorder Level": 3,
-        Supplier: "Meat Supplier Co.",
+        Name: 'Pork Belly',
+        Unit: 'kg',
+        'Price Per Unit': 280,
+        'Current Stock': 5,
+        'Reorder Level': 3,
+        Supplier: 'Meat Supplier Co.',
       },
     ];
 
     const ws = XLSX.utils.json_to_sheet(template);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Ingredients");
-    XLSX.writeFile(wb, "ingredients_template.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, 'Ingredients');
+    XLSX.writeFile(wb, 'ingredients_template.xlsx');
   };
 
   const validCount = parsedData.filter((i) => i.isValid).length;
@@ -241,11 +225,7 @@ export default function IngredientsUploadPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Back Button */}
-      <Button
-        variant="ghost"
-        asChild
-        className="-ml-2 text-gray-600 hover:text-gray-900"
-      >
+      <Button variant="ghost" asChild className="-ml-2 text-gray-600 hover:text-gray-900">
         <Link to="/dashboard/ingredients">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Ingredients
@@ -255,12 +235,8 @@ export default function IngredientsUploadPage() {
       {/* Page Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Bulk Upload Ingredients
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Import ingredients from an Excel or CSV file
-          </p>
+          <h1 className="text-2xl font-semibold text-gray-900">Bulk Upload Ingredients</h1>
+          <p className="text-gray-500 mt-1">Import ingredients from an Excel or CSV file</p>
         </div>
         <Button
           variant="outline"
@@ -317,20 +293,16 @@ export default function IngredientsUploadPage() {
                 border-2 border-dashed rounded-lg p-12 text-center transition-colors
                 ${
                   isDragging
-                    ? "border-primary bg-primary/5"
-                    : "border-gray-200 hover:border-primary/50"
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 hover:border-primary/50'
                 }
               `}
             >
               <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
                 <Upload className="h-8 w-8 text-gray-400" />
               </div>
-              <p className="text-lg font-medium text-gray-900 mb-2">
-                Drop your file here
-              </p>
-              <p className="text-gray-500 mb-4">
-                or click to browse from your computer
-              </p>
+              <p className="text-lg font-medium text-gray-900 mb-2">Drop your file here</p>
+              <p className="text-gray-500 mb-4">or click to browse from your computer</p>
               <input
                 type="file"
                 accept=".xlsx,.xls,.csv"
@@ -347,33 +319,28 @@ export default function IngredientsUploadPage() {
 
             {/* Format Info */}
             <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
-              <h4 className="font-medium text-gray-900 mb-2">
-                Required Columns:
-              </h4>
+              <h4 className="font-medium text-gray-900 mb-2">Required Columns:</h4>
               <div className="grid gap-1 text-sm text-gray-500">
                 <p>
-                  <strong className="text-gray-700">Name</strong> - Ingredient
-                  name (required)
+                  <strong className="text-gray-700">Name</strong> - Ingredient name (required)
                 </p>
                 <p>
-                  <strong className="text-gray-700">Unit</strong> - kg, g, L,
-                  mL, pcs, pack, bottle, can, bundle
+                  <strong className="text-gray-700">Unit</strong> - kg, g, L, mL, pcs, pack, bottle,
+                  can, bundle
                 </p>
                 <p>
-                  <strong className="text-gray-700">Price Per Unit</strong> -
-                  Cost per unit in PHP
+                  <strong className="text-gray-700">Price Per Unit</strong> - Cost per unit in PHP
                 </p>
                 <p>
-                  <strong className="text-gray-700">Current Stock</strong> -
-                  Current inventory amount
+                  <strong className="text-gray-700">Current Stock</strong> - Current inventory
+                  amount
                 </p>
                 <p>
-                  <strong className="text-gray-700">Reorder Level</strong> -
-                  Alert when stock falls below this
+                  <strong className="text-gray-700">Reorder Level</strong> - Alert when stock falls
+                  below this
                 </p>
                 <p>
-                  <strong className="text-gray-700">Supplier</strong> - Supplier
-                  name (optional)
+                  <strong className="text-gray-700">Supplier</strong> - Supplier name (optional)
                 </p>
               </div>
             </div>
@@ -409,27 +376,13 @@ export default function IngredientsUploadPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-gray-100 hover:bg-transparent">
-                    <TableHead className="text-gray-500 font-medium">
-                      Status
-                    </TableHead>
-                    <TableHead className="text-gray-500 font-medium">
-                      Name
-                    </TableHead>
-                    <TableHead className="text-gray-500 font-medium">
-                      Unit
-                    </TableHead>
-                    <TableHead className="text-right text-gray-500 font-medium">
-                      Price
-                    </TableHead>
-                    <TableHead className="text-right text-gray-500 font-medium">
-                      Stock
-                    </TableHead>
-                    <TableHead className="text-right text-gray-500 font-medium">
-                      Reorder
-                    </TableHead>
-                    <TableHead className="text-gray-500 font-medium">
-                      Supplier
-                    </TableHead>
+                    <TableHead className="text-gray-500 font-medium">Status</TableHead>
+                    <TableHead className="text-gray-500 font-medium">Name</TableHead>
+                    <TableHead className="text-gray-500 font-medium">Unit</TableHead>
+                    <TableHead className="text-right text-gray-500 font-medium">Price</TableHead>
+                    <TableHead className="text-right text-gray-500 font-medium">Stock</TableHead>
+                    <TableHead className="text-right text-gray-500 font-medium">Reorder</TableHead>
+                    <TableHead className="text-gray-500 font-medium">Supplier</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -437,25 +390,21 @@ export default function IngredientsUploadPage() {
                   {parsedData.map((item, index) => (
                     <TableRow
                       key={index}
-                      className={
-                        !item.isValid ? "bg-red-50" : "border-gray-100"
-                      }
+                      className={!item.isValid ? 'bg-red-50' : 'border-gray-100'}
                     >
                       <TableCell>
                         {item.isValid ? (
                           <CheckCircle2 className="h-4 w-4 text-secondary" />
                         ) : (
-                          <span title={item.errors.join(", ")}>
+                          <span title={item.errors.join(', ')}>
                             <AlertCircle className="h-4 w-4 text-red-500" />
                           </span>
                         )}
                       </TableCell>
                       <TableCell className="font-medium text-gray-900">
-                        {item.name || "—"}
+                        {item.name || '—'}
                       </TableCell>
-                      <TableCell className="text-gray-500">
-                        {item.unit || "—"}
-                      </TableCell>
+                      <TableCell className="text-gray-500">{item.unit || '—'}</TableCell>
                       <TableCell className="text-right text-gray-900">
                         ₱{item.pricePerUnit.toFixed(2)}
                       </TableCell>
@@ -465,9 +414,7 @@ export default function IngredientsUploadPage() {
                       <TableCell className="text-right text-gray-900">
                         {item.reorderLevel}
                       </TableCell>
-                      <TableCell className="text-gray-500">
-                        {item.supplier || "—"}
-                      </TableCell>
+                      <TableCell className="text-gray-500">{item.supplier || '—'}</TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
@@ -501,11 +448,7 @@ export default function IngredientsUploadPage() {
             Clear & Start Over
           </Button>
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="border-gray-200 text-gray-700"
-              asChild
-            >
+            <Button variant="outline" className="border-gray-200 text-gray-700" asChild>
               <Link to="/dashboard/ingredients">Cancel</Link>
             </Button>
             <Button
@@ -513,7 +456,7 @@ export default function IngredientsUploadPage() {
               disabled={isLoading || validCount === 0}
               className="bg-primary hover:bg-primary/90"
             >
-              {isLoading ? "Importing..." : `Import ${validCount} Ingredients`}
+              {isLoading ? 'Importing...' : `Import ${validCount} Ingredients`}
             </Button>
           </div>
         </div>
