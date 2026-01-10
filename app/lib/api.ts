@@ -1124,6 +1124,7 @@ export interface SaveInventoryItem {
   unitCost: number;
   totalCost: number;
   inventoryType: string;
+  purchaseDate?: string;
 }
 
 export interface SaveExpenseItem {
@@ -1132,11 +1133,14 @@ export interface SaveExpenseItem {
   category: string;
   frequency: string;
   notes?: string;
+  date?: string;
 }
 
 export interface SaveScannedItemsDto {
   inventoryItems: SaveInventoryItem[];
   expenseItems: SaveExpenseItem[];
+  vendor?: VendorInfo;
+  purchaseDate?: string;
 }
 
 export interface SaveResult {
