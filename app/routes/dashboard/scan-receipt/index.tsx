@@ -19,6 +19,7 @@ import {
   CheckCircle,
   Brain,
   FileQuestionMark,
+  Calendar,
 } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '~/components/ui/card';
@@ -68,9 +69,20 @@ interface EditableScannedItem extends ScannedItem {
 
 const INVENTORY_TYPES = [
   { value: 'RAW_MATERIAL', label: 'Raw Material' },
+  { value: 'INGREDIENT', label: 'Ingredient' },
+  { value: 'SPICE', label: 'Spice' },
+  { value: 'CONDIMENT', label: 'Condiment' },
+  { value: 'BEVERAGE', label: 'Beverage' },
+  { value: 'DAIRY', label: 'Dairy' },
+  { value: 'PRODUCE', label: 'Produce' },
+  { value: 'FRUIT', label: 'Fruit' },
+  { value: 'PROTEIN', label: 'Protein' },
+  { value: 'GRAIN', label: 'Grain' },
+  { value: 'OIL', label: 'Oil' },
   { value: 'PACKAGING', label: 'Packaging' },
-  { value: 'SUPPLIES', label: 'Supplies' },
+  { value: 'SUPPLY', label: 'Supply' },
   { value: 'EQUIPMENT', label: 'Equipment' },
+  { value: 'OTHER', label: 'Other' },
 ];
 
 const EXPENSE_CATEGORIES = [
@@ -101,7 +113,10 @@ export default function ScanReceiptPage() {
   const [activeTab, setActiveTab] = useState<ItemCategory>('INVENTORY');
   const [step, setStep] = useState<'upload' | 'review'>('upload');
   const [vendorInfo, setVendorInfo] = useState<VendorInfo | undefined>();
+  const [isEditingVendor, setIsEditingVendor] = useState(false);
   const [totalValidation, setTotalValidation] = useState<TotalValidation | undefined>();
+  const [purchaseDate, setPurchaseDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   // Mutations
   const scanMutation = useScanReceipt();
@@ -221,6 +236,7 @@ export default function ScanReceiptPage() {
       unitCost: item.unitCost,
       totalCost: item.totalCost,
       inventoryType: item.inventoryType || 'RAW_MATERIAL',
+      purchaseDate: purchaseDate,
     }));
 
     const expenseItems: SaveExpenseItem[] = getItemsByCategory('EXPENSE').map((item) => ({
@@ -228,6 +244,7 @@ export default function ScanReceiptPage() {
       amount: item.totalCost,
       category: item.expenseCategory || 'OTHER',
       frequency: item.expenseFrequency || 'ONE_TIME',
+      date: purchaseDate,
     }));
 
     if (inventoryItems.length === 0 && expenseItems.length === 0) {
@@ -240,10 +257,12 @@ export default function ScanReceiptPage() {
     }
 
     try {
-      // Save items
+      // Save items with vendor info
       const result = await saveMutation.mutateAsync({
         inventoryItems,
         expenseItems,
+        vendor: vendorInfo, // Include edited vendor info
+        purchaseDate, // Include purchase date
       });
 
       // Learn from corrections (fire and forget)
@@ -276,6 +295,7 @@ export default function ScanReceiptPage() {
     setStep('upload');
     setVendorInfo(undefined);
     setTotalValidation(undefined);
+    setPurchaseDate(new Date().toISOString().split('T')[0]);
     scanMutation.reset();
   };
 
@@ -573,61 +593,111 @@ export default function ScanReceiptPage() {
       {step === 'review' && (
         <div className="space-y-6">
           {/* Vendor Info & Total Validation */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Vendor Info Card */}
-            {vendorInfo && vendorInfo.name && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-base">
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Vendor Info Card - Always show, allow manual entry */}
+            <Card className="md:col-span-1">
+              <CardHeader className="pt-4 pb-1">
+                <CardTitle className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
                     <Store className="h-4 w-4" />
-                    Vendor Detected
+                    Store
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => {
+                      if (!vendorInfo) {
+                        setVendorInfo({ name: '', address: '', phone: '', tin: '' });
+                      }
+                      setIsEditingVendor(!isEditingVendor);
+                    }}
+                  >
+                    {isEditingVendor ? 'Done' : 'Edit'}
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div>
+                  <input
+                    type="text"
+                    className="w-full rounded border px-2 py-1 text-sm disabled:text-gray-500 disabled:bg-gray-50"
+                    placeholder="Enter store name"
+                    value={vendorInfo?.name || ''}
+                    disabled={!isEditingVendor}
+                    onChange={(e) => setVendorInfo({ ...(vendorInfo || {}), name: e.target.value })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Purchase Date Card */}
+            <Card className="md:col-span-1">
+              <CardHeader className="pt-4 pb-1">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4" />
+                  Purchase Date
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <input
+                  type="date"
+                  className="w-full rounded border px-2 py-1 text-sm"
+                  value={purchaseDate}
+                  onChange={(e) => setPurchaseDate(e.target.value)}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Receipt Preview Button */}
+            {previewUrl && (
+              <Card className="md:col-span-1">
+                <CardHeader className="pt-4 pb-1">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <FileImage className="h-4 w-4" />
+                    Image
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">{vendorInfo.name}</p>
-                    {vendorInfo.address && (
-                      <p className="text-muted-foreground">{vendorInfo.address}</p>
-                    )}
-                    {vendorInfo.phone && (
-                      <p className="text-muted-foreground">📞 {vendorInfo.phone}</p>
-                    )}
-                    {vendorInfo.tin && (
-                      <p className="text-muted-foreground">TIN: {vendorInfo.tin}</p>
-                    )}
-                  </div>
+                <CardContent className="pb-4">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2"
+                    onClick={() => setShowImageModal(true)}
+                  >
+                   View Receipt Image
+                  </Button>
                 </CardContent>
               </Card>
             )}
-
-            {/* Total Validation Alert */}
-            {totalValidation && (
-              <Alert variant={totalValidation.isValid ? 'default' : 'destructive'}>
-                {totalValidation.isValid ? (
-                  <CheckCircle className="h-4 w-4" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4" />
-                )}
-                <AlertTitle>
-                  {totalValidation.isValid ? 'Total Validated' : 'Total Mismatch'}
-                </AlertTitle>
-                <AlertDescription>
-                  <p>{totalValidation.message}</p>
-                  <div className="mt-2 flex gap-4 text-sm">
-                    <span>Calculated: ₱{totalValidation.calculatedTotal.toFixed(2)}</span>
-                    {totalValidation.detectedTotal && (
-                      <span>Receipt: ₱{totalValidation.detectedTotal.toFixed(2)}</span>
-                    )}
-                    {totalValidation.difference > 0 && (
-                      <span className="text-destructive">
-                        Diff: ₱{totalValidation.difference.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                </AlertDescription>
-              </Alert>
-            )}
           </div>
+
+          {/* Image Modal */}
+          {showImageModal && previewUrl && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+              onClick={() => setShowImageModal(false)}
+            >
+              <div
+                className="relative max-h-[90vh] max-w-[90vw] overflow-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
+                  onClick={() => setShowImageModal(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <img
+                  src={previewUrl}
+                  alt="Receipt"
+                  className="max-w-full h-auto rounded-lg"
+                  style={{ maxHeight: '90vh' }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Learning indicator */}
           {items.some((item) => item.matchedWith?.startsWith('learned:')) && (
