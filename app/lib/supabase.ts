@@ -100,22 +100,22 @@ export const getAccessToken = async (): Promise<string | null> => {
   // Try to get current session first
   try {
     const { data } = await supabase.auth.getSession();
-    
+
     if (data.session) {
       // Check if the session token is still valid
       const expiresAt = (data.session.expires_at ?? 0) * 1000;
-      
+
       if (Date.now() < expiresAt) {
         // Token is still valid
         cachedToken = data.session.access_token;
         tokenExpiry = expiresAt - 5 * 60 * 1000;
         return cachedToken;
       }
-      
+
       // Token expired, try to refresh
       console.log('Access token expired, attempting refresh...');
       const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-      
+
       if (refreshError) {
         console.warn('Failed to refresh session:', refreshError.message);
         // Clear cache to force re-auth
@@ -123,7 +123,7 @@ export const getAccessToken = async (): Promise<string | null> => {
         tokenExpiry = 0;
         return null;
       }
-      
+
       if (refreshData.session) {
         console.log('Session refreshed successfully');
         cachedToken = refreshData.session.access_token;
@@ -134,7 +134,7 @@ export const getAccessToken = async (): Promise<string | null> => {
   } catch (error) {
     console.error('Error getting/refreshing session:', error);
   }
-  
+
   return null;
 };
 

@@ -4,12 +4,12 @@ import { useAuthStore } from '~/stores/authStore';
 
 /**
  * Session Manager Hook
- * 
+ *
  * Handles automatic session refresh when:
  * 1. User returns to the app after being away (tab focus)
  * 2. User opens laptop after sleep/hibernate
  * 3. Session is about to expire
- * 
+ *
  * This ensures the user doesn't get "token expired" errors
  * after leaving the app idle for extended periods.
  */
@@ -21,25 +21,25 @@ export function useSessionManager() {
   // Refresh session - called when user returns to app
   const refreshSession = useCallback(async () => {
     if (isRefreshingRef.current) return;
-    
+
     try {
       isRefreshingRef.current = true;
-      
+
       // Try to refresh the session
       const { data, error } = await supabase.auth.refreshSession();
-      
+
       if (error) {
         console.warn('Session refresh failed:', error.message);
-        
+
         // If refresh fails, the session is truly expired
         // Check if we can still get a valid session
         const { data: sessionData } = await supabase.auth.getSession();
-        
+
         if (!sessionData.session) {
           // No valid session - user needs to log in again
           console.log('Session expired, signing out...');
           await signOut();
-          
+
           // Redirect to login page
           if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
             window.location.href = '/login?expired=true';
@@ -67,15 +67,17 @@ export function useSessionManager() {
       if (document.visibilityState === 'visible') {
         const now = Date.now();
         const timeSinceLastFocus = now - lastFocusRef.current;
-        
+
         // If more than 5 minutes have passed since last focus, refresh session
         const REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes
-        
+
         if (timeSinceLastFocus > REFRESH_THRESHOLD) {
-          console.log(`Tab focused after ${Math.round(timeSinceLastFocus / 1000 / 60)} minutes, refreshing session...`);
+          console.log(
+            `Tab focused after ${Math.round(timeSinceLastFocus / 1000 / 60)} minutes, refreshing session...`
+          );
           refreshSession();
         }
-        
+
         lastFocusRef.current = now;
       }
     };
@@ -85,12 +87,14 @@ export function useSessionManager() {
       const now = Date.now();
       const timeSinceLastFocus = now - lastFocusRef.current;
       const REFRESH_THRESHOLD = 5 * 60 * 1000;
-      
+
       if (timeSinceLastFocus > REFRESH_THRESHOLD) {
-        console.log(`Window focused after ${Math.round(timeSinceLastFocus / 1000 / 60)} minutes, refreshing session...`);
+        console.log(
+          `Window focused after ${Math.round(timeSinceLastFocus / 1000 / 60)} minutes, refreshing session...`
+        );
         refreshSession();
       }
-      
+
       lastFocusRef.current = now;
     };
 
@@ -98,11 +102,14 @@ export function useSessionManager() {
     window.addEventListener('focus', handleFocus);
 
     // Also set up periodic check (every 10 minutes) to refresh if needed
-    const intervalId = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        refreshSession();
-      }
-    }, 10 * 60 * 1000); // Every 10 minutes
+    const intervalId = setInterval(
+      () => {
+        if (document.visibilityState === 'visible') {
+          refreshSession();
+        }
+      },
+      10 * 60 * 1000
+    ); // Every 10 minutes
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -118,7 +125,7 @@ export function useSessionManager() {
       const timeoutId = setTimeout(() => {
         refreshSession();
       }, 1000);
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [isAuthenticated, refreshSession]);
