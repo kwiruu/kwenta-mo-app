@@ -11,6 +11,7 @@ import {
   ChefHat,
   ShoppingCart,
   Warehouse,
+  Scan,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -33,6 +34,7 @@ const navigation = [
   { name: 'Expenses', href: '/dashboard/expenses', icon: Receipt },
   { name: 'Sales', href: '/dashboard/sales', icon: ShoppingCart },
   { name: 'Reports', href: '/dashboard/reports', icon: FileText },
+  { name: 'Scan', href: '/dashboard/scan-receipt', icon: Scan },
 ];
 
 export default function DashboardLayout() {

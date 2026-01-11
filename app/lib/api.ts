@@ -361,6 +361,9 @@ export type ExpenseCategory =
   | 'INGREDIENTS'
   | 'LABOR'
   | 'UTILITIES'
+  | 'ELECTRICITY'
+  | 'WATER'
+  | 'GAS'
   | 'RENT'
   | 'EQUIPMENT'
   | 'MARKETING'
@@ -1094,8 +1097,14 @@ export const financialReportsApi = {
 // ============ RECEIPT SCANNER TYPES ============
 export type ItemCategory = 'INVENTORY' | 'EXPENSE' | 'UNKNOWN';
 
+export type DocumentType = 'RECEIPT' | 'UTILITY_BILL' | 'RENT_BILL' | 'GENERAL_BILL';
+
 export type ScannerExpenseType =
   | 'UTILITIES'
+  | 'ELECTRICITY'
+  | 'WATER'
+  | 'INTERNET'
+  | 'GAS'
   | 'RENT'
   | 'MAINTENANCE'
   | 'SUPPLIES'
@@ -1124,6 +1133,19 @@ export interface VendorInfo {
   tin?: string;
 }
 
+export interface BillInfo {
+  providerName?: string;
+  accountNumber?: string;
+  accountName?: string;
+  billingPeriod?: string;
+  dueDate?: string;
+  billDate?: string;
+  previousReading?: string;
+  currentReading?: string;
+  consumption?: string;
+  meterNumber?: string;
+}
+
 export interface TotalValidation {
   calculatedTotal: number;
   detectedTotal?: number;
@@ -1133,6 +1155,7 @@ export interface TotalValidation {
 }
 
 export interface ScanResult {
+  documentType?: DocumentType;
   items: ScannedItem[];
   rawText: string;
   scannedAt: string;
@@ -1140,6 +1163,7 @@ export interface ScanResult {
   expenseCount: number;
   unknownCount: number;
   vendor?: VendorInfo;
+  billInfo?: BillInfo;
   totalValidation?: TotalValidation;
 }
 

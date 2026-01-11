@@ -29,11 +29,31 @@ const expenseCategories: {
   label: string;
   description: string;
 }[] = [
-  { value: 'RENT', label: 'Rent', description: 'Stall or store rental' },
+  { value: 'RENT', label: '🏠 Rent', description: 'Stall or store rental' },
+  {
+    value: 'ELECTRICITY',
+    label: '⚡ Electricity',
+    description: 'Electric bills (Meralco, VECO, etc.)',
+  },
+  {
+    value: 'WATER',
+    label: '💧 Water',
+    description: 'Water bills (MCWD, Maynilad, etc.)',
+  },
+  {
+    value: 'GAS',
+    label: '🔥 Gas',
+    description: 'LPG or natural gas bills',
+  },
+  {
+    value: 'INTERNET',
+    label: '🌐 Internet',
+    description: 'Internet and phone bills',
+  },
   {
     value: 'UTILITIES',
-    label: 'Utilities',
-    description: 'Electricity, water, gas',
+    label: '🔌 Utilities (Other)',
+    description: 'Other utility expenses',
   },
   { value: 'SALARIES', label: 'Salaries', description: 'Employee wages' },
   {
@@ -90,11 +110,6 @@ const expenseCategories: {
     value: 'PERMITS_LICENSES',
     label: 'Permits & Licenses',
     description: 'Business permits, licenses',
-  },
-  {
-    value: 'INTERNET',
-    label: 'Internet',
-    description: 'Internet and phone',
   },
   {
     value: 'DEPRECIATION',

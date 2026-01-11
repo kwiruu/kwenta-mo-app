@@ -17,7 +17,7 @@ export default [
     route('dashboard/expenses', 'routes/dashboard/expenses/index.tsx'),
     route('dashboard/expenses/new', 'routes/dashboard/expenses/new.tsx'),
     route('dashboard/expenses/:id/edit', 'routes/dashboard/expenses/edit.tsx'),
-    route('dashboard/expenses/upload', 'routes/dashboard/expenses/upload.tsx'),
+    // route('dashboard/expenses/upload', 'routes/dashboard/expenses/upload.tsx'), // Removed - replaced by scan-receipt
     // Recipes
     route('dashboard/recipes', 'routes/dashboard/recipes/index.tsx'),
     route('dashboard/recipes/new', 'routes/dashboard/recipes/new.tsx'),

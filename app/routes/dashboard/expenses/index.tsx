@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Plus, Search, Upload, Edit, Trash2, Receipt } from 'lucide-react';
+import { Plus, Search, Scan, Edit, Trash2, Receipt } from 'lucide-react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -29,6 +29,9 @@ const categoryLabels: Record<ExpenseCategory, string> = {
   INGREDIENTS: 'Ingredients',
   LABOR: 'Labor',
   UTILITIES: 'Utilities',
+  ELECTRICITY: '⚡ Electricity',
+  WATER: '💧 Water',
+  GAS: '🔥 Gas',
   RENT: 'Rent',
   EQUIPMENT: 'Equipment',
   MARKETING: 'Marketing',
@@ -42,7 +45,7 @@ const categoryLabels: Record<ExpenseCategory, string> = {
   FIXED_SALARIES: 'Fixed Salaries',
   DEPRECIATION: 'Depreciation',
   PERMITS_LICENSES: 'Permits & Licenses',
-  INTERNET: 'Internet',
+  INTERNET: '🌐 Internet',
   TAX_EXPENSE: 'Tax Expense',
   INTEREST_EXPENSE: 'Interest Expense',
   BANK_CHARGES: 'Bank Charges',
@@ -54,6 +57,9 @@ const categoryColors: Record<ExpenseCategory, string> = {
   INGREDIENTS: 'bg-green-100 text-green-700 hover:bg-green-100',
   LABOR: 'bg-secondary/10 text-secondary hover:bg-secondary/10',
   UTILITIES: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
+  ELECTRICITY: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
+  WATER: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-100',
+  GAS: 'bg-orange-100 text-orange-700 hover:bg-orange-100',
   RENT: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
   EQUIPMENT: 'bg-purple-100 text-purple-700 hover:bg-purple-100',
   MARKETING: 'bg-pink-100 text-pink-700 hover:bg-pink-100',
@@ -149,9 +155,9 @@ export default function ExpensesListPage() {
             className="border-gray-200 text-gray-700 hover:bg-gray-50"
             asChild
           >
-            <Link to="/dashboard/expenses/upload">
-              <Upload className="h-4 w-4 mr-2" />
-              Bulk Upload
+            <Link to="/dashboard/scan-receipt">
+              <Scan className="h-4 w-4 mr-2" />
+              Scan Expense
             </Link>
           </Button>
           <Button variant="green" asChild>
@@ -279,9 +285,9 @@ export default function ExpensesListPage() {
               {!searchQuery && (
                 <div className="flex gap-2">
                   <Button variant="outline" className="border-gray-200" asChild>
-                    <Link to="/dashboard/expenses/upload">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload File
+                    <Link to="/dashboard/scan-receipt">
+                      <Scan className="h-4 w-4 mr-2" />
+                      Scan Receipt/Bill
                     </Link>
                   </Button>
                   <Button variant="green" asChild>
