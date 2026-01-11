@@ -435,7 +435,7 @@ export default function ScanReceiptPage() {
       inventoryType: item.inventoryType || 'RAW_MATERIAL',
       purchaseDate: purchaseDate,
       notes: item.notes,
-      periodId: item.periodId || activePeriod?.id,
+      periodId: item.periodId?.toString() || activePeriod?.id,
       supplier: vendorInfo?.name,
     }));
 
