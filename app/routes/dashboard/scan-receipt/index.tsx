@@ -43,7 +43,13 @@ import {
 } from '~/components/ui/select';
 import { Input } from '~/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '~/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '~/components/ui/dialog';
 import { Textarea } from '~/components/ui/textarea';
 import { useToast } from '~/hooks/use-toast';
 import {
@@ -81,7 +87,6 @@ const INVENTORY_TYPES = [
   { value: 'BEVERAGE', label: 'Beverage' },
   { value: 'DAIRY', label: 'Dairy' },
   { value: 'PRODUCE', label: 'Produce' },
-  { value: 'FRUIT', label: 'Fruit' },
   { value: 'PROTEIN', label: 'Protein' },
   { value: 'GRAIN', label: 'Grain' },
   { value: 'OIL', label: 'Oil' },
@@ -694,7 +699,7 @@ export default function ScanReceiptPage() {
                     className="w-full justify-start gap-2"
                     onClick={() => setShowImageModal(true)}
                   >
-                   View Receipt Image
+                    View Receipt Image
                   </Button>
                 </CardContent>
               </Card>
@@ -963,7 +968,10 @@ export default function ScanReceiptPage() {
       )}
 
       {/* Notes Modal */}
-      <Dialog open={editingNotesItemId !== null} onOpenChange={(open) => !open && setEditingNotesItemId(null)}>
+      <Dialog
+        open={editingNotesItemId !== null}
+        onOpenChange={(open) => !open && setEditingNotesItemId(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add/Edit Note</DialogTitle>
@@ -981,10 +989,7 @@ export default function ScanReceiptPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setEditingNotesItemId(null)}
-            >
+            <Button variant="outline" onClick={() => setEditingNotesItemId(null)}>
               Cancel
             </Button>
             <Button
