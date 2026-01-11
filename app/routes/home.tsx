@@ -747,7 +747,7 @@ export default function Home() {
           </div>
           <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-400">
-              © 2025 {APP_CONFIG.name}. A capstone project for BSBA Financial Management students.
+              © 2025 {APP_CONFIG.name}. A research proposal by the BSBA Financial Management.
             </p>
             <div className="flex items-center gap-4">
               <Shield className="h-4 w-4 text-gray-400" />

@@ -1,4 +1,4 @@
-import { getAccessToken } from './supabase';
+import { getAccessToken, refreshSession, clearTokenCache } from './supabase';
 
 // API URLs
 const LOCAL_API = 'http://localhost:3000/api';
@@ -38,6 +38,7 @@ const REQUEST_TIMEOUT = 15000; // 15 seconds timeout
 interface RequestOptions extends RequestInit {
   skipAuth?: boolean;
   timeout?: number;
+  _isRetry?: boolean; // Internal flag to prevent infinite retry loops
 }
 
 class ApiClient {
@@ -48,7 +49,7 @@ class ApiClient {
   }
 
   private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const { skipAuth = false, timeout = REQUEST_TIMEOUT, ...fetchOptions } = options;
+    const { skipAuth = false, timeout = REQUEST_TIMEOUT, _isRetry = false, ...fetchOptions } = options;
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -85,6 +86,26 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle 401 Unauthorized - attempt to refresh token and retry once
+        if (response.status === 401 && !skipAuth && !_isRetry) {
+          console.log('Received 401, attempting to refresh session and retry...');
+          
+          const { session, error } = await refreshSession();
+          
+          if (session && !error) {
+            console.log('Session refreshed, retrying request...');
+            // Retry the request with the new token
+            return this.request<T>(endpoint, { ...options, _isRetry: true });
+          } else {
+            console.warn('Session refresh failed, redirecting to login...');
+            // Clear token cache and redirect to login
+            clearTokenCache();
+            if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+              window.location.href = '/login?expired=true';
+            }
+          }
+        }
+        
         throw new ApiError(data.message || 'An error occurred', response.status, data);
       }
 
@@ -1165,7 +1186,7 @@ export interface LearningStats {
 
 // ============ RECEIPT SCANNER API ============
 export const receiptScannerApi = {
-  scanReceipt: async (file: File): Promise<ScanResult> => {
+  scanReceipt: async (file: File, _isRetry = false): Promise<ScanResult> => {
     const token = await getAccessToken();
     const formData = new FormData();
     formData.append('receipt', file);
@@ -1179,6 +1200,24 @@ export const receiptScannerApi = {
     });
 
     if (!response.ok) {
+      // Handle 401 - attempt to refresh and retry once
+      if (response.status === 401 && !_isRetry) {
+        console.log('Receipt scan received 401, attempting to refresh session...');
+        
+        const { session, error } = await refreshSession();
+        
+        if (session && !error) {
+          console.log('Session refreshed, retrying receipt scan...');
+          return receiptScannerApi.scanReceipt(file, true);
+        } else {
+          console.warn('Session refresh failed, redirecting to login...');
+          clearTokenCache();
+          if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+            window.location.href = '/login?expired=true';
+          }
+        }
+      }
+      
       const error = await response.json();
       throw new ApiError(error.message || 'Failed to scan receipt', response.status, error);
     }

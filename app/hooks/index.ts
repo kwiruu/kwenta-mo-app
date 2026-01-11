@@ -11,3 +11,4 @@ export * from './useInventoryItems';
 export * from './useFinancialReports';
 export * from './useInventoryTransactions';
 export * from './useReceiptScanner';
+export * from './useSessionManager';
