@@ -8,15 +8,11 @@ import {
   Package,
   Receipt,
   HelpCircle,
-  ArrowLeft,
   Trash2,
-  ArrowRight,
   Check,
   X,
   RefreshCw,
   Store,
-  AlertTriangle,
-  CheckCircle,
   Brain,
   FileQuestionMark,
   Calendar,
@@ -34,7 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table';
-import { Badge } from '~/components/ui/badge';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import {
   Select,
@@ -132,10 +128,10 @@ export default function ScanReceiptPage() {
   const [activeTab, setActiveTab] = useState<ItemCategory>('INVENTORY');
   const [step, setStep] = useState<'upload' | 'review'>('upload');
   const [vendorInfo, setVendorInfo] = useState<VendorInfo | undefined>();
-  const [billInfo, setBillInfo] = useState<BillInfo | undefined>();
+  const [_billInfo, setBillInfo] = useState<BillInfo | undefined>();
   const [documentType, setDocumentType] = useState<DocumentType>('RECEIPT');
   const [isEditingVendor, setIsEditingVendor] = useState(false);
-  const [totalValidation, setTotalValidation] = useState<TotalValidation | undefined>();
+  const [_totalValidation, setTotalValidation] = useState<TotalValidation | undefined>();
   const [purchaseDate, setPurchaseDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [showImageModal, setShowImageModal] = useState(false);
   const [editingNotesItemId, setEditingNotesItemId] = useState<string | null>(null);
@@ -376,9 +372,12 @@ export default function ScanReceiptPage() {
   // Cleanup camera on unmount
   useEffect(() => {
     return () => {
-      stopCamera();
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+        setCameraStream(null);
+      }
     };
-  }, []);
+  }, [cameraStream]);
 
   // Move item to different category
   const moveItem = (itemId: string, newCategory: ItemCategory) => {
