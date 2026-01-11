@@ -1146,6 +1146,9 @@ export interface SaveInventoryItem {
   totalCost: number;
   inventoryType: string;
   purchaseDate?: string;
+  notes?: string;
+  periodId?: string;
+  supplier?: string;
 }
 
 export interface SaveExpenseItem {

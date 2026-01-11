@@ -20,6 +20,7 @@ import {
   Brain,
   FileQuestionMark,
   Calendar,
+  FileText,
 } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '~/components/ui/card';
@@ -42,12 +43,15 @@ import {
 } from '~/components/ui/select';
 import { Input } from '~/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '~/components/ui/dialog';
+import { Textarea } from '~/components/ui/textarea';
 import { useToast } from '~/hooks/use-toast';
 import {
   useScanReceipt,
   useSaveScannedItems,
   useLearnFromCorrections,
 } from '~/hooks/useReceiptScanner';
+import { useInventoryPeriods, useSetActivePeriod } from '~/hooks/useInventory';
 import type {
   ScannedItem,
   ItemCategory,
@@ -65,6 +69,8 @@ interface EditableScannedItem extends ScannedItem {
   expenseCategory?: string;
   expenseFrequency?: string;
   originalCategory?: ItemCategory; // Track original for learning
+  notes?: string;
+  periodId?: number;
 }
 
 const INVENTORY_TYPES = [
@@ -117,11 +123,18 @@ export default function ScanReceiptPage() {
   const [totalValidation, setTotalValidation] = useState<TotalValidation | undefined>();
   const [purchaseDate, setPurchaseDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [editingNotesItemId, setEditingNotesItemId] = useState<string | null>(null);
+  const [tempNote, setTempNote] = useState<string>('');
 
   // Mutations
   const scanMutation = useScanReceipt();
   const saveMutation = useSaveScannedItems();
   const learnMutation = useLearnFromCorrections();
+
+  // Periods
+  const { data: allPeriods } = useInventoryPeriods();
+  const activePeriod = allPeriods?.find((p: { isActive: boolean }) => p.isActive);
+  const setActivePeriodMutation = useSetActivePeriod();
 
   // Handle file drop
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -237,6 +250,9 @@ export default function ScanReceiptPage() {
       totalCost: item.totalCost,
       inventoryType: item.inventoryType || 'RAW_MATERIAL',
       purchaseDate: purchaseDate,
+      notes: item.notes,
+      periodId: item.periodId || activePeriod?.id,
+      supplier: vendorInfo?.name,
     }));
 
     const expenseItems: SaveExpenseItem[] = getItemsByCategory('EXPENSE').map((item) => ({
@@ -421,6 +437,20 @@ export default function ScanReceiptPage() {
               title="Move to Review"
             >
               <HelpCircle className="h-4 w-4" />
+            </Button>
+          )}
+          {item.category === 'INVENTORY' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setEditingNotesItemId(item.id);
+                setTempNote(item.notes || '');
+              }}
+              title="Add/Edit Note"
+              className="hover:text-blue-600"
+            >
+              <FileText className="h-4 w-4" />
             </Button>
           )}
           <Button
@@ -740,13 +770,40 @@ export default function ScanReceiptPage() {
             <TabsContent value="INVENTORY">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    Inventory Items
-                  </CardTitle>
-                  <CardDescription>
-                    These items will be added to your inventory/purchases
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Package className="h-5 w-5" />
+                        Inventory Items
+                      </CardTitle>
+                      <CardDescription>
+                        These items will be added to your inventory/purchases
+                      </CardDescription>
+                    </div>
+                    {allPeriods && allPeriods.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Period:</span>
+                        <Select
+                          value={activePeriod?.id}
+                          onValueChange={(value) => {
+                            setActivePeriodMutation.mutate(value);
+                          }}
+                        >
+                          <SelectTrigger className="w-[220px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allPeriods.map((period) => (
+                              <SelectItem key={period.id} value={period.id}>
+                                {period.periodName}
+                                {period.isActive && ' (Active)'}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {getItemsByCategory('INVENTORY').length === 0 ? (
@@ -904,6 +961,45 @@ export default function ScanReceiptPage() {
           </Card>
         </div>
       )}
+
+      {/* Notes Modal */}
+      <Dialog open={editingNotesItemId !== null} onOpenChange={(open) => !open && setEditingNotesItemId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add/Edit Note</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Note</label>
+              <Textarea
+                value={tempNote}
+                onChange={(e) => setTempNote(e.target.value)}
+                placeholder="Add any notes about this item..."
+                rows={4}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditingNotesItemId(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (editingNotesItemId) {
+                  updateItem(editingNotesItemId, 'notes', tempNote);
+                  setEditingNotesItemId(null);
+                }
+              }}
+            >
+              Save Note
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
