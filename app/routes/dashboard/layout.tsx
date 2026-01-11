@@ -5,7 +5,6 @@ import {
   Receipt,
   Building2,
   FileText,
-  Settings,
   LogOut,
   Menu,
   X,
@@ -16,9 +15,7 @@ import {
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '~/components/ui/button';
-import { Separator } from '~/components/ui/separator';
 import { cn } from '~/lib/utils';
-import { APP_CONFIG } from '~/config/app';
 import { clearTokenCache } from '~/lib/supabase';
 import { useAuthStore } from '~/stores/authStore';
 import { useBusinessStore } from '~/stores/businessStore';
@@ -38,8 +35,6 @@ const navigation = [
   { name: 'Reports', href: '/dashboard/reports', icon: FileText },
 ];
 
-const secondaryNavigation = [{ name: 'Settings', href: '/dashboard/settings', icon: Settings }];
-
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,8 +43,8 @@ export default function DashboardLayout() {
   const { user, isAuthenticated, isLoading, signOut } = useAuthStore();
   const { business } = useBusinessStore();
 
-  // Fetch profile from API
-  const { data: profile } = useUserProfile();
+  // Fetch profile from API (used for future features)
+  const { data: _profile } = useUserProfile();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -143,27 +138,8 @@ export default function DashboardLayout() {
             })}
           </nav>
 
-          {/* Secondary Navigation */}
-          <div className="p-4 border-t border-gray-100 space-y-1 bg-primary-foreground">
-            {secondaryNavigation.map((item) => {
-              const isActive = location.pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
-                    isActive
-                      ? 'bg-primary text-white border border-primary'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  )}
-                >
-                  <item.icon className="h-[18px] w-[18px]" />
-                  {item.name}
-                </Link>
-              );
-            })}
+          {/* Logout Button */}
+          <div className="p-4 border-t border-gray-100 bg-primary-foreground">
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 w-full transition-all"
