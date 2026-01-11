@@ -197,7 +197,7 @@ VITE_API_URL=http://localhost:3000/api
 
 ## 🤝 Contributing
 
-This is a capstone project for BSBA Financial Management students at University of Cebu.
+This is a research proposal by the BSBA Financial Management students at the University of Cebu.
 
 ## 📄 License
 

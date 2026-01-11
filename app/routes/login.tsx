@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useState, useEffect } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -13,6 +13,7 @@ import {
 } from '~/components/ui/card';
 import { APP_CONFIG } from '~/config/app';
 import { useAuthStore } from '~/stores/authStore';
+import { useToast } from '~/hooks/use-toast';
 
 export function meta() {
   return [
@@ -23,6 +24,8 @@ export function meta() {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
   const {
     signIn,
     signInWithGoogle,
@@ -37,6 +40,19 @@ export default function LoginPage() {
     password: '',
   });
   const [error, setError] = useState('');
+
+  // Show session expired message if redirected due to expired token
+  useEffect(() => {
+    if (searchParams.get('expired') === 'true') {
+      toast({
+        title: 'Session Expired',
+        description: 'Your session has expired. Please log in again.',
+        variant: 'destructive',
+      });
+      // Clean up the URL parameter
+      window.history.replaceState({}, '', '/login');
+    }
+  }, [searchParams, toast]);
 
   // Redirect if already authenticated
   useEffect(() => {
