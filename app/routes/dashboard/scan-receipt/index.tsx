@@ -8,15 +8,11 @@ import {
   Package,
   Receipt,
   HelpCircle,
-  ArrowLeft,
   Trash2,
-  ArrowRight,
   Check,
   X,
   RefreshCw,
   Store,
-  AlertTriangle,
-  CheckCircle,
   Brain,
   FileQuestionMark,
   Calendar,
@@ -34,7 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table';
-import { Badge } from '~/components/ui/badge';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import {
   Select,
@@ -132,10 +128,10 @@ export default function ScanReceiptPage() {
   const [activeTab, setActiveTab] = useState<ItemCategory>('INVENTORY');
   const [step, setStep] = useState<'upload' | 'review'>('upload');
   const [vendorInfo, setVendorInfo] = useState<VendorInfo | undefined>();
-  const [billInfo, setBillInfo] = useState<BillInfo | undefined>();
+  const [_billInfo, setBillInfo] = useState<BillInfo | undefined>();
   const [documentType, setDocumentType] = useState<DocumentType>('RECEIPT');
   const [isEditingVendor, setIsEditingVendor] = useState(false);
-  const [totalValidation, setTotalValidation] = useState<TotalValidation | undefined>();
+  const [_totalValidation, setTotalValidation] = useState<TotalValidation | undefined>();
   const [purchaseDate, setPurchaseDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [showImageModal, setShowImageModal] = useState(false);
   const [editingNotesItemId, setEditingNotesItemId] = useState<string | null>(null);
@@ -246,7 +242,7 @@ export default function ScanReceiptPage() {
       });
       setCameraStream(stream);
       setShowCamera(true);
-      
+
       // Wait for next tick to ensure modal is rendered
       setTimeout(() => {
         if (videoRef.current) {
@@ -291,11 +287,11 @@ export default function ScanReceiptPage() {
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(video, 0, 0);
-      
+
       // Get image URL for cropping
       const imageUrl = canvas.toDataURL('image/jpeg', 0.95);
       setCapturedImageUrl(imageUrl);
-      
+
       // Set initial crop area (centered, covering most of the image)
       const cropWidth = Math.min(canvas.width * 0.8, 600);
       const cropHeight = Math.min(canvas.height * 0.9, 800);
@@ -305,7 +301,7 @@ export default function ScanReceiptPage() {
         width: cropWidth,
         height: cropHeight,
       });
-      
+
       stopCamera();
       setShowCropModal(true);
     }
@@ -316,11 +312,11 @@ export default function ScanReceiptPage() {
 
     const img = cropImageRef.current;
     const canvas = cropCanvasRef.current;
-    
+
     // Calculate scale between displayed image and actual image
     const scaleX = img.naturalWidth / img.width;
     const scaleY = img.naturalHeight / img.height;
-    
+
     // Apply scale to crop area
     const scaledCrop = {
       x: cropArea.x * scaleX,
@@ -328,10 +324,10 @@ export default function ScanReceiptPage() {
       width: cropArea.width * scaleX,
       height: cropArea.height * scaleY,
     };
-    
+
     canvas.width = scaledCrop.width;
     canvas.height = scaledCrop.height;
-    
+
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(
@@ -345,21 +341,25 @@ export default function ScanReceiptPage() {
         scaledCrop.width,
         scaledCrop.height
       );
-      
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const file = new File([blob], `receipt-${Date.now()}.jpg`, { type: 'image/jpeg' });
-          setSelectedFile(file);
-          const url = URL.createObjectURL(blob);
-          setPreviewUrl(url);
-          setShowCropModal(false);
-          setCapturedImageUrl(null);
-          toast({
-            title: 'Photo cropped!',
-            description: 'Click "Scan Image" to process the receipt',
-          });
-        }
-      }, 'image/jpeg', 0.95);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const file = new File([blob], `receipt-${Date.now()}.jpg`, { type: 'image/jpeg' });
+            setSelectedFile(file);
+            const url = URL.createObjectURL(blob);
+            setPreviewUrl(url);
+            setShowCropModal(false);
+            setCapturedImageUrl(null);
+            toast({
+              title: 'Photo cropped!',
+              description: 'Click "Scan Image" to process the receipt',
+            });
+          }
+        },
+        'image/jpeg',
+        0.95
+      );
     }
   };
 
@@ -372,9 +372,12 @@ export default function ScanReceiptPage() {
   // Cleanup camera on unmount
   useEffect(() => {
     return () => {
-      stopCamera();
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+        setCameraStream(null);
+      }
     };
-  }, []);
+  }, [cameraStream]);
 
   // Move item to different category
   const moveItem = (itemId: string, newCategory: ItemCategory) => {
@@ -819,10 +822,10 @@ export default function ScanReceiptPage() {
               muted
               className="w-full h-full object-cover"
             />
-            
+
             {/* Hidden canvas for capture */}
             <canvas ref={canvasRef} className="hidden" />
-            
+
             {/* Controls */}
             <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
               <div className="flex items-center justify-center gap-4">
@@ -879,21 +882,24 @@ export default function ScanReceiptPage() {
                   }
                 }}
               />
-              
+
               {/* Crop overlay */}
               <div className="absolute inset-0 pointer-events-none">
                 {/* Darkened area outside crop */}
-                <div className="absolute inset-0 bg-black/50" style={{
-                  clipPath: `polygon(
+                <div
+                  className="absolute inset-0 bg-black/50"
+                  style={{
+                    clipPath: `polygon(
                     0% 0%, 0% 100%, 100% 100%, 100% 0%,
                     0% 0%, ${cropArea.x}px ${cropArea.y}px,
                     ${cropArea.x + cropArea.width}px ${cropArea.y}px,
                     ${cropArea.x + cropArea.width}px ${cropArea.y + cropArea.height}px,
                     ${cropArea.x}px ${cropArea.y + cropArea.height}px,
                     ${cropArea.x}px ${cropArea.y}px
-                  )`
-                }}/>
-                
+                  )`,
+                  }}
+                />
+
                 {/* Crop frame */}
                 <div
                   className="absolute border-2 border-green-500 pointer-events-auto"
@@ -905,13 +911,14 @@ export default function ScanReceiptPage() {
                   }}
                 >
                   {/* Corner handles */}
-                  <div className="absolute -left-2 -top-2 w-4 h-4 bg-green-500 rounded-full cursor-nw-resize"
+                  <div
+                    className="absolute -left-2 -top-2 w-4 h-4 bg-green-500 rounded-full cursor-nw-resize"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       const startX = e.clientX;
                       const startY = e.clientY;
-                      const startCrop = {...cropArea};
-                      
+                      const startCrop = { ...cropArea };
+
                       const handleMove = (e: MouseEvent) => {
                         const dx = e.clientX - startX;
                         const dy = e.clientY - startY;
@@ -922,23 +929,24 @@ export default function ScanReceiptPage() {
                           height: Math.max(100, startCrop.height - dy),
                         });
                       };
-                      
+
                       const handleUp = () => {
                         document.removeEventListener('mousemove', handleMove);
                         document.removeEventListener('mouseup', handleUp);
                       };
-                      
+
                       document.addEventListener('mousemove', handleMove);
                       document.addEventListener('mouseup', handleUp);
                     }}
                   />
-                  <div className="absolute -right-2 -top-2 w-4 h-4 bg-green-500 rounded-full cursor-ne-resize"
+                  <div
+                    className="absolute -right-2 -top-2 w-4 h-4 bg-green-500 rounded-full cursor-ne-resize"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       const startX = e.clientX;
                       const startY = e.clientY;
-                      const startCrop = {...cropArea};
-                      
+                      const startCrop = { ...cropArea };
+
                       const handleMove = (e: MouseEvent) => {
                         const dx = e.clientX - startX;
                         const dy = e.clientY - startY;
@@ -949,23 +957,24 @@ export default function ScanReceiptPage() {
                           height: Math.max(100, startCrop.height - dy),
                         });
                       };
-                      
+
                       const handleUp = () => {
                         document.removeEventListener('mousemove', handleMove);
                         document.removeEventListener('mouseup', handleUp);
                       };
-                      
+
                       document.addEventListener('mousemove', handleMove);
                       document.addEventListener('mouseup', handleUp);
                     }}
                   />
-                  <div className="absolute -left-2 -bottom-2 w-4 h-4 bg-green-500 rounded-full cursor-sw-resize"
+                  <div
+                    className="absolute -left-2 -bottom-2 w-4 h-4 bg-green-500 rounded-full cursor-sw-resize"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       const startX = e.clientX;
                       const startY = e.clientY;
-                      const startCrop = {...cropArea};
-                      
+                      const startCrop = { ...cropArea };
+
                       const handleMove = (e: MouseEvent) => {
                         const dx = e.clientX - startX;
                         const dy = e.clientY - startY;
@@ -976,23 +985,24 @@ export default function ScanReceiptPage() {
                           height: Math.max(100, startCrop.height + dy),
                         });
                       };
-                      
+
                       const handleUp = () => {
                         document.removeEventListener('mousemove', handleMove);
                         document.removeEventListener('mouseup', handleUp);
                       };
-                      
+
                       document.addEventListener('mousemove', handleMove);
                       document.addEventListener('mouseup', handleUp);
                     }}
                   />
-                  <div className="absolute -right-2 -bottom-2 w-4 h-4 bg-green-500 rounded-full cursor-se-resize"
+                  <div
+                    className="absolute -right-2 -bottom-2 w-4 h-4 bg-green-500 rounded-full cursor-se-resize"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       const startX = e.clientX;
                       const startY = e.clientY;
-                      const startCrop = {...cropArea};
-                      
+                      const startCrop = { ...cropArea };
+
                       const handleMove = (e: MouseEvent) => {
                         const dx = e.clientX - startX;
                         const dy = e.clientY - startY;
@@ -1003,12 +1013,12 @@ export default function ScanReceiptPage() {
                           height: Math.max(100, startCrop.height + dy),
                         });
                       };
-                      
+
                       const handleUp = () => {
                         document.removeEventListener('mousemove', handleMove);
                         document.removeEventListener('mouseup', handleUp);
                       };
-                      
+
                       document.addEventListener('mousemove', handleMove);
                       document.addEventListener('mouseup', handleUp);
                     }}
@@ -1016,10 +1026,10 @@ export default function ScanReceiptPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Hidden canvas for cropping */}
             <canvas ref={cropCanvasRef} className="hidden" />
-            
+
             {/* Controls */}
             <div className="mt-4 flex items-center justify-center gap-4">
               <Button
