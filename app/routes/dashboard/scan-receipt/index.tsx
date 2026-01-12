@@ -731,10 +731,12 @@ export default function ScanReceiptPage() {
                     </>
                   )}
                 </Button>
-                <Button className="w-1/2" variant="outline" onClick={startCamera}>
-                  <Camera className="mr-2 h-4 w-4" />
-                  Take Photo
-                </Button>
+                {!selectedFile && (
+                  <Button className="w-1/2" variant="outline" onClick={startCamera}>
+                    <Camera className="mr-2 h-4 w-4" />
+                    Take Photo
+                  </Button>
+                )}
                 {selectedFile && (
                   <Button variant="outline" onClick={handleReset}>
                     Clear
@@ -912,7 +914,7 @@ export default function ScanReceiptPage() {
                 >
                   {/* Corner handles */}
                   <div
-                    className="absolute -left-2 -top-2 w-4 h-4 bg-green-500 rounded-full cursor-nw-resize"
+                    className="absolute -left-2 -top-2 w-4 h-4 bg-green-500 rounded-full cursor-nw-resize touch-none"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       const startX = e.clientX;
@@ -938,9 +940,37 @@ export default function ScanReceiptPage() {
                       document.addEventListener('mousemove', handleMove);
                       document.addEventListener('mouseup', handleUp);
                     }}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      const touch = e.touches[0];
+                      const startX = touch.clientX;
+                      const startY = touch.clientY;
+                      const startCrop = { ...cropArea };
+
+                      const handleTouchMove = (e: TouchEvent) => {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const dx = touch.clientX - startX;
+                        const dy = touch.clientY - startY;
+                        setCropArea({
+                          x: Math.max(0, startCrop.x + dx),
+                          y: Math.max(0, startCrop.y + dy),
+                          width: Math.max(100, startCrop.width - dx),
+                          height: Math.max(100, startCrop.height - dy),
+                        });
+                      };
+
+                      const handleTouchEnd = () => {
+                        document.removeEventListener('touchmove', handleTouchMove);
+                        document.removeEventListener('touchend', handleTouchEnd);
+                      };
+
+                      document.addEventListener('touchmove', handleTouchMove);
+                      document.addEventListener('touchend', handleTouchEnd);
+                    }}
                   />
                   <div
-                    className="absolute -right-2 -top-2 w-4 h-4 bg-green-500 rounded-full cursor-ne-resize"
+                    className="absolute -right-2 -top-2 w-4 h-4 bg-green-500 rounded-full cursor-ne-resize touch-none"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       const startX = e.clientX;
@@ -966,9 +996,37 @@ export default function ScanReceiptPage() {
                       document.addEventListener('mousemove', handleMove);
                       document.addEventListener('mouseup', handleUp);
                     }}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      const touch = e.touches[0];
+                      const startX = touch.clientX;
+                      const startY = touch.clientY;
+                      const startCrop = { ...cropArea };
+
+                      const handleTouchMove = (e: TouchEvent) => {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const dx = touch.clientX - startX;
+                        const dy = touch.clientY - startY;
+                        setCropArea({
+                          x: startCrop.x,
+                          y: Math.max(0, startCrop.y + dy),
+                          width: Math.max(100, startCrop.width + dx),
+                          height: Math.max(100, startCrop.height - dy),
+                        });
+                      };
+
+                      const handleTouchEnd = () => {
+                        document.removeEventListener('touchmove', handleTouchMove);
+                        document.removeEventListener('touchend', handleTouchEnd);
+                      };
+
+                      document.addEventListener('touchmove', handleTouchMove);
+                      document.addEventListener('touchend', handleTouchEnd);
+                    }}
                   />
                   <div
-                    className="absolute -left-2 -bottom-2 w-4 h-4 bg-green-500 rounded-full cursor-sw-resize"
+                    className="absolute -left-2 -bottom-2 w-4 h-4 bg-green-500 rounded-full cursor-sw-resize touch-none"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       const startX = e.clientX;
@@ -994,9 +1052,37 @@ export default function ScanReceiptPage() {
                       document.addEventListener('mousemove', handleMove);
                       document.addEventListener('mouseup', handleUp);
                     }}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      const touch = e.touches[0];
+                      const startX = touch.clientX;
+                      const startY = touch.clientY;
+                      const startCrop = { ...cropArea };
+
+                      const handleTouchMove = (e: TouchEvent) => {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const dx = touch.clientX - startX;
+                        const dy = touch.clientY - startY;
+                        setCropArea({
+                          x: Math.max(0, startCrop.x + dx),
+                          y: startCrop.y,
+                          width: Math.max(100, startCrop.width - dx),
+                          height: Math.max(100, startCrop.height + dy),
+                        });
+                      };
+
+                      const handleTouchEnd = () => {
+                        document.removeEventListener('touchmove', handleTouchMove);
+                        document.removeEventListener('touchend', handleTouchEnd);
+                      };
+
+                      document.addEventListener('touchmove', handleTouchMove);
+                      document.addEventListener('touchend', handleTouchEnd);
+                    }}
                   />
                   <div
-                    className="absolute -right-2 -bottom-2 w-4 h-4 bg-green-500 rounded-full cursor-se-resize"
+                    className="absolute -right-2 -bottom-2 w-4 h-4 bg-green-500 rounded-full cursor-se-resize touch-none"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       const startX = e.clientX;
@@ -1021,6 +1107,34 @@ export default function ScanReceiptPage() {
 
                       document.addEventListener('mousemove', handleMove);
                       document.addEventListener('mouseup', handleUp);
+                    }}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      const touch = e.touches[0];
+                      const startX = touch.clientX;
+                      const startY = touch.clientY;
+                      const startCrop = { ...cropArea };
+
+                      const handleTouchMove = (e: TouchEvent) => {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const dx = touch.clientX - startX;
+                        const dy = touch.clientY - startY;
+                        setCropArea({
+                          x: startCrop.x,
+                          y: startCrop.y,
+                          width: Math.max(100, startCrop.width + dx),
+                          height: Math.max(100, startCrop.height + dy),
+                        });
+                      };
+
+                      const handleTouchEnd = () => {
+                        document.removeEventListener('touchmove', handleTouchMove);
+                        document.removeEventListener('touchend', handleTouchEnd);
+                      };
+
+                      document.addEventListener('touchmove', handleTouchMove);
+                      document.addEventListener('touchend', handleTouchEnd);
                     }}
                   />
                 </div>
@@ -1186,23 +1300,23 @@ export default function ScanReceiptPage() {
 
           {/* Category Tabs */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ItemCategory)}>
-            <div className="flex items-center justify-between mb-4">
-              <TabsList>
-                <TabsTrigger value="INVENTORY" className="gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+              <TabsList className="w-full sm:w-auto h-auto">
+                <TabsTrigger value="INVENTORY" className="gap-2 flex-1 sm:flex-none">
                   <Package className="h-4 w-4" />
                   Inventory ({getItemsByCategory('INVENTORY').length})
                 </TabsTrigger>
-                <TabsTrigger value="EXPENSE" className="gap-2">
+                <TabsTrigger value="EXPENSE" className="gap-2 flex-1 sm:flex-none">
                   <Receipt className="h-4 w-4" />
                   Expenses ({getItemsByCategory('EXPENSE').length})
                 </TabsTrigger>
-                <TabsTrigger value="UNKNOWN" className="gap-2">
+                <TabsTrigger value="UNKNOWN" className="gap-2 flex-1 sm:flex-none">
                   <HelpCircle className="h-4 w-4" />
                   Needs Review ({getItemsByCategory('UNKNOWN').length})
                 </TabsTrigger>
               </TabsList>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleReset}>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button variant="outline" onClick={handleReset} className="flex-1 sm:flex-none">
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Scan Another
                 </Button>
@@ -1347,8 +1461,8 @@ export default function ScanReceiptPage() {
           {/* Summary & Save */}
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex gap-6">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                <div className="flex flex-wrap gap-6">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-blue-600">
                       {getItemsByCategory('INVENTORY').length}
@@ -1374,8 +1488,12 @@ export default function ScanReceiptPage() {
                     <p className="text-sm text-muted-foreground">Total Amount</p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => navigate('/dashboard/inventory')}>
+                <div className="flex gap-2 w-full lg:w-auto">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/dashboard/inventory')}
+                    className="flex-1 lg:flex-none"
+                  >
                     Cancel
                   </Button>
                   <Button
@@ -1385,6 +1503,7 @@ export default function ScanReceiptPage() {
                       (getItemsByCategory('INVENTORY').length === 0 &&
                         getItemsByCategory('EXPENSE').length === 0)
                     }
+                    className="flex-1 lg:flex-none"
                   >
                     {saveMutation.isPending ? (
                       <>
