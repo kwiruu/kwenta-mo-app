@@ -477,7 +477,7 @@ export default function ScanReceiptPage() {
       });
 
       // Navigate back to inventory
-      navigate('/dashboard/inventory');
+      navigate('/dashboard/scan-receipt');
     } catch (error) {
       toast({
         variant: 'destructive',

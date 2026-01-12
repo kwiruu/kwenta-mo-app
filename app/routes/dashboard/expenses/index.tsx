@@ -14,6 +14,16 @@ import {
   TableRow,
 } from '~/components/ui/table';
 import { Badge } from '~/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '~/components/ui/alert-dialog';
 import { useExpenses, useExpenseStats, useDeleteExpense } from '~/hooks';
 import { APP_CONFIG } from '~/config/app';
 import type { ExpenseCategory, Expense } from '~/lib/api';
@@ -87,7 +97,7 @@ export default function ExpensesListPage() {
   const { data: stats } = useExpenseStats();
   const deleteExpenseMutation = useDeleteExpense();
   const [searchQuery, setSearchQuery] = useState('');
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
 
   const filteredExpenses = expenses.filter(
     (expense) =>
@@ -112,13 +122,14 @@ export default function ExpensesListPage() {
     });
   };
 
-  const handleDelete = async (id: string) => {
-    if (deleteConfirm === id) {
-      deleteExpenseMutation.mutate(id);
-      setDeleteConfirm(null);
-    } else {
-      setDeleteConfirm(id);
-      setTimeout(() => setDeleteConfirm(null), 3000);
+  const handleDeleteClick = (expense: Expense) => {
+    setExpenseToDelete(expense);
+  };
+
+  const confirmDelete = () => {
+    if (expenseToDelete) {
+      deleteExpenseMutation.mutate(expenseToDelete.id);
+      setExpenseToDelete(null);
     }
   };
 
@@ -342,12 +353,8 @@ export default function ExpensesListPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className={
-                            deleteConfirm === expense.id
-                              ? 'text-red-500 hover:text-red-600 hover:bg-red-50'
-                              : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
-                          }
-                          onClick={() => handleDelete(expense.id)}
+                          className="text-gray-500 hover:text-red-500 hover:bg-red-50"
+                          onClick={() => handleDeleteClick(expense)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -360,6 +367,34 @@ export default function ExpensesListPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!expenseToDelete} onOpenChange={() => setExpenseToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this expense?
+              {expenseToDelete && (
+                <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                  <p className="font-medium text-gray-900">{expenseToDelete.description}</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {categoryLabels[expenseToDelete.category]} •{' '}
+                    {formatCurrency(Number(expenseToDelete.amount))}
+                  </p>
+                </div>
+              )}
+              <p className="mt-3 text-red-600">This action cannot be undone.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
