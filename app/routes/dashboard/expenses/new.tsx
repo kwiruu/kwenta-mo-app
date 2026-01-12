@@ -32,27 +32,27 @@ const expenseCategories: {
   { value: 'RENT', label: '🏠 Rent', description: 'Stall or store rental' },
   {
     value: 'ELECTRICITY',
-    label: '⚡ Electricity',
+    label: 'Electricity',
     description: 'Electric bills (Meralco, VECO, etc.)',
   },
   {
     value: 'WATER',
-    label: '💧 Water',
+    label: 'Water',
     description: 'Water bills (MCWD, Maynilad, etc.)',
   },
   {
     value: 'GAS',
-    label: '🔥 Gas',
+    label: 'Gas',
     description: 'LPG or natural gas bills',
   },
   {
     value: 'INTERNET',
-    label: '🌐 Internet',
+    label: 'Internet',
     description: 'Internet and phone bills',
   },
   {
     value: 'UTILITIES',
-    label: '🔌 Utilities (Other)',
+    label: 'Utilities (Other)',
     description: 'Other utility expenses',
   },
   { value: 'SALARIES', label: 'Salaries', description: 'Employee wages' },
