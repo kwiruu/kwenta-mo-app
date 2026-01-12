@@ -29,7 +29,7 @@ const expenseCategories: {
   label: string;
   description: string;
 }[] = [
-  { value: 'RENT', label: '🏠 Rent', description: 'Stall or store rental' },
+  { value: 'RENT', label: 'Rent', description: 'Stall or store rental' },
   {
     value: 'ELECTRICITY',
     label: 'Electricity',
