@@ -1491,7 +1491,7 @@ export default function ScanReceiptPage() {
                 <div className="flex gap-2 w-full lg:w-auto">
                   <Button
                     variant="outline"
-                    onClick={() => navigate('/dashboard/inventory')}
+                    onClick={() => navigate('/dashboard')}
                     className="flex-1 lg:flex-none"
                   >
                     Cancel
