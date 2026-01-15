@@ -8,6 +8,10 @@ export const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000,
       // Cache data for 30 minutes
       gcTime: 30 * 60 * 1000,
+      // Don't refetch when components remount if data is still in cache
+      refetchOnMount: false,
+      // Don't refetch just because network reconnects; rely on manual refresh
+      refetchOnReconnect: false,
       // Retry once on error
       retry: 1,
       // Don't refetch on window focus

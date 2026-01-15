@@ -9,7 +9,7 @@ import {
   signInWithGoogle as supabaseSignInWithGoogle,
   getSession,
 } from '~/lib/supabase';
-import { authApi } from '~/lib/api';
+import { authApi, type SyncUserResponse } from '~/lib/api';
 
 interface AuthState {
   user: User | null;
@@ -17,6 +17,10 @@ interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
+  isAdmin: boolean;
+  impersonatedUserId: string | null;
+  isImpersonating: boolean;
+  isLoggingOut: boolean;
 
   // Actions
   initialize: () => Promise<void>;
@@ -29,6 +33,8 @@ interface AuthState {
   signInWithGoogle: () => Promise<{ success: boolean; message?: string }>;
   signOut: () => Promise<void>;
   clearError: () => void;
+  startImpersonation: (userId: string) => void;
+  stopImpersonation: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -39,6 +45,10 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       isAuthenticated: false,
       error: null,
+      isAdmin: false,
+      impersonatedUserId: null,
+      isImpersonating: false,
+      isLoggingOut: false,
 
       initialize: async () => {
         try {
@@ -58,19 +68,22 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (session) {
+            // Sync user with backend and get user profile (including isAdmin) BEFORE setting isLoading to false
+            let adminStatus = false;
+            try {
+              const response = await authApi.syncUser(session.user.user_metadata?.name);
+              adminStatus = response?.user?.isAdmin || false;
+            } catch (syncError) {
+              console.warn('Failed to sync user with backend:', syncError);
+            }
+
             set({
               user: session.user,
               session,
               isAuthenticated: true,
               isLoading: false,
+              isAdmin: adminStatus,
             });
-
-            // Sync user with backend
-            try {
-              await authApi.syncUser(session.user.user_metadata?.name);
-            } catch (syncError) {
-              console.warn('Failed to sync user with backend:', syncError);
-            }
           } else {
             set({
               user: null,
@@ -89,14 +102,22 @@ export const useAuthStore = create<AuthState>()(
                 isAuthenticated: true,
               });
 
-              // Sync with backend on sign in
+              // Sync with backend on sign in and get profile
               try {
-                await authApi.syncUser(session.user.user_metadata?.name);
+                const response = await authApi.syncUser(session.user.user_metadata?.name);
+                set({ isAdmin: response?.user?.isAdmin || false });
               } catch (syncError) {
                 console.warn('Failed to sync user with backend:', syncError);
               }
             } else if (event === 'SIGNED_OUT') {
-              set({ user: null, session: null, isAuthenticated: false });
+              set({
+                user: null,
+                session: null,
+                isAuthenticated: false,
+                isAdmin: false,
+                impersonatedUserId: null,
+                isImpersonating: false,
+              });
             } else if (event === 'TOKEN_REFRESHED' && session) {
               set({ session });
             }
@@ -136,9 +157,10 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
             });
 
-            // Sync with backend
+            // Sync with backend and get profile
             try {
-              await authApi.syncUser(name);
+              const response = await authApi.syncUser(name);
+              set({ isAdmin: response?.user?.isAdmin || false });
             } catch (syncError) {
               console.warn('Failed to sync user with backend:', syncError);
             }
@@ -164,19 +186,22 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (data.session) {
+            // Sync with backend and get profile BEFORE setting loading to false
+            let adminStatus = false;
+            try {
+              const response = await authApi.syncUser(data.user?.user_metadata?.name);
+              adminStatus = response?.user?.isAdmin || false;
+            } catch (syncError) {
+              console.warn('Failed to sync user with backend:', syncError);
+            }
+
             set({
               user: data.user,
               session: data.session,
               isAuthenticated: true,
               isLoading: false,
+              isAdmin: adminStatus,
             });
-
-            // Sync with backend
-            try {
-              await authApi.syncUser(data.user?.user_metadata?.name);
-            } catch (syncError) {
-              console.warn('Failed to sync user with backend:', syncError);
-            }
 
             return { success: true };
           }
@@ -212,24 +237,44 @@ export const useAuthStore = create<AuthState>()(
 
       signOut: async () => {
         try {
+          set({ isLoggingOut: true });
           await supabaseSignOut();
           set({
             user: null,
             session: null,
             isAuthenticated: false,
-            isLoading: false,
+            isAdmin: false,
+            impersonatedUserId: null,
+            isImpersonating: false,
+            isLoggingOut: false,
           });
         } catch (error) {
           console.error('Sign out error:', error);
+          set({ isLoggingOut: false });
         }
       },
 
       clearError: () => set({ error: null }),
+
+      startImpersonation: (userId: string) => {
+        set({
+          impersonatedUserId: userId,
+          isImpersonating: true,
+        });
+      },
+
+      stopImpersonation: () => {
+        set({
+          impersonatedUserId: null,
+          isImpersonating: false,
+        });
+      },
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({
-        // Don't persist sensitive data - rely on Supabase session
+        // Persist isAdmin so it's available immediately on page load (avoids flash of wrong UI)
+        isAdmin: state.isAdmin,
       }),
     }
   )
