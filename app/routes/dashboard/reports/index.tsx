@@ -297,7 +297,7 @@ export default function ReportsIndex() {
 
       {/* Report Tabs */}
       <Tabs value={activeReport} onValueChange={(v) => setActiveReport(v as ReportType)}>
-        <TabsList className="grid w-full grid-cols-4 mb-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-4 h-auto">
           <TabsTrigger value="cogs">COGS Report</TabsTrigger>
           <TabsTrigger value="expense">Expense Report</TabsTrigger>
           <TabsTrigger value="income">Income Statement</TabsTrigger>

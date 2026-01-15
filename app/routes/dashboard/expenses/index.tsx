@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Plus, Search, Upload, Edit, Trash2, Receipt } from 'lucide-react';
+import { Plus, Search, Scan, Edit, Trash2, Receipt } from 'lucide-react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -14,6 +14,16 @@ import {
   TableRow,
 } from '~/components/ui/table';
 import { Badge } from '~/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '~/components/ui/alert-dialog';
 import { useExpenses, useExpenseStats, useDeleteExpense } from '~/hooks';
 import { APP_CONFIG } from '~/config/app';
 import type { ExpenseCategory, Expense } from '~/lib/api';
@@ -29,6 +39,9 @@ const categoryLabels: Record<ExpenseCategory, string> = {
   INGREDIENTS: 'Ingredients',
   LABOR: 'Labor',
   UTILITIES: 'Utilities',
+  ELECTRICITY: 'Electricity',
+  WATER: 'Water',
+  GAS: 'Gas',
   RENT: 'Rent',
   EQUIPMENT: 'Equipment',
   MARKETING: 'Marketing',
@@ -42,7 +55,7 @@ const categoryLabels: Record<ExpenseCategory, string> = {
   FIXED_SALARIES: 'Fixed Salaries',
   DEPRECIATION: 'Depreciation',
   PERMITS_LICENSES: 'Permits & Licenses',
-  INTERNET: 'Internet',
+  INTERNET: '🌐 Internet',
   TAX_EXPENSE: 'Tax Expense',
   INTEREST_EXPENSE: 'Interest Expense',
   BANK_CHARGES: 'Bank Charges',
@@ -54,6 +67,9 @@ const categoryColors: Record<ExpenseCategory, string> = {
   INGREDIENTS: 'bg-green-100 text-green-700 hover:bg-green-100',
   LABOR: 'bg-secondary/10 text-secondary hover:bg-secondary/10',
   UTILITIES: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
+  ELECTRICITY: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
+  WATER: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-100',
+  GAS: 'bg-orange-100 text-orange-700 hover:bg-orange-100',
   RENT: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
   EQUIPMENT: 'bg-purple-100 text-purple-700 hover:bg-purple-100',
   MARKETING: 'bg-pink-100 text-pink-700 hover:bg-pink-100',
@@ -81,7 +97,7 @@ export default function ExpensesListPage() {
   const { data: stats } = useExpenseStats();
   const deleteExpenseMutation = useDeleteExpense();
   const [searchQuery, setSearchQuery] = useState('');
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
 
   const filteredExpenses = expenses.filter(
     (expense) =>
@@ -106,13 +122,14 @@ export default function ExpensesListPage() {
     });
   };
 
-  const handleDelete = async (id: string) => {
-    if (deleteConfirm === id) {
-      deleteExpenseMutation.mutate(id);
-      setDeleteConfirm(null);
-    } else {
-      setDeleteConfirm(id);
-      setTimeout(() => setDeleteConfirm(null), 3000);
+  const handleDeleteClick = (expense: Expense) => {
+    setExpenseToDelete(expense);
+  };
+
+  const confirmDelete = () => {
+    if (expenseToDelete) {
+      deleteExpenseMutation.mutate(expenseToDelete.id);
+      setExpenseToDelete(null);
     }
   };
 
@@ -149,9 +166,9 @@ export default function ExpensesListPage() {
             className="border-gray-200 text-gray-700 hover:bg-gray-50"
             asChild
           >
-            <Link to="/dashboard/expenses/upload">
-              <Upload className="h-4 w-4 mr-2" />
-              Bulk Upload
+            <Link to="/dashboard/scan-receipt">
+              <Scan className="h-4 w-4 mr-2" />
+              Scan Expense
             </Link>
           </Button>
           <Button variant="green" asChild>
@@ -279,9 +296,9 @@ export default function ExpensesListPage() {
               {!searchQuery && (
                 <div className="flex gap-2">
                   <Button variant="outline" className="border-gray-200" asChild>
-                    <Link to="/dashboard/expenses/upload">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload File
+                    <Link to="/dashboard/scan-receipt">
+                      <Scan className="h-4 w-4 mr-2" />
+                      Scan Receipt/Bill
                     </Link>
                   </Button>
                   <Button variant="green" asChild>
@@ -336,12 +353,8 @@ export default function ExpensesListPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className={
-                            deleteConfirm === expense.id
-                              ? 'text-red-500 hover:text-red-600 hover:bg-red-50'
-                              : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
-                          }
-                          onClick={() => handleDelete(expense.id)}
+                          className="text-gray-500 hover:text-red-500 hover:bg-red-50"
+                          onClick={() => handleDeleteClick(expense)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -354,6 +367,34 @@ export default function ExpensesListPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!expenseToDelete} onOpenChange={() => setExpenseToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this expense?
+              {expenseToDelete && (
+                <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                  <p className="font-medium text-gray-900">{expenseToDelete.description}</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {categoryLabels[expenseToDelete.category]} •{' '}
+                    {formatCurrency(Number(expenseToDelete.amount))}
+                  </p>
+                </div>
+              )}
+              <p className="mt-3 text-red-600">This action cannot be undone.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

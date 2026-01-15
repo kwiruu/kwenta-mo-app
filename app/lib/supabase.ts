@@ -79,24 +79,62 @@ export const getUser = async () => {
   return { user: data.user, error };
 };
 
+// Refresh the current session - useful when returning from idle
+export const refreshSession = async () => {
+  const { data, error } = await supabase.auth.refreshSession();
+  if (data.session) {
+    cachedToken = data.session.access_token;
+    tokenExpiry = (data.session.expires_at ?? 0) * 1000 - 5 * 60 * 1000;
+  }
+  return { session: data.session, error };
+};
+
 // Get access token for API calls - uses cache to avoid slow getSession calls
+// Automatically attempts to refresh if token is expired
 export const getAccessToken = async (): Promise<string | null> => {
   // Return cached token if still valid
   if (cachedToken && Date.now() < tokenExpiry) {
     return cachedToken;
   }
 
-  // Otherwise fetch fresh session (this updates the cache via onAuthStateChange)
+  // Try to get current session first
   try {
     const { data } = await supabase.auth.getSession();
+
     if (data.session) {
-      cachedToken = data.session.access_token;
-      tokenExpiry = (data.session.expires_at ?? 0) * 1000 - 5 * 60 * 1000;
-      return cachedToken;
+      // Check if the session token is still valid
+      const expiresAt = (data.session.expires_at ?? 0) * 1000;
+
+      if (Date.now() < expiresAt) {
+        // Token is still valid
+        cachedToken = data.session.access_token;
+        tokenExpiry = expiresAt - 5 * 60 * 1000;
+        return cachedToken;
+      }
+
+      // Token expired, try to refresh
+      console.log('Access token expired, attempting refresh...');
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+
+      if (refreshError) {
+        console.warn('Failed to refresh session:', refreshError.message);
+        // Clear cache to force re-auth
+        cachedToken = null;
+        tokenExpiry = 0;
+        return null;
+      }
+
+      if (refreshData.session) {
+        console.log('Session refreshed successfully');
+        cachedToken = refreshData.session.access_token;
+        tokenExpiry = (refreshData.session.expires_at ?? 0) * 1000 - 5 * 60 * 1000;
+        return cachedToken;
+      }
     }
   } catch (error) {
-    console.error('Error getting session:', error);
+    console.error('Error getting/refreshing session:', error);
   }
+
   return null;
 };
 
