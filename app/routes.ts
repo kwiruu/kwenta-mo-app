@@ -37,5 +37,17 @@ export default [
     route('dashboard/scan-receipt', 'routes/dashboard/scan-receipt/index.tsx'),
     // Reports
     route('dashboard/reports', 'routes/dashboard/reports/index.tsx'),
+    // Admin Panel
+    layout('routes/dashboard/admin/layout.tsx', [
+      route('dashboard/admin', 'routes/dashboard/admin/index.tsx'),
+      route('dashboard/admin/users', 'routes/dashboard/admin/users/index.tsx'),
+      route('dashboard/admin/inventory', 'routes/dashboard/admin/inventory/index.tsx'),
+      route('dashboard/admin/recipes', 'routes/dashboard/admin/recipes/index.tsx'),
+      route('dashboard/admin/sales', 'routes/dashboard/admin/sales/index.tsx'),
+      route('dashboard/admin/expenses', 'routes/dashboard/admin/expenses/index.tsx'),
+      route('dashboard/admin/reports', 'routes/dashboard/admin/reports/index.tsx'),
+      route('dashboard/admin/activity', 'routes/dashboard/admin/activity/index.tsx'),
+      route('dashboard/admin/settings', 'routes/dashboard/admin/settings/index.tsx'),
+    ]),
   ]),
 ] satisfies RouteConfig;

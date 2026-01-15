@@ -30,6 +30,7 @@ export default function LoginPage() {
     signIn,
     signInWithGoogle,
     isAuthenticated,
+    isAdmin,
     isLoading: authLoading,
     error: authError,
     clearError,
@@ -57,9 +58,10 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      // Redirect admins to admin dashboard, regular users to user dashboard
+      navigate(isAdmin ? '/dashboard/admin' : '/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isAdmin, navigate]);
 
   // Show auth errors
   useEffect(() => {
@@ -77,7 +79,9 @@ export default function LoginPage() {
     const result = await signIn(formData.email, formData.password);
 
     if (result.success) {
-      navigate('/dashboard');
+      // Get the latest isAdmin state after sign in
+      const { isAdmin: adminStatus } = useAuthStore.getState();
+      navigate(adminStatus ? '/dashboard/admin' : '/dashboard');
     } else {
       setError(result.message || 'Invalid email or password');
     }

@@ -12,6 +12,10 @@ import {
   ShoppingCart,
   Warehouse,
   Scan,
+  Shield,
+  Users,
+  Activity,
+  Settings,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -22,7 +26,8 @@ import { useAuthStore } from '~/stores/authStore';
 import { useBusinessStore } from '~/stores/businessStore';
 import { useUserProfile } from '~/hooks/useBusiness';
 
-const navigation = [
+// Regular user navigation
+const userNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   {
     name: 'Business Profile',
@@ -37,16 +42,41 @@ const navigation = [
   { name: 'Scan', href: '/dashboard/scan-receipt', icon: Scan },
 ];
 
+// Admin-only navigation (full admin panel)
+const adminNavigation = [
+  { name: 'Overview', href: '/dashboard/admin', icon: LayoutDashboard },
+  { name: 'Businesses', href: '/dashboard/admin/users', icon: Users },
+  { name: 'Inventory', href: '/dashboard/admin/inventory', icon: Warehouse },
+  { name: 'Recipes', href: '/dashboard/admin/recipes', icon: ChefHat },
+  { name: 'Sales', href: '/dashboard/admin/sales', icon: ShoppingCart },
+  { name: 'Expenses', href: '/dashboard/admin/expenses', icon: Receipt },
+  { name: 'Reports', href: '/dashboard/admin/reports', icon: FileText },
+  { name: 'Activity', href: '/dashboard/admin/activity', icon: Activity },
+  { name: 'Settings', href: '/dashboard/admin/settings', icon: Settings },
+];
+
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, isAuthenticated, isLoading, signOut } = useAuthStore();
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    isAdmin,
+    isImpersonating,
+    isLoggingOut,
+    stopImpersonation,
+    signOut,
+  } = useAuthStore();
   const { business } = useBusinessStore();
 
-  // Fetch profile from API (used for future features)
-  const { data: _profile } = useUserProfile();
+  // Select navigation based on admin status (when not impersonating)
+  const navigation = isAdmin && !isImpersonating ? adminNavigation : userNavigation;
+
+  // Fetch profile from API (includes impersonated user data if impersonating)
+  const { data: profile } = useUserProfile();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -54,6 +84,17 @@ export default function DashboardLayout() {
       navigate('/login');
     }
   }, [isAuthenticated, isLoading, navigate]);
+
+  // Redirect admins to admin dashboard if they try to access regular user routes
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && isAdmin && !isImpersonating) {
+      // If admin is on a non-admin route, redirect to admin dashboard
+      const isOnAdminRoute = location.pathname.startsWith('/dashboard/admin');
+      if (!isOnAdminRoute) {
+        navigate('/dashboard/admin', { replace: true });
+      }
+    }
+  }, [isLoading, isAuthenticated, isAdmin, isImpersonating, location.pathname, navigate]);
 
   const handleLogout = async () => {
     // Clear all cached data
@@ -82,8 +123,33 @@ export default function DashboardLayout() {
     return null;
   }
 
+  const handleExitImpersonation = () => {
+    stopImpersonation();
+    navigate('/dashboard/admin/users');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50/50">
+      {/* Impersonation Banner */}
+      {isImpersonating && (
+        <div className="bg-amber-500 text-white py-2 px-4 sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span className="text-sm font-medium">You are viewing as another user</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleExitImpersonation}
+              className="text-white hover:bg-white/20"
+            >
+              Exit Impersonation
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -102,7 +168,10 @@ export default function DashboardLayout() {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center justify-between px-5 border-b border-gray-100">
-            <Link to="/dashboard" className="flex items-center">
+            <Link
+              to={isAdmin && !isImpersonating ? '/dashboard/admin' : '/dashboard'}
+              className="flex items-center"
+            >
               <img src="/logo-text.svg" alt="Kwenta MO" className="h-10" />
             </Link>
             <Button
@@ -115,12 +184,24 @@ export default function DashboardLayout() {
             </Button>
           </div>
 
+          {/* Admin Badge */}
+          {isAdmin && !isImpersonating && (
+            <div className="px-4 py-2 bg-slate-900 text-white">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Shield className="h-4 w-4" />
+                Admin Panel
+              </div>
+            </div>
+          )}
+
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4 space-y-1 bg-primary-foreground">
             {navigation.map((item) => {
               const isActive =
                 location.pathname === item.href ||
-                (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
+                (item.href !== '/dashboard' &&
+                  item.href !== '/dashboard/admin' &&
+                  location.pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.name}
@@ -144,10 +225,20 @@ export default function DashboardLayout() {
           <div className="p-4 border-t border-gray-100 bg-primary-foreground">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 w-full transition-all"
+              disabled={isLoggingOut}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 w-full transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <LogOut className="h-[18px] w-[18px]" />
-              Logout
+              {isLoggingOut ? (
+                <>
+                  <div className="h-[18px] w-[18px] border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                  Logging out...
+                </>
+              ) : (
+                <>
+                  <LogOut className="h-[18px] w-[18px]" />
+                  Logout
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -169,9 +260,9 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-4">
             <div className="text-right">
               <span className="text-sm font-medium text-gray-900">
-                {business?.businessName || user?.email || 'My Business'}
+                {business?.businessName || profile?.email || user?.email || 'My Business'}
               </span>
-              {business?.businessName && <p className="text-xs text-gray-500">{user?.email}</p>}
+              {business?.businessName && <p className="text-xs text-gray-500">{profile?.email || user?.email}</p>}
             </div>
           </div>
         </header>

@@ -1,37 +1,16 @@
 import { getAccessToken, refreshSession, clearTokenCache } from './supabase';
+import { useAuthStore } from '~/stores/authStore';
 
 // API URLs
 const LOCAL_API = 'http://localhost:3000/api';
 const PRODUCTION_API = 'https://kwenta-mo-api.onrender.com/api';
 
-// Function to get API URL at runtime
-function getApiUrl(): string {
-  // Check environment variable first
-  const envUseProduction = import.meta.env.VITE_USE_PRODUCTION_API;
-
-  if (envUseProduction === 'true') {
-    return import.meta.env.VITE_API_URL_PRODUCTION || PRODUCTION_API;
-  }
-
-  if (envUseProduction === 'false') {
-    return import.meta.env.VITE_API_URL_LOCAL || LOCAL_API;
-  }
-
-  // Auto-detect based on hostname (runtime check)
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return import.meta.env.VITE_API_URL_LOCAL || LOCAL_API;
-    }
-  }
-
-  // Default to production
-  return import.meta.env.VITE_API_URL_PRODUCTION || PRODUCTION_API;
-}
-
-const API_URL = getApiUrl();
-
-console.log('API URL:', API_URL);
+// Get API URL from environment variable or default to local
+// Use VITE_USE_PRODUCTION_API=true in production
+const API_URL =
+  import.meta.env.VITE_USE_PRODUCTION_API === 'true'
+    ? import.meta.env.VITE_API_URL_PRODUCTION || PRODUCTION_API
+    : import.meta.env.VITE_API_URL_LOCAL || LOCAL_API;
 
 const REQUEST_TIMEOUT = 15000; // 15 seconds timeout
 
@@ -67,6 +46,12 @@ class ApiClient {
       if (token) {
         (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
       }
+    }
+
+    // Add impersonation header if active
+    const { impersonatedUserId, isImpersonating } = useAuthStore.getState();
+    if (isImpersonating && impersonatedUserId) {
+      (headers as Record<string, string>)['X-Impersonate-User'] = impersonatedUserId;
     }
 
     // Create abort controller for timeout
@@ -171,8 +156,20 @@ export class ApiError extends Error {
 export const api = new ApiClient(API_URL);
 
 // ============ AUTH API ============
+export interface SyncUserResponse {
+  success: boolean;
+  user: {
+    id: string;
+    email: string;
+    name?: string;
+    isAdmin: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
 export const authApi = {
-  syncUser: (name?: string) => api.post('/auth/sync', { name }),
+  syncUser: (name?: string) => api.post<SyncUserResponse>('/auth/sync', { name }),
   getMe: () => api.get('/auth/me'),
 };
 
@@ -1274,4 +1271,430 @@ export const receiptScannerApi = {
     expenseCount: number;
     unknownCount: number;
   }> => api.post('/receipt/parse-text', { text }),
+};
+
+// ============ ADMIN TYPES ============
+export interface AdminStats {
+  overview: {
+    totalUsers: number;
+    totalRecipes: number;
+    totalInventoryItems: number;
+    totalSales: number;
+    totalExpenses: number;
+    lowStockAlerts: number;
+    newUsersThisMonth: number;
+  };
+  financial: {
+    monthlyRevenue: number;
+    lastMonthRevenue: number;
+    revenueChange: number;
+    monthlyExpenses: number;
+    lastMonthExpenses: number;
+    expenseChange: number;
+    netProfit: number;
+  };
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string | null;
+  createdAt: string;
+  updatedAt: string;
+  business: Business | null;
+  _count: {
+    recipes: number;
+    sales: number;
+    expenses: number;
+    purchases: number;
+  };
+}
+
+export interface AdminUserDetails extends AdminUser {
+  recipes: Array<{ id: string; name: string; sellingPrice: number; createdAt: string }>;
+  sales: Array<{
+    id: string;
+    quantity: number;
+    totalPrice: number;
+    saleDate: string;
+    recipe: { name: string };
+  }>;
+  expenses: Array<{
+    id: string;
+    category: string;
+    amount: number;
+    expenseDate: string;
+    description: string;
+  }>;
+  purchases: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    totalCost: number;
+    purchaseDate: string;
+  }>;
+  stats: {
+    totalRevenue: number;
+    totalProfit: number;
+    salesCount: number;
+    totalExpenses: number;
+    expensesCount: number;
+    totalPurchases: number;
+    purchasesCount: number;
+  };
+}
+
+export interface AdminUsersResponse {
+  users: AdminUser[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface AdminActivity {
+  type: 'sale' | 'expense' | 'purchase';
+  id: string;
+  description: string;
+  amount: number;
+  userId: string;
+  userName: string;
+  createdAt: string;
+}
+
+export interface AdminLowStockItem {
+  id: string;
+  name: string;
+  quantity: number;
+  reorderLevel: number;
+  unit: string;
+  userId: string;
+  userEmail: string;
+  userName: string | null;
+}
+
+export interface AdminRevenueChartData {
+  date: string;
+  revenue: number;
+}
+
+// Inventory types
+export interface AdminInventoryItem {
+  id: string;
+  name: string;
+  itemType: string;
+  quantity: number;
+  unit: string;
+  unitCost: number;
+  totalCost: number;
+  reorderLevel: number;
+  supplier: string | null;
+  purchaseDate: string;
+  user: { email: string; name: string | null };
+}
+
+export interface AdminInventoryResponse {
+  items: AdminInventoryItem[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface AdminInventoryStats {
+  totalItems: number;
+  totalValue: number;
+  lowStockCount: number;
+  byType: Array<{ type: string; count: number; value: number }>;
+}
+
+export interface AdminInventoryTransaction {
+  id: string;
+  type: string;
+  quantityChange: number;
+  quantityBefore: number;
+  quantityAfter: number;
+  unitCost: number | null;
+  notes: string | null;
+  createdAt: string;
+  purchase: {
+    name: string;
+    unit: string;
+    user: { email: string; name: string | null };
+  };
+}
+
+export interface AdminInventoryTransactionsResponse {
+  transactions: AdminInventoryTransaction[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+// Recipe types
+export interface AdminRecipe {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  sellingPrice: number;
+  laborCost: number;
+  overheadCost: number;
+  isActive: boolean;
+  createdAt: string;
+  user: { email: string; name: string | null };
+  _count: { sales: number };
+  calculatedCost: {
+    ingredientCost: number;
+    totalCost: number;
+    profit: number;
+    margin: number;
+  };
+}
+
+export interface AdminRecipesResponse {
+  recipes: AdminRecipe[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface AdminRecipeStats {
+  totalRecipes: number;
+  activeRecipes: number;
+  inactiveRecipes: number;
+  categories: Array<{ category: string; count: number }>;
+  topSelling: Array<{ recipeId: string; name: string; quantitySold: number; revenue: number }>;
+}
+
+// Sales types
+export interface AdminSale {
+  id: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  costOfGoods: number;
+  profit: number;
+  saleDate: string;
+  category: string;
+  user: { email: string; name: string | null };
+  recipe: { name: string };
+}
+
+export interface AdminSalesResponse {
+  sales: AdminSale[];
+  summary: { totalRevenue: number; totalProfit: number; totalCOGS: number; count: number };
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface AdminSalesStats {
+  allTime: { revenue: number; profit: number; count: number };
+  thisMonth: { revenue: number; profit: number; count: number };
+  thisWeek: { revenue: number; profit: number; count: number };
+  byCategory: Array<{ category: string; revenue: number; count: number }>;
+  dailyAverage: number;
+}
+
+// Expense types
+export interface AdminExpense {
+  id: string;
+  category: string;
+  type: string;
+  description: string;
+  amount: number;
+  frequency: string;
+  expenseDate: string;
+  user: { email: string; name: string | null };
+}
+
+export interface AdminExpensesResponse {
+  expenses: AdminExpense[];
+  summary: { totalAmount: number; count: number };
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface AdminExpenseStats {
+  allTime: { amount: number; count: number };
+  thisMonth: { amount: number; count: number };
+  byCategory: Array<{ category: string; amount: number; count: number }>;
+  byType: Array<{ type: string; amount: number; count: number }>;
+  byFrequency: Array<{ frequency: string; amount: number; count: number }>;
+}
+
+// Financial summary
+export interface AdminFinancialSummary {
+  period: { startDate?: string; endDate?: string };
+  revenue: { total: number; salesCount: number };
+  costs: { cogs: number; operatingExpenses: number; purchasesCost: number };
+  profit: { gross: number; grossMargin: number; net: number; netMargin: number };
+}
+
+// Category memory
+export interface AdminCategoryMemoryItem {
+  id: string;
+  userId: string;
+  itemPattern: string;
+  category: string;
+  subCategory: string | null;
+  vendor: string | null;
+  useCount: number;
+  createdAt: string;
+}
+
+export interface AdminCategoryMemoryResponse {
+  patterns: AdminCategoryMemoryItem[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+// Audit log
+export interface AdminAuditLogItem {
+  type: 'sale' | 'expense' | 'purchase' | 'recipe' | 'user';
+  id: string;
+  action: string;
+  description: string;
+  user: string;
+  createdAt: string;
+}
+
+export interface AdminAuditLogResponse {
+  logs: AdminAuditLogItem[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+// ============ ADMIN API ============
+export const adminApi = {
+  // Get dashboard statistics
+  getStats: (): Promise<AdminStats> => api.get('/admin/stats'),
+
+  // Get all users with pagination
+  getUsers: (page = 1, limit = 10, search?: string): Promise<AdminUsersResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (search) params.append('search', search);
+    return api.get(`/admin/users?${params.toString()}`);
+  },
+
+  // Get single user details
+  getUserDetails: (userId: string): Promise<AdminUserDetails> => api.get(`/admin/users/${userId}`),
+
+  // Get recent activity
+  getRecentActivity: (limit = 20): Promise<AdminActivity[]> =>
+    api.get(`/admin/activity?limit=${limit}`),
+
+  // Get low stock items
+  getLowStockItems: (limit = 10): Promise<AdminLowStockItem[]> =>
+    api.get(`/admin/low-stock?limit=${limit}`),
+
+  // Get revenue chart data
+  getRevenueChart: (): Promise<AdminRevenueChartData[]> => api.get('/admin/revenue-chart'),
+
+  // ============ INVENTORY ============
+  getInventory: (
+    page = 1,
+    limit = 20,
+    search?: string,
+    type?: string
+  ): Promise<AdminInventoryResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (search) params.append('search', search);
+    if (type) params.append('type', type);
+    return api.get(`/admin/inventory?${params.toString()}`);
+  },
+
+  getInventoryStats: (): Promise<AdminInventoryStats> => api.get('/admin/inventory/stats'),
+
+  getInventoryTransactions: (
+    page = 1,
+    limit = 20,
+    type?: string
+  ): Promise<AdminInventoryTransactionsResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (type) params.append('type', type);
+    return api.get(`/admin/inventory/transactions?${params.toString()}`);
+  },
+
+  // ============ RECIPES ============
+  getRecipes: (
+    page = 1,
+    limit = 20,
+    search?: string,
+    category?: string
+  ): Promise<AdminRecipesResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (search) params.append('search', search);
+    if (category) params.append('category', category);
+    return api.get(`/admin/recipes?${params.toString()}`);
+  },
+
+  getRecipeStats: (): Promise<AdminRecipeStats> => api.get('/admin/recipes/stats'),
+
+  // ============ SALES ============
+  getSales: (
+    page = 1,
+    limit = 20,
+    startDate?: string,
+    endDate?: string,
+    category?: string
+  ): Promise<AdminSalesResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (category) params.append('category', category);
+    return api.get(`/admin/sales?${params.toString()}`);
+  },
+
+  getSalesStats: (): Promise<AdminSalesStats> => api.get('/admin/sales/stats'),
+
+  // ============ EXPENSES ============
+  getExpenses: (
+    page = 1,
+    limit = 20,
+    startDate?: string,
+    endDate?: string,
+    category?: string,
+    type?: string
+  ): Promise<AdminExpensesResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (category) params.append('category', category);
+    if (type) params.append('type', type);
+    return api.get(`/admin/expenses?${params.toString()}`);
+  },
+
+  getExpenseStats: (): Promise<AdminExpenseStats> => api.get('/admin/expenses/stats'),
+
+  // ============ REPORTS ============
+  getFinancialSummary: (startDate?: string, endDate?: string): Promise<AdminFinancialSummary> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    return api.get(`/admin/reports/financial?${params.toString()}`);
+  },
+
+  // ============ SETTINGS ============
+  getCategoryMemory: (page = 1, limit = 20): Promise<AdminCategoryMemoryResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    return api.get(`/admin/settings/category-memory?${params.toString()}`);
+  },
+
+  deleteCategoryMemory: (id: string): Promise<void> =>
+    api.delete(`/admin/settings/category-memory/${id}`),
+
+  // ============ AUDIT ============
+  getAuditLog: (page = 1, limit = 50, type?: string): Promise<AdminAuditLogResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (type) params.append('type', type);
+    return api.get(`/admin/audit?${params.toString()}`);
+  },
 };
