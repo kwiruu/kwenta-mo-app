@@ -135,8 +135,26 @@ export const useAuthStore = create<AuthState>()(
           const { data, error } = await supabaseSignUp(email, password, name);
 
           if (error) {
-            set({ isLoading: false, error: error.message });
-            return { success: false, message: error.message };
+            // Provide user-friendly error messages
+            let userMessage = error.message;
+            
+            // Check for duplicate email
+            if (error.message.toLowerCase().includes('already registered') || 
+                error.message.toLowerCase().includes('user already exists') ||
+                error.message.toLowerCase().includes('email already in use')) {
+              userMessage = 'This email is already registered. Please sign in instead or use a different email.';
+            }
+            // Check for invalid email format
+            else if (error.message.toLowerCase().includes('invalid email')) {
+              userMessage = 'Please enter a valid email address.';
+            }
+            // Check for weak password
+            else if (error.message.toLowerCase().includes('password')) {
+              userMessage = 'Password must be at least 8 characters long.';
+            }
+            
+            set({ isLoading: false, error: userMessage });
+            return { success: false, message: userMessage };
           }
 
           set({ isLoading: false });

@@ -8,22 +8,18 @@ export const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000,
       // Cache data for 30 minutes
       gcTime: 30 * 60 * 1000,
-      // Don't refetch when components remount if data is still in cache
-      refetchOnMount: false,
-      // Don't refetch just because network reconnects; rely on manual refresh
+      // Refetch when components remount if data is stale (default behavior)
+      refetchOnMount: true,
+      // Don't refetch just because network reconnects
       refetchOnReconnect: false,
       // Retry once on error
       retry: 1,
       // Don't refetch on window focus
       refetchOnWindowFocus: false,
-      // Timeout for network requests (handled in api.ts, but this prevents indefinite pending)
-      networkMode: 'offlineFirst',
     },
     mutations: {
       // Don't retry mutations by default
       retry: 0,
-      // Ensure mutations don't hang
-      networkMode: 'offlineFirst',
     },
   },
 });
