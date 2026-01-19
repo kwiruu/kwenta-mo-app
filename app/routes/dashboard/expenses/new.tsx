@@ -30,107 +30,33 @@ const expenseCategories: {
   label: string;
   description: string;
 }[] = [
-  { value: 'RENT', label: 'Rent', description: 'Stall or store rental' },
-  {
-    value: 'ELECTRICITY',
-    label: 'Electricity',
-    description: 'Electric bills (Meralco, VECO, etc.)',
-  },
-  {
-    value: 'WATER',
-    label: 'Water',
-    description: 'Water bills (MCWD, Maynilad, etc.)',
-  },
-  {
-    value: 'GAS',
-    label: 'Gas',
-    description: 'LPG or natural gas bills',
-  },
-  {
-    value: 'INTERNET',
-    label: 'Internet',
-    description: 'Internet and phone bills',
-  },
+  { value: 'INGREDIENTS', label: 'Ingredients', description: 'Raw materials and food ingredients' },
+  { value: 'LABOR', label: 'Labor', description: 'Employee wages and salaries' },
   {
     value: 'UTILITIES',
-    label: 'Utilities (Other)',
-    description: 'Other utility expenses',
+    label: 'Utilities',
+    description: 'Electricity, water, gas, internet, and other utilities',
   },
-  { value: 'SALARIES', label: 'Salaries', description: 'Employee wages' },
-  {
-    value: 'FIXED_SALARIES',
-    label: 'Fixed Salaries',
-    description: 'Fixed employee wages',
-  },
+  { value: 'RENT', label: 'Rent', description: 'Stall or store rental' },
   {
     value: 'EQUIPMENT',
     label: 'Equipment',
-    description: 'Kitchen equipment, tools',
-  },
-  {
-    value: 'MAINTENANCE',
-    label: 'Maintenance',
-    description: 'Repairs, upkeep',
+    description: 'Kitchen equipment, tools, and machinery',
   },
   {
     value: 'MARKETING',
     label: 'Marketing',
-    description: 'Advertising, promotions',
-  },
-  {
-    value: 'PACKAGING',
-    label: 'Packaging',
-    description: 'Containers, packaging materials',
-  },
-  {
-    value: 'SUPPLIES',
-    label: 'Supplies',
-    description: 'Office and kitchen supplies',
+    description: 'Advertising, promotions, and marketing expenses',
   },
   {
     value: 'TRANSPORTATION',
     label: 'Transportation',
-    description: 'Delivery, commute',
+    description: 'Delivery, commute, and transportation costs',
   },
   {
-    value: 'DELIVERY_FEES',
-    label: 'Delivery Fees',
-    description: 'Third-party delivery costs',
-  },
-  {
-    value: 'TRANSACTION_FEES',
-    label: 'Transaction Fees',
-    description: 'Payment processing fees',
-  },
-  {
-    value: 'INSURANCE_LICENSES',
-    label: 'Insurance',
-    description: 'Business insurance',
-  },
-  {
-    value: 'PERMITS_LICENSES',
-    label: 'Permits & Licenses',
-    description: 'Business permits, licenses',
-  },
-  {
-    value: 'DEPRECIATION',
-    label: 'Depreciation',
-    description: 'Asset depreciation',
-  },
-  {
-    value: 'TAX_EXPENSE',
-    label: 'Taxes',
-    description: 'Business taxes',
-  },
-  {
-    value: 'INTEREST_EXPENSE',
-    label: 'Interest',
-    description: 'Loan interest payments',
-  },
-  {
-    value: 'BANK_CHARGES',
-    label: 'Bank Charges',
-    description: 'Banking fees',
+    value: 'PACKAGING',
+    label: 'Packaging',
+    description: 'Containers, packaging materials, and supplies',
   },
   { value: 'OTHER', label: 'Other', description: 'Miscellaneous expenses' },
 ];
