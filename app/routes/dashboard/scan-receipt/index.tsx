@@ -476,8 +476,12 @@ export default function ScanReceiptPage() {
         description: `Saved ${result.inventorySaved} inventory items and ${result.expensesSaved} expenses${corrections.length > 0 ? `. Learning from ${corrections.length} categorizations.` : ''}`,
       });
 
-      // Navigate back to inventory
-      navigate('/dashboard');
+      // Navigate to expenses if any expenses were saved, otherwise to inventory
+      if (result.expensesSaved > 0) {
+        navigate('/dashboard/expenses');
+      } else {
+        navigate('/dashboard/inventory');
+      }
     } catch (error) {
       toast({
         variant: 'destructive',

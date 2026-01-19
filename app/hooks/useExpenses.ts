@@ -64,9 +64,9 @@ export function useCreateExpense() {
 
   return useMutation({
     mutationFn: (data: CreateExpenseDto) => expensesApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: expenseKeys.stats() });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
+      await queryClient.invalidateQueries({ queryKey: expenseKeys.stats() });
     },
   });
 }
@@ -77,9 +77,9 @@ export function useCreateBulkExpenses() {
 
   return useMutation({
     mutationFn: (data: CreateExpenseDto[]) => expensesApi.createBulk(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: expenseKeys.stats() });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
+      await queryClient.invalidateQueries({ queryKey: expenseKeys.stats() });
     },
   });
 }

@@ -398,7 +398,6 @@ export interface Expense {
 
 export interface CreateExpenseDto {
   category: ExpenseCategory;
-  type?: ExpenseType;
   description: string;
   amount: number;
   frequency?: ExpenseFrequency;

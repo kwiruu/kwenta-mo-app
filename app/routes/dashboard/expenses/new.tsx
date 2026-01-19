@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ArrowLeft, Receipt, Save } from 'lucide-react';
+import { useToast } from '~/hooks/use-toast';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -15,7 +16,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { useCreateExpense } from '~/hooks';
 import { APP_CONFIG } from '~/config/app';
-import type { ExpenseCategory, ExpenseType } from '~/lib/api';
+import type { ExpenseCategory } from '~/lib/api';
 
 export function meta() {
   return [
@@ -134,29 +135,6 @@ const expenseCategories: {
   { value: 'OTHER', label: 'Other', description: 'Miscellaneous expenses' },
 ];
 
-const expenseTypes: {
-  value: ExpenseType;
-  label: string;
-  description: string;
-}[] = [
-  {
-    value: 'FIXED',
-    label: 'Fixed',
-    description: 'Regular, unchanging expenses (rent, salaries)',
-  },
-  {
-    value: 'VARIABLE',
-    label: 'Variable',
-    description: 'Costs that change with sales (ingredients, packaging)',
-  },
-  {
-    value: 'OPERATING',
-    label: 'Operating',
-    description: 'Day-to-day business expenses',
-  },
-  { value: 'OTHER', label: 'Other', description: 'Other expense types' },
-];
-
 const frequencyOptions = [
   { value: 'DAILY', label: 'Daily', multiplier: '×30 = monthly' },
   { value: 'WEEKLY', label: 'Weekly', multiplier: '×4 = monthly' },
@@ -167,13 +145,13 @@ const frequencyOptions = [
 
 export default function NewExpensePage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const createExpenseMutation = useCreateExpense();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
     description: '',
     category: '' as ExpenseCategory,
-    type: 'OPERATING' as ExpenseType,
     amount: '',
     frequency: 'MONTHLY',
     expenseDate: new Date().toISOString().split('T')[0],
@@ -208,7 +186,6 @@ export default function NewExpensePage() {
     createExpenseMutation.mutate(
       {
         category: formData.category,
-        type: formData.type,
         description: formData.description.trim(),
         amount: parseFloat(formData.amount),
         frequency: formData.frequency as 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY',
@@ -216,8 +193,20 @@ export default function NewExpensePage() {
         notes: formData.notes.trim() || undefined,
       },
       {
-        onSuccess: () => navigate('/dashboard/expenses'),
-        onError: (error) => console.error('Error adding expense:', error),
+        onSuccess: () => {
+          toast({
+            title: 'Expense added!',
+            description: `${formData.description} has been saved successfully.`,
+          });
+          navigate('/dashboard/expenses');
+        },
+        onError: (error) => {
+          toast({
+            variant: 'destructive',
+            title: 'Failed to add expense',
+            description: error instanceof Error ? error.message : 'An error occurred',
+          });
+        },
       }
     );
   };
@@ -321,38 +310,6 @@ export default function NewExpensePage() {
                 </SelectContent>
               </Select>
               {errors.category && <p className="text-sm text-red-500">{errors.category}</p>}
-            </div>
-
-            {/* Expense Type */}
-            <div className="space-y-2">
-              <Label htmlFor="type" className="text-gray-700">
-                Expense Type
-              </Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    type: value as ExpenseType,
-                  })
-                }
-              >
-                <SelectTrigger className="border-gray-200">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {expenseTypes.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      <div className="flex flex-col">
-                        <span>{t.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500">
-                Helps categorize expenses for financial reports
-              </p>
             </div>
 
             {/* Amount, Frequency and Date Row */}
