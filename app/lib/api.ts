@@ -355,14 +355,35 @@ export const salesApi = {
 
 // ============ EXPENSES API ============
 export type ExpenseCategory =
+  // Variable Costs (COGS-related)
   | 'INGREDIENTS'
-  | 'LABOR'
-  | 'UTILITIES'
-  | 'RENT'
-  | 'EQUIPMENT'
-  | 'MARKETING'
-  | 'TRANSPORTATION'
   | 'PACKAGING'
+  | 'DELIVERY_FEES'
+  | 'TRANSACTION_FEES'
+  // Operating Expenses (OPEX)
+  | 'RENT'
+  | 'UTILITIES'
+  | 'ELECTRICITY'
+  | 'WATER'
+  | 'GAS'
+  | 'SALARIES'
+  | 'MARKETING'
+  | 'SUPPLIES'
+  | 'MAINTENANCE'
+  | 'INSURANCE_LICENSES'
+  // Fixed Costs
+  | 'FIXED_SALARIES'
+  | 'DEPRECIATION'
+  | 'PERMITS_LICENSES'
+  | 'INTERNET'
+  // Other Expenses
+  | 'TAX_EXPENSE'
+  | 'INTEREST_EXPENSE'
+  | 'BANK_CHARGES'
+  // Legacy/General
+  | 'LABOR'
+  | 'EQUIPMENT'
+  | 'TRANSPORTATION'
   | 'OTHER';
 
 export type ExpenseType = 'FIXED' | 'VARIABLE' | 'OPERATING' | 'OTHER';

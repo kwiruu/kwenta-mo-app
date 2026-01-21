@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useState, useEffect } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -584,8 +585,15 @@ export default function EditRecipe() {
 
             {/* Actions */}
             <div className="flex gap-2">
-              <Button type="submit" className="flex-1">
-                Update Recipe
+              <Button type="submit" className="flex-1" disabled={updateRecipeMutation.isPending}>
+                {updateRecipeMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  'Update Recipe'
+                )}
               </Button>
               <Button type="button" variant="outline" asChild>
                 <Link to="/dashboard/recipes">Cancel</Link>

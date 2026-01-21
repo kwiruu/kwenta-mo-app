@@ -36,26 +36,68 @@ export function meta() {
 }
 
 const categoryLabels: Record<ExpenseCategory, string> = {
+  // Variable Costs
   INGREDIENTS: 'Ingredients',
-  LABOR: 'Labor',
-  UTILITIES: 'Utilities',
-  RENT: 'Rent',
-  EQUIPMENT: 'Equipment',
-  MARKETING: 'Marketing',
-  TRANSPORTATION: 'Transportation',
   PACKAGING: 'Packaging',
+  DELIVERY_FEES: 'Delivery Fees',
+  TRANSACTION_FEES: 'Transaction Fees',
+  // Operating Expenses
+  RENT: 'Rent',
+  UTILITIES: 'Utilities',
+  ELECTRICITY: 'Electricity',
+  WATER: 'Water',
+  GAS: 'Gas',
+  SALARIES: 'Salaries',
+  MARKETING: 'Marketing',
+  SUPPLIES: 'Supplies',
+  MAINTENANCE: 'Maintenance',
+  INSURANCE_LICENSES: 'Insurance & Licenses',
+  // Fixed Costs
+  FIXED_SALARIES: 'Fixed Salaries',
+  DEPRECIATION: 'Depreciation',
+  PERMITS_LICENSES: 'Permits & Licenses',
+  INTERNET: 'Internet',
+  // Other Expenses
+  TAX_EXPENSE: 'Tax Expense',
+  INTEREST_EXPENSE: 'Interest Expense',
+  BANK_CHARGES: 'Bank Charges',
+  // Legacy/General
+  LABOR: 'Labor',
+  EQUIPMENT: 'Equipment',
+  TRANSPORTATION: 'Transportation',
   OTHER: 'Other',
 };
 
 const categoryColors: Record<ExpenseCategory, string> = {
+  // Variable Costs
   INGREDIENTS: 'bg-green-100 text-green-700 hover:bg-green-100',
-  LABOR: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
-  UTILITIES: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
-  RENT: 'bg-purple-100 text-purple-700 hover:bg-purple-100',
-  EQUIPMENT: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-100',
-  MARKETING: 'bg-pink-100 text-pink-700 hover:bg-pink-100',
-  TRANSPORTATION: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-100',
   PACKAGING: 'bg-orange-100 text-orange-700 hover:bg-orange-100',
+  DELIVERY_FEES: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-100',
+  TRANSACTION_FEES: 'bg-teal-100 text-teal-700 hover:bg-teal-100',
+  // Operating Expenses
+  RENT: 'bg-purple-100 text-purple-700 hover:bg-purple-100',
+  UTILITIES: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
+  ELECTRICITY: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
+  WATER: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
+  GAS: 'bg-red-100 text-red-700 hover:bg-red-100',
+  SALARIES: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-100',
+  MARKETING: 'bg-pink-100 text-pink-700 hover:bg-pink-100',
+  SUPPLIES: 'bg-lime-100 text-lime-700 hover:bg-lime-100',
+  MAINTENANCE: 'bg-slate-100 text-slate-700 hover:bg-slate-100',
+  INSURANCE_LICENSES: 'bg-violet-100 text-violet-700 hover:bg-violet-100',
+  // Fixed Costs
+  FIXED_SALARIES: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
+  DEPRECIATION: 'bg-gray-100 text-gray-700 hover:bg-gray-100',
+  PERMITS_LICENSES: 'bg-fuchsia-100 text-fuchsia-700 hover:bg-fuchsia-100',
+  INTERNET: 'bg-sky-100 text-sky-700 hover:bg-sky-100',
+  // Other Expenses
+  TAX_EXPENSE: 'bg-rose-100 text-rose-700 hover:bg-rose-100',
+  INTEREST_EXPENSE: 'bg-red-100 text-red-700 hover:bg-red-100',
+  BANK_CHARGES: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100',
+  // Legacy/General
+  LABOR: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
+  EQUIPMENT: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-100',
+  TRANSPORTATION: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-100',
   OTHER: 'bg-gray-100 text-gray-700 hover:bg-gray-100',
 };
 

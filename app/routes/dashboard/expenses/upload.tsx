@@ -46,26 +46,68 @@ interface ParsedExpense {
 }
 
 const validCategories: ExpenseCategory[] = [
+  // Variable Costs
   'INGREDIENTS',
-  'LABOR',
-  'UTILITIES',
-  'RENT',
-  'EQUIPMENT',
-  'MARKETING',
-  'TRANSPORTATION',
   'PACKAGING',
+  'DELIVERY_FEES',
+  'TRANSACTION_FEES',
+  // Operating Expenses
+  'RENT',
+  'UTILITIES',
+  'ELECTRICITY',
+  'WATER',
+  'GAS',
+  'SALARIES',
+  'MARKETING',
+  'SUPPLIES',
+  'MAINTENANCE',
+  'INSURANCE_LICENSES',
+  // Fixed Costs
+  'FIXED_SALARIES',
+  'DEPRECIATION',
+  'PERMITS_LICENSES',
+  'INTERNET',
+  // Other Expenses
+  'TAX_EXPENSE',
+  'INTEREST_EXPENSE',
+  'BANK_CHARGES',
+  // Legacy/General
+  'LABOR',
+  'EQUIPMENT',
+  'TRANSPORTATION',
   'OTHER',
 ];
 
 const categoryLabels: Record<ExpenseCategory, string> = {
+  // Variable Costs
   INGREDIENTS: 'Ingredients',
-  LABOR: 'Labor',
-  UTILITIES: 'Utilities',
-  RENT: 'Rent',
-  EQUIPMENT: 'Equipment',
-  MARKETING: 'Marketing',
-  TRANSPORTATION: 'Transportation',
   PACKAGING: 'Packaging',
+  DELIVERY_FEES: 'Delivery Fees',
+  TRANSACTION_FEES: 'Transaction Fees',
+  // Operating Expenses
+  RENT: 'Rent',
+  UTILITIES: 'Utilities',
+  ELECTRICITY: 'Electricity',
+  WATER: 'Water',
+  GAS: 'Gas',
+  SALARIES: 'Salaries',
+  MARKETING: 'Marketing',
+  SUPPLIES: 'Supplies',
+  MAINTENANCE: 'Maintenance',
+  INSURANCE_LICENSES: 'Insurance & Licenses',
+  // Fixed Costs
+  FIXED_SALARIES: 'Fixed Salaries',
+  DEPRECIATION: 'Depreciation',
+  PERMITS_LICENSES: 'Permits & Licenses',
+  INTERNET: 'Internet',
+  // Other Expenses
+  TAX_EXPENSE: 'Tax Expense',
+  INTEREST_EXPENSE: 'Interest Expense',
+  BANK_CHARGES: 'Bank Charges',
+  // Legacy/General
+  LABOR: 'Labor',
+  EQUIPMENT: 'Equipment',
+  TRANSPORTATION: 'Transportation',
   OTHER: 'Other',
 };
 

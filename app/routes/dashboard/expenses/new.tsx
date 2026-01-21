@@ -30,33 +30,62 @@ const expenseCategories: {
   label: string;
   description: string;
 }[] = [
+  // Variable Costs (COGS-related)
   { value: 'INGREDIENTS', label: 'Ingredients', description: 'Raw materials and food ingredients' },
-  { value: 'LABOR', label: 'Labor', description: 'Employee wages and salaries' },
   {
-    value: 'UTILITIES',
-    label: 'Utilities',
-    description: 'Electricity, water, gas, internet, and other utilities',
+    value: 'PACKAGING',
+    label: 'Packaging',
+    description: 'Containers, packaging materials, and supplies',
   },
+  { value: 'DELIVERY_FEES', label: 'Delivery Fees', description: 'Delivery and shipping costs' },
+  { value: 'TRANSACTION_FEES', label: 'Transaction Fees', description: 'Payment processing fees' },
+
+  // Operating Expenses (OPEX)
   { value: 'RENT', label: 'Rent', description: 'Stall or store rental' },
+  { value: 'UTILITIES', label: 'Utilities', description: 'General utility expenses' },
+  { value: 'ELECTRICITY', label: 'Electricity', description: 'Electrical bills' },
+  { value: 'WATER', label: 'Water', description: 'Water bills' },
+  { value: 'GAS', label: 'Gas', description: 'Gas and fuel expenses' },
+  { value: 'SALARIES', label: 'Salaries', description: 'Variable employee wages' },
+  {
+    value: 'MARKETING',
+    label: 'Marketing',
+    description: 'Advertising, promotions, and marketing expenses',
+  },
+  { value: 'SUPPLIES', label: 'Supplies', description: 'Cleaning materials, napkins, utensils' },
+  { value: 'MAINTENANCE', label: 'Maintenance', description: 'Equipment repair and upkeep' },
+  {
+    value: 'INSURANCE_LICENSES',
+    label: 'Insurance & Licenses',
+    description: 'Business permits and insurance',
+  },
+
+  // Fixed Costs
+  { value: 'FIXED_SALARIES', label: 'Fixed Salaries', description: 'Permanent staff salaries' },
+  { value: 'DEPRECIATION', label: 'Depreciation', description: 'Equipment depreciation' },
+  {
+    value: 'PERMITS_LICENSES',
+    label: 'Permits & Licenses',
+    description: 'Business permits and licenses',
+  },
+  { value: 'INTERNET', label: 'Internet', description: 'Internet and connectivity' },
+
+  // Other Expenses
+  { value: 'TAX_EXPENSE', label: 'Tax Expense', description: 'Income and business taxes' },
+  { value: 'INTEREST_EXPENSE', label: 'Interest Expense', description: 'Interest on loans' },
+  { value: 'BANK_CHARGES', label: 'Bank Charges', description: 'Transfer and transaction fees' },
+
+  // Legacy/General
+  { value: 'LABOR', label: 'Labor', description: 'Employee wages and salaries' },
   {
     value: 'EQUIPMENT',
     label: 'Equipment',
     description: 'Kitchen equipment, tools, and machinery',
   },
   {
-    value: 'MARKETING',
-    label: 'Marketing',
-    description: 'Advertising, promotions, and marketing expenses',
-  },
-  {
     value: 'TRANSPORTATION',
     label: 'Transportation',
     description: 'Delivery, commute, and transportation costs',
-  },
-  {
-    value: 'PACKAGING',
-    label: 'Packaging',
-    description: 'Containers, packaging materials, and supplies',
   },
   { value: 'OTHER', label: 'Other', description: 'Miscellaneous expenses' },
 ];

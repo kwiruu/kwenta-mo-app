@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import {
   TrendingUp,
@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/components/ui/tabs';
 import { APP_CONFIG } from '~/config/app';
 import {
   useIngredients,
@@ -22,6 +22,7 @@ import {
   useDashboardSummary,
   useChartData,
   useLowStockAlerts,
+  useExpenseStats,
 } from '~/hooks';
 import {
   AreaChart,
@@ -31,6 +32,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
 
 export function meta() {
@@ -49,12 +53,14 @@ function formatCurrency(amount: number) {
 
 export default function DashboardPage() {
   const [selectedPeriod, setSelectedPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [statsTab, setStatsTab] = useState<'expenses' | 'sales'>('expenses');
 
   // Use TanStack Query hooks - data is cached and shared across components
   const { data: ingredients = [], isLoading: ingredientsLoading } = useIngredients();
   const { data: sales = [], isLoading: salesLoading } = useSales();
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboardSummary();
   const { data: lowStockItems = [], isLoading: lowStockLoading } = useLowStockAlerts();
+  const { data: expenseStats, isLoading: expenseStatsLoading } = useExpenseStats();
 
   // Fetch all chart periods on load so switching is instant
   const { data: dailyChart, isLoading: dailyLoading } = useChartData('daily');
@@ -62,7 +68,93 @@ export default function DashboardPage() {
   const { data: monthlyChart, isLoading: monthlyLoading } = useChartData('monthly');
 
   const isLoading =
-    ingredientsLoading || salesLoading || dashboardLoading || dailyLoading || lowStockLoading;
+    ingredientsLoading ||
+    salesLoading ||
+    dashboardLoading ||
+    dailyLoading ||
+    lowStockLoading ||
+    expenseStatsLoading;
+
+  // Calculate sales by category
+  const salesByCategory = useMemo(() => {
+    const categoryTotals: Record<string, number> = {};
+    sales.forEach((sale) => {
+      const category = sale.category || 'FOOD';
+      categoryTotals[category] = (categoryTotals[category] || 0) + Number(sale.totalPrice);
+    });
+    return Object.entries(categoryTotals).map(([category, amount]) => ({
+      category,
+      amount,
+    }));
+  }, [sales]);
+
+  // Chart colors for categories
+  const EXPENSE_COLORS: Record<string, string> = {
+    INGREDIENTS: '#10b981',
+    PACKAGING: '#34d399',
+    DELIVERY_FEES: '#6ee7b7',
+    TRANSACTION_FEES: '#059669',
+    RENT: '#047857',
+    UTILITIES: '#22c55e',
+    ELECTRICITY: '#4ade80',
+    WATER: '#86efac',
+    GAS: '#16a34a',
+    SALARIES: '#15803d',
+    MARKETING: '#166534',
+    SUPPLIES: '#14532d',
+    MAINTENANCE: '#84cc16',
+    INSURANCE_LICENSES: '#65a30d',
+    FIXED_SALARIES: '#4d7c0f',
+    DEPRECIATION: '#3f6212',
+    PERMITS_LICENSES: '#a3e635',
+    INTERNET: '#bef264',
+    TAX_EXPENSE: '#d9f99d',
+    INTEREST_EXPENSE: '#10b981',
+    BANK_CHARGES: '#34d399',
+    LABOR: '#6ee7b7',
+    EQUIPMENT: '#059669',
+    TRANSPORTATION: '#047857',
+    OTHER: '#6b7280',
+  };
+
+  const SALES_COLORS: Record<string, string> = {
+    FOOD: '#22c55e',
+    BEVERAGE: '#10b981',
+    CATERING: '#34d399',
+    DELIVERY: '#6ee7b7',
+  };
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    INGREDIENTS: 'Ingredients',
+    PACKAGING: 'Packaging',
+    DELIVERY_FEES: 'Delivery Fees',
+    TRANSACTION_FEES: 'Transaction Fees',
+    RENT: 'Rent',
+    UTILITIES: 'Utilities',
+    ELECTRICITY: 'Electricity',
+    WATER: 'Water',
+    GAS: 'Gas',
+    SALARIES: 'Salaries',
+    MARKETING: 'Marketing',
+    SUPPLIES: 'Supplies',
+    MAINTENANCE: 'Maintenance',
+    INSURANCE_LICENSES: 'Insurance & Licenses',
+    FIXED_SALARIES: 'Fixed Salaries',
+    DEPRECIATION: 'Depreciation',
+    PERMITS_LICENSES: 'Permits & Licenses',
+    INTERNET: 'Internet',
+    TAX_EXPENSE: 'Tax Expense',
+    INTEREST_EXPENSE: 'Interest Expense',
+    BANK_CHARGES: 'Bank Charges',
+    LABOR: 'Labor',
+    EQUIPMENT: 'Equipment',
+    TRANSPORTATION: 'Transportation',
+    OTHER: 'Other',
+    FOOD: 'Food',
+    BEVERAGE: 'Beverage',
+    CATERING: 'Catering',
+    DELIVERY: 'Delivery',
+  };
 
   // Get chart data based on selected period (no refetch needed)
   const chartData = (() => {
@@ -109,7 +201,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -286,53 +378,199 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Report Stats */}
+        {/* Statistics with Ring Charts */}
         <Card className="border bg-white shadow-none">
-          <CardHeader>
-            <CardTitle className="text-gray-900">Quick Stats</CardTitle>
-            <CardDescription className="text-gray-500">Key metrics at a glance</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-gray-900">Statistics</CardTitle>
+            <CardDescription className="text-gray-500">Category breakdown</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Total Sales */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">Total Sales</p>
-                <Badge className="bg-primary/10 text-primary hover:bg-primary/10">This Month</Badge>
-              </div>
-              <p className="text-2xl font-semibold text-gray-900">
-                {formatCurrency(kpiData.totalRevenue)}
-              </p>
-              <div className="flex items-center text-xs">
-                <TrendingUp className="h-3 w-3 mr-1 text-lightgreenz" />
-                <span className="text-lightgreenz font-medium">+{kpiData.revenueChange}%</span>
-                <span className="ml-1 text-gray-400">vs last month</span>
-              </div>
-            </div>
+          <CardContent>
+            <Tabs value={statsTab} onValueChange={(v) => setStatsTab(v as 'expenses' | 'sales')}>
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="expenses">Expenses</TabsTrigger>
+                <TabsTrigger value="sales">Sales</TabsTrigger>
+              </TabsList>
 
-            <div className="border-t pt-6 space-y-2">
-              <p className="text-sm text-gray-500">Total Costs</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {formatCurrency(kpiData.totalExpenses)}
-              </p>
-              <div className="flex items-center text-xs">
-                <TrendingDown className="h-3 w-3 mr-1 text-lightgreenz" />
-                <span className="text-lightgreenz font-medium">{kpiData.expenseChange}%</span>
-                <span className="ml-1 text-gray-400">vs last month</span>
-              </div>
-            </div>
+              <TabsContent value="expenses" className="mt-0">
+                {expenseStats?.byCategory && expenseStats.byCategory.length > 0 ? (
+                  <>
+                    {/* Ring Chart */}
+                    <div className="h-[180px] relative">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={expenseStats.byCategory}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={55}
+                            outerRadius={80}
+                            paddingAngle={2}
+                            dataKey="amount"
+                            nameKey="category"
+                          >
+                            {expenseStats.byCategory.map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={EXPENSE_COLORS[entry.category] || '#6b7280'}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            formatter={(value) => [formatCurrency(Number(value)), '']}
+                            contentStyle={{
+                              backgroundColor: 'white',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      {/* Center Total */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500">Total</p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            {formatCurrency(expenseStats.total)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-            <div className="border-t pt-6 space-y-2">
-              <p className="text-sm text-gray-500">Net Profit</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {formatCurrency(kpiData.grossProfit)}
-              </p>
-              <div className="flex items-center text-xs">
-                <span className="text-gray-500">Margin: </span>
-                <span className="ml-1 font-medium text-gray-900">{kpiData.profitMargin}%</span>
-              </div>
-            </div>
+                    {/* Category Legend */}
+                    <div className="mt-4 space-y-2 max-h-[140px] overflow-y-auto">
+                      {expenseStats.byCategory.map((item, index) => {
+                        const percentage =
+                          expenseStats.total > 0
+                            ? ((item.amount / expenseStats.total) * 100).toFixed(1)
+                            : '0';
+                        return (
+                          <div key={index} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{
+                                  backgroundColor: EXPENSE_COLORS[item.category] || '#6b7280',
+                                }}
+                              />
+                              <span className="text-gray-600">
+                                {CATEGORY_LABELS[item.category] || item.category}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-900 font-medium">
+                                {formatCurrency(item.amount)}
+                              </span>
+                              <span className="text-gray-400 text-xs w-12 text-right">
+                                {percentage}%
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <div className="h-[320px] flex items-center justify-center text-gray-500">
+                    No expense data available
+                  </div>
+                )}
+              </TabsContent>
 
-            <div className="border-t pt-6">
+              <TabsContent value="sales" className="mt-0">
+                {salesByCategory.length > 0 ? (
+                  <>
+                    {/* Ring Chart */}
+                    <div className="h-[180px] relative">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={salesByCategory}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={55}
+                            outerRadius={80}
+                            paddingAngle={2}
+                            dataKey="amount"
+                            nameKey="category"
+                          >
+                            {salesByCategory.map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={SALES_COLORS[entry.category] || '#6b7280'}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            formatter={(value) => [formatCurrency(Number(value)), '']}
+                            contentStyle={{
+                              backgroundColor: 'white',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      {/* Center Total */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500">Total</p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            {formatCurrency(
+                              salesByCategory.reduce((sum, item) => sum + item.amount, 0)
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Category Legend */}
+                    <div className="mt-4 space-y-2 max-h-[140px] overflow-y-auto">
+                      {(() => {
+                        const totalSales = salesByCategory.reduce(
+                          (sum, item) => sum + item.amount,
+                          0
+                        );
+                        return salesByCategory.map((item, index) => {
+                          const percentage =
+                            totalSales > 0 ? ((item.amount / totalSales) * 100).toFixed(1) : '0';
+                          return (
+                            <div key={index} className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{
+                                    backgroundColor: SALES_COLORS[item.category] || '#6b7280',
+                                  }}
+                                />
+                                <span className="text-gray-600">
+                                  {CATEGORY_LABELS[item.category] || item.category}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-900 font-medium">
+                                  {formatCurrency(item.amount)}
+                                </span>
+                                <span className="text-gray-400 text-xs w-12 text-right">
+                                  {percentage}%
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </>
+                ) : (
+                  <div className="h-[320px] flex items-center justify-center text-gray-500">
+                    No sales data available
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+
+            <div className="border-t mt-4 pt-4">
               <Button className="w-full" variant="outline" asChild>
                 <Link to="/dashboard/reports">
                   View Full Report
@@ -370,7 +608,7 @@ export default function DashboardPage() {
                     <div>
                       <p className="font-medium text-gray-900">{item.name}</p>
                       <p className="text-sm text-gray-500">
-                        {item.quantity} {item.unit} remaining (min: {item.reorderLevel})
+                        {item.quantity} {item.unit} remaining
                       </p>
                     </div>
                     <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
