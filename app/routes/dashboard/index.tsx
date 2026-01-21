@@ -10,6 +10,8 @@ import {
   Plus,
   ArrowRight,
   CameraIcon,
+  HandCoins,
+  PhilippinePeso,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
@@ -223,8 +225,8 @@ export default function DashboardPage() {
         <Card className="border bg-white shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">Total Revenue</CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-greenz/10 flex items-center justify-center">
-              <DollarSign className="h-4 w-4 text-greenz" />
+            <div className="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
+              <PhilippinePeso className="h-4 w-4 text-lightgreenz" />
             </div>
           </CardHeader>
           <CardContent>
@@ -242,8 +244,8 @@ export default function DashboardPage() {
         <Card className="border bg-white shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">Total Expenses</CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-red-50 flex items-center justify-center">
-              <TrendingDown className="h-4 w-4 text-red-500" />
+            <div className="h-8 w-8 rounded-lg bg-lightgreenz/20 flex items-center justify-center">
+              <TrendingDown className="h-4 w-4 text-lightgreenz" />
             </div>
           </CardHeader>
           <CardContent>
@@ -276,8 +278,8 @@ export default function DashboardPage() {
         <Card className="border bg-white shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">Profit Margin</CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <TrendingUp className="h-4 w-4 text-primary" />
+            <div className="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
+              <TrendingUp className="h-4 w-4 text-lightgreenz" />
             </div>
           </CardHeader>
           <CardContent>
