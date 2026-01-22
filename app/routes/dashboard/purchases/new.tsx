@@ -4,6 +4,7 @@ import { ArrowLeft, Truck, Save, Package } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
+import { NumberInput } from '~/components/ui/number-input';
 import { Textarea } from '~/components/ui/textarea';
 import {
   Select,
@@ -207,15 +208,13 @@ export default function NewPurchasePage() {
                 <Label htmlFor="quantity" className="text-gray-700">
                   Quantity *
                 </Label>
-                <Input
+                <NumberInput
                   id="quantity"
-                  type="number"
-                  min="0"
-                  step="0.01"
                   placeholder="e.g., 10"
                   value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, quantity: value.toString() })}
                   className={errors.quantity ? 'border-red-300' : 'border-gray-200'}
+                  min={0}
                 />
                 {errors.quantity && <p className="text-sm text-red-500">{errors.quantity}</p>}
               </div>
@@ -224,15 +223,13 @@ export default function NewPurchasePage() {
                 <Label htmlFor="unitCost" className="text-gray-700">
                   Unit Cost (₱) *
                 </Label>
-                <Input
+                <NumberInput
                   id="unitCost"
-                  type="number"
-                  min="0"
-                  step="0.01"
                   placeholder="e.g., 50"
                   value={formData.unitCost}
-                  onChange={(e) => setFormData({ ...formData, unitCost: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, unitCost: value.toString() })}
                   className={errors.unitCost ? 'border-red-300' : 'border-gray-200'}
+                  min={0}
                 />
                 {errors.unitCost && <p className="text-sm text-red-500">{errors.unitCost}</p>}
               </div>

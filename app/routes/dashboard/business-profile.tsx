@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { Building2, MapPin, Users, DollarSign, Package, Save, Edit, Lock } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
+import { NumberInput } from '~/components/ui/number-input';
 import { Label } from '~/components/ui/label';
 import { Textarea } from '~/components/ui/textarea';
 import {
@@ -245,17 +246,16 @@ export default function BusinessProfilePage() {
                 <DollarSign className="h-4 w-4 text-primary" />
                 Average Monthly Sales (₱) *
               </Label>
-              <Input
+              <NumberInput
                 id="avgMonthlySales"
-                type="number"
-                min="0"
-                step="0.01"
                 placeholder="e.g., 50000"
                 value={formData.avgMonthlySales}
-                onChange={(e) => setFormData({ ...formData, avgMonthlySales: e.target.value })}
+                onChange={(value) =>
+                  setFormData({ ...formData, avgMonthlySales: value.toString() })
+                }
                 className="border-gray-200 focus:border-primary focus:ring-primary disabled:opacity-60 disabled:bg-black/5 disabled:cursor-not-allowed"
                 disabled={!isEditing}
-                required
+                min={0}
               />
               <p className="text-xs text-gray-400">
                 Estimate based on your typical monthly revenue

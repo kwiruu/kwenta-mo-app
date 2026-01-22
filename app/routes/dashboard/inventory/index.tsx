@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
+import { NumberInput } from '~/components/ui/number-input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import {
   Table,
@@ -894,19 +895,18 @@ export default function InventoryPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="quantity">Quantity *</Label>
-                <Input
+                <NumberInput
                   id="quantity"
-                  type="number"
-                  min="0"
-                  step="any"
-                  value={itemForm.quantity || ''}
-                  onChange={(e) =>
+                  value={itemForm.quantity || 0}
+                  onChange={(value) =>
                     setItemForm({
                       ...itemForm,
-                      quantity: e.target.value === '' ? 0 : parseFloat(e.target.value),
+                      quantity: value,
                     })
                   }
                   placeholder="0"
+                  min={0}
+                  allowDecimal={false}
                 />
               </div>
 
@@ -945,19 +945,17 @@ export default function InventoryPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="unitCost">Unit Cost (₱) *</Label>
-                <Input
+                <NumberInput
                   id="unitCost"
-                  type="number"
-                  min="0"
-                  step="any"
-                  value={itemForm.unitCost || ''}
-                  onChange={(e) =>
+                  value={itemForm.unitCost || 0}
+                  onChange={(value) =>
                     setItemForm({
                       ...itemForm,
-                      unitCost: e.target.value === '' ? 0 : parseFloat(e.target.value),
+                      unitCost: value,
                     })
                   }
                   placeholder="0.00"
+                  min={0}
                 />
               </div>
 
@@ -1117,19 +1115,14 @@ export default function InventoryPage() {
                 >
                   <MinusCircle className="h-4 w-4" />
                 </Button>
-                <Input
+                <NumberInput
                   id="restockQty"
-                  type="number"
-                  step="any"
-                  min="0"
                   value={restockQuantity}
-                  onChange={(e) =>
-                    setRestockQuantity(
-                      e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value))
-                    )
-                  }
+                  onChange={(value) => setRestockQuantity(Math.max(0, value))}
                   className="text-center"
                   placeholder="0"
+                  min={0}
+                  allowDecimal={false}
                 />
                 <Button
                   type="button"

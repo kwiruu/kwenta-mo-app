@@ -5,6 +5,7 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
+import { NumberInput } from '~/components/ui/number-input';
 import { Textarea } from '~/components/ui/textarea';
 import {
   Select,
@@ -295,15 +296,13 @@ export default function EditExpensePage() {
                 <Label htmlFor="amount" className="text-gray-700">
                   Amount (₱) *
                 </Label>
-                <Input
+                <NumberInput
                   id="amount"
-                  type="number"
-                  min="0"
-                  step="0.01"
                   placeholder="e.g., 5000"
                   value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, amount: value.toString() })}
                   className={errors.amount ? 'border-red-300' : 'border-gray-200'}
+                  min={0}
                 />
                 {errors.amount && <p className="text-sm text-red-500">{errors.amount}</p>}
               </div>
