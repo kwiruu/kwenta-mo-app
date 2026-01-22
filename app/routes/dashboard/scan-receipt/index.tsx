@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from '~/components/ui/select';
 import { Input } from '~/components/ui/input';
+import { NumberInput } from '~/components/ui/number-input';
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
 import {
   Dialog,
@@ -518,11 +519,11 @@ export default function ScanReceiptPage() {
       </TableCell>
       <TableCell>
         <div className="flex gap-1">
-          <Input
-            type="number"
+          <NumberInput
             value={item.quantity}
-            onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+            onChange={(value) => updateItem(item.id, 'quantity', value)}
             className="w-16"
+            allowDecimal={false}
           />
           <Input
             value={item.unit}
@@ -532,12 +533,10 @@ export default function ScanReceiptPage() {
         </div>
       </TableCell>
       <TableCell>
-        <Input
-          type="number"
+        <NumberInput
           value={item.unitCost}
-          onChange={(e) => updateItem(item.id, 'unitCost', parseFloat(e.target.value) || 0)}
+          onChange={(value) => updateItem(item.id, 'unitCost', value)}
           className="w-24"
-          step="0.01"
         />
       </TableCell>
       <TableCell className="font-medium">₱{item.totalCost.toFixed(2)}</TableCell>

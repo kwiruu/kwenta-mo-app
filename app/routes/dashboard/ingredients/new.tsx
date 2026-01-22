@@ -4,6 +4,7 @@ import { ArrowLeft, Package, Save } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
+import { NumberInput } from '~/components/ui/number-input';
 import {
   Select,
   SelectContent,
@@ -175,15 +176,13 @@ export default function NewIngredientPage() {
                 <Label htmlFor="pricePerUnit" className="text-gray-700">
                   Price Per Unit (₱) *
                 </Label>
-                <Input
+                <NumberInput
                   id="pricePerUnit"
-                  type="number"
-                  min="0"
-                  step="0.01"
                   placeholder="e.g., 55.00"
                   value={formData.pricePerUnit}
-                  onChange={(e) => setFormData({ ...formData, pricePerUnit: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, pricePerUnit: value.toString() })}
                   className={errors.pricePerUnit ? 'border-red-300' : 'border-gray-200'}
+                  min={0}
                 />
                 {errors.pricePerUnit && (
                   <p className="text-sm text-red-500">{errors.pricePerUnit}</p>
@@ -198,15 +197,14 @@ export default function NewIngredientPage() {
                 <Label htmlFor="currentStock" className="text-gray-700">
                   Current Stock *
                 </Label>
-                <Input
+                <NumberInput
                   id="currentStock"
-                  type="number"
-                  min="0"
-                  step="0.01"
                   placeholder="e.g., 10"
                   value={formData.currentStock}
-                  onChange={(e) => setFormData({ ...formData, currentStock: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, currentStock: value.toString() })}
                   className={errors.currentStock ? 'border-red-300' : 'border-gray-200'}
+                  min={0}
+                  allowDecimal={false}
                 />
                 {errors.currentStock && (
                   <p className="text-sm text-red-500">{errors.currentStock}</p>
@@ -219,15 +217,14 @@ export default function NewIngredientPage() {
                 <Label htmlFor="reorderLevel" className="text-gray-700">
                   Reorder Level *
                 </Label>
-                <Input
+                <NumberInput
                   id="reorderLevel"
-                  type="number"
-                  min="0"
-                  step="0.01"
                   placeholder="e.g., 5"
                   value={formData.reorderLevel}
-                  onChange={(e) => setFormData({ ...formData, reorderLevel: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, reorderLevel: value.toString() })}
                   className={errors.reorderLevel ? 'border-red-300' : 'border-gray-200'}
+                  min={0}
+                  allowDecimal={false}
                 />
                 {errors.reorderLevel && (
                   <p className="text-sm text-red-500">{errors.reorderLevel}</p>

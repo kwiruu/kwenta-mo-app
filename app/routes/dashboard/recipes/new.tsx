@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/com
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
+import { NumberInput } from '~/components/ui/number-input';
 import { useCreateRecipe, usePurchases, useActivePeriod } from '~/hooks';
 
 interface RecipeIngredientInput {
@@ -30,6 +31,7 @@ export default function NewRecipe() {
     laborRatePerHour: 80,
     isActive: true,
   });
+  const [profitMarginInput, setProfitMarginInput] = useState<string>('');
 
   const [recipeIngredients, setRecipeIngredients] = useState<RecipeIngredientInput[]>([]);
   const [selectedIngredientId, setSelectedIngredientId] = useState('');
@@ -123,6 +125,28 @@ export default function NewRecipe() {
   const grossProfit = formData.sellingPrice - totalCost;
   const profitMargin = formData.sellingPrice > 0 ? (grossProfit / formData.sellingPrice) * 100 : 0;
 
+  // Handle selling price change - update profit margin input
+  const handleSellingPriceChange = (value: number) => {
+    setFormData({ ...formData, sellingPrice: value });
+    if (totalCost > 0 && value > 0) {
+      const margin = ((value - totalCost) / value) * 100;
+      setProfitMarginInput(margin.toFixed(2));
+    } else {
+      setProfitMarginInput('');
+    }
+  };
+
+  // Handle profit margin change - calculate and update selling price
+  const handleProfitMarginChange = (marginPercent: string) => {
+    setProfitMarginInput(marginPercent);
+    const margin = parseFloat(marginPercent);
+    if (!isNaN(margin) && totalCost > 0 && margin < 100) {
+      // Formula: sellingPrice = totalCost / (1 - margin/100)
+      const calculatedPrice = totalCost / (1 - margin / 100);
+      setFormData({ ...formData, sellingPrice: Math.round(calculatedPrice * 100) / 100 });
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
@@ -213,21 +237,34 @@ export default function NewRecipe() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="sellingPrice">Selling Price (₱)</Label>
-                    <Input
+                    <NumberInput
                       id="sellingPrice"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.sellingPrice || ''}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          sellingPrice: parseFloat(e.target.value) || 0,
-                        })
-                      }
+                      value={formData.sellingPrice}
+                      onChange={handleSellingPriceChange}
+                      placeholder="0.00"
+                      min={0}
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="profitMargin">Profit Margin (%)</Label>
+                    <Input
+                      id="profitMargin"
+                      type="number"
+                      min="0"
+                      max="99"
+                      step="1"
+                      placeholder="e.g., 30"
+                      value={profitMarginInput}
+                      onChange={(e) => handleProfitMarginChange(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Set desired margin to auto-calculate price
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="prepTime">Prep Time (minutes)</Label>
                     <Input
@@ -243,26 +280,22 @@ export default function NewRecipe() {
                       }
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="laborRate">Labor Rate (₱/hour)</Label>
-                  <Input
-                    id="laborRate"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.laborRatePerHour || ''}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        laborRatePerHour: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Used to calculate labor cost based on prep time
-                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="laborRate">Labor Rate (₱/hour)</Label>
+                    <NumberInput
+                      id="laborRate"
+                      value={formData.laborRatePerHour}
+                      onChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          laborRatePerHour: value,
+                        })
+                      }
+                      placeholder="80.00"
+                      min={0}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -324,18 +357,17 @@ export default function NewRecipe() {
                           <tr key={ri.ingredientId} className="border-t">
                             <td className="p-3">{ri.ingredientName}</td>
                             <td className="p-3 text-center">
-                              <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                className="w-20 mx-auto text-center"
-                                value={ri.quantityRequired}
-                                onChange={(e) =>
-                                  updateIngredientQuantity(
-                                    ri.ingredientId,
-                                    parseFloat(e.target.value) || 0
-                                  )
-                                }
+                            <NumberInput
+                              className="w-20 mx-auto text-center"
+                              value={ri.quantityRequired}
+                              onChange={(value) =>
+                                updateIngredientQuantity(
+                                  ri.ingredientId,
+                                  value
+                                )
+                              }
+                              min={0}
+                              allowDecimal={false}
                               />
                             </td>
                             <td className="p-3 text-right text-muted-foreground">
