@@ -489,14 +489,14 @@ export default function ReportsIndex() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
-                        Gross Margin
+                        Gross Profit Margin
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="h-3.5 w-3.5 text-gray-400 cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent side="top" className="max-w-xs text-xs">
                             <p className="font-semibold">
-                              Gross Margin = (Net Sales - COGS) / Net Sales × 100
+                              Gross Margin = (Net Sales - COGS) / Net Sales
                             </p>
                           </TooltipContent>
                         </Tooltip>

@@ -509,13 +509,13 @@ export default function EditRecipe() {
                   </div>
                   <div className="flex justify-between font-semibold">
                     <span>Gross Profit</span>
-                    <span className={grossProfit >= 0 ? 'text-secondary' : 'text-destructive'}>
+                    <span className={grossProfit >= 0 ? 'text-lightgreenz' : 'text-destructive'}>
                       {formatCurrency(grossProfit)}
                     </span>
                   </div>
                   <div className="flex justify-between font-semibold">
                     <span>Profit Margin</span>
-                    <span className={profitMargin >= 0 ? 'text-secondary' : 'text-destructive'}>
+                    <span className={profitMargin >= 0 ? 'text-lightgreenz' : 'text-destructive'}>
                       {profitMargin.toFixed(2)}%
                     </span>
                   </div>
@@ -525,7 +525,7 @@ export default function EditRecipe() {
                 <div className="pt-4">
                   <div className="text-sm text-muted-foreground mb-2">Margin Status</div>
                   {profitMargin >= 20 ? (
-                    <div className="flex items-center gap-2 text-secondary">
+                    <div className="flex items-center gap-2 text-lightgreenz">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
