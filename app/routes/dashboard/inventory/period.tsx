@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
+import { NumberInput } from '~/components/ui/number-input';
 import { Label } from '~/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import {
@@ -494,26 +495,27 @@ export default function InventoryPeriodDetailPage() {
             <div className="grid gap-4 grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="quantity">Quantity *</Label>
-                <Input
+                <NumberInput
                   id="quantity"
-                  type="number"
-                  min="0"
-                  step="0.01"
                   placeholder="e.g., 10"
                   value={newSnapshot.quantity}
-                  onChange={(e) => setNewSnapshot({ ...newSnapshot, quantity: e.target.value })}
+                  onChange={(value) =>
+                    setNewSnapshot({ ...newSnapshot, quantity: value.toString() })
+                  }
+                  min={0}
+                  allowDecimal={false}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="unitCost">Unit Cost (₱) *</Label>
-                <Input
+                <NumberInput
                   id="unitCost"
-                  type="number"
-                  min="0"
-                  step="0.01"
                   placeholder="e.g., 50"
                   value={newSnapshot.unitCost}
-                  onChange={(e) => setNewSnapshot({ ...newSnapshot, unitCost: e.target.value })}
+                  onChange={(value) =>
+                    setNewSnapshot({ ...newSnapshot, unitCost: value.toString() })
+                  }
+                  min={0}
                 />
               </div>
             </div>
