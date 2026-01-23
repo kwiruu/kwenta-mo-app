@@ -116,7 +116,8 @@ export default function NewSale() {
                     <option value="">Select a recipe...</option>
                     {recipes.map((recipe) => (
                       <option key={recipe.id} value={recipe.id}>
-                        {recipe.name} - {formatCurrency(recipe.sellingPrice)}
+                        {recipe.name} - {formatCurrency(recipe.sellingPrice)}/serving (Yields{' '}
+                        {recipe.servings})
                       </option>
                     ))}
                   </select>
@@ -124,7 +125,7 @@ export default function NewSale() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantity Sold</Label>
+                    <Label htmlFor="quantity">Servings Sold</Label>
                     <Input
                       id="quantity"
                       type="number"
@@ -138,6 +139,12 @@ export default function NewSale() {
                       }
                       required
                     />
+                    {selectedRecipe && (
+                      <p className="text-xs text-muted-foreground">
+                        Recipe yields {selectedRecipe.servings} serving
+                        {selectedRecipe.servings > 1 ? 's' : ''} per batch
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -216,11 +223,11 @@ export default function NewSale() {
                         <span className="font-medium">{selectedRecipe?.name}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Unit Price</span>
+                        <span className="text-muted-foreground">Price per Serving</span>
                         <span>{formatCurrency(unitPrice)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Quantity</span>
+                        <span className="text-muted-foreground">Yields</span>
                         <span>× {formData.quantitySold}</span>
                       </div>
                       <div className="border-t pt-3">

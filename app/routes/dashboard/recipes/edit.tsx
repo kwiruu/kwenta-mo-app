@@ -32,16 +32,18 @@ export default function EditRecipe() {
 
   const [formData, setFormData] = useState({
     name: '',
-    sellingPrice: 0,
+    batchSellingPrice: 0, // Total selling price for the entire batch
     prepTimeMinutes: 0,
     laborRatePerHour: 80,
     isActive: true,
+    yield: 1, // Number of servings this recipe produces
   });
 
   const [recipeIngredients, setRecipeIngredients] = useState<RecipeIngredientInput[]>([]);
   const [selectedIngredientId, setSelectedIngredientId] = useState('');
-  const [ingredientQuantity, setIngredientQuantity] = useState(0);
+  const [ingredientQuantity, setIngredientQuantity] = useState(1);
   const [profitMarginInput, setProfitMarginInput] = useState<string>('');
+  const [costViewTab, setCostViewTab] = useState<'batch' | 'serving'>('batch');
 
   // Group purchased items by item name and calculate average cost
   const displayIngredients = purchases.reduce(
@@ -79,12 +81,15 @@ export default function EditRecipe() {
   // Load recipe data when it's fetched
   useEffect(() => {
     if (recipe) {
+      const recipeServings = recipe.servings || 1;
+      const batchPrice = recipe.sellingPrice * recipeServings;
       setFormData({
         name: recipe.name,
-        sellingPrice: recipe.sellingPrice,
+        batchSellingPrice: batchPrice, // Convert per-serving to batch price
         prepTimeMinutes: recipe.preparationTime || 0,
         laborRatePerHour: 80,
         isActive: true,
+        yield: recipeServings,
       });
       // Initialize profit margin input when recipe loads
       if (recipe.sellingPrice > 0) {
@@ -143,7 +148,7 @@ export default function EditRecipe() {
     ]);
 
     setSelectedIngredientId('');
-    setIngredientQuantity(0);
+    setIngredientQuantity(1);
   };
 
   const removeIngredient = (ingredientId: string) => {
@@ -164,19 +169,37 @@ export default function EditRecipe() {
     );
   };
 
-  // Cost calculations
-  const materialCost = recipeIngredients.reduce((sum, ri) => sum + ri.totalCost, 0);
-  const laborCost = (formData.prepTimeMinutes / 60) * formData.laborRatePerHour;
-  const overheadAllocation = materialCost * 0.15;
-  const totalCost = materialCost + laborCost + overheadAllocation;
-  const grossProfit = formData.sellingPrice - totalCost;
-  const profitMargin = formData.sellingPrice > 0 ? (grossProfit / formData.sellingPrice) * 100 : 0;
+  // Batch Cost calculations
+  const batchMaterialCost = recipeIngredients.reduce((sum, ri) => sum + ri.totalCost, 0);
+  const batchLaborCost = (formData.prepTimeMinutes / 60) * formData.laborRatePerHour;
+  const batchOverhead = batchMaterialCost * 0.15;
+  const batchTotalCost = batchMaterialCost + batchLaborCost + batchOverhead;
+
+  // Per-Unit Cost calculations (divided by yield)
+  const recipeYield = formData.yield || 1;
+  const materialCostPerUnit = batchMaterialCost / recipeYield;
+  const laborCostPerUnit = batchLaborCost / recipeYield;
+  const overheadPerUnit = batchOverhead / recipeYield;
+  const totalCostPerUnit = batchTotalCost / recipeYield;
+
+  // Calculate per-serving price from batch price
+  const sellingPricePerServing = formData.batchSellingPrice / recipeYield;
+
+  // Profit calculations (per unit)
+  const grossProfit = sellingPricePerServing - totalCostPerUnit;
+  const profitMargin =
+    sellingPricePerServing > 0 ? (grossProfit / sellingPricePerServing) * 100 : 0;
+
+  // Keep legacy name for material cost display in ingredients table
+  const materialCost = batchMaterialCost;
+  const totalCost = totalCostPerUnit; // Now represents per-unit cost
 
   // Handle selling price change - update profit margin input
   const handleSellingPriceChange = (value: number) => {
-    setFormData({ ...formData, sellingPrice: value });
-    if (totalCost > 0 && value > 0) {
-      const margin = ((value - totalCost) / value) * 100;
+    setFormData({ ...formData, batchSellingPrice: value });
+    const perServingPrice = value / recipeYield;
+    if (totalCost > 0 && perServingPrice > 0) {
+      const margin = ((perServingPrice - totalCost) / perServingPrice) * 100;
       setProfitMarginInput(margin.toFixed(2));
     } else {
       setProfitMarginInput('');
@@ -189,8 +212,9 @@ export default function EditRecipe() {
     const margin = parseFloat(marginPercent);
     if (!isNaN(margin) && totalCost > 0 && margin < 100) {
       // Formula: sellingPrice = totalCost / (1 - margin/100)
-      const calculatedPrice = totalCost / (1 - margin / 100);
-      setFormData({ ...formData, sellingPrice: Math.round(calculatedPrice * 100) / 100 });
+      const calculatedPricePerServing = totalCost / (1 - margin / 100);
+      const batchPrice = calculatedPricePerServing * recipeYield;
+      setFormData({ ...formData, batchSellingPrice: Math.round(batchPrice * 100) / 100 });
     }
   };
 
@@ -221,8 +245,9 @@ export default function EditRecipe() {
         id: recipeId,
         data: {
           name: formData.name,
-          sellingPrice: formData.sellingPrice,
+          sellingPrice: sellingPricePerServing, // Send per-serving price to API
           preparationTime: formData.prepTimeMinutes,
+          servings: formData.yield,
           ingredients: recipeIngredients.map((ri) => ({
             ingredientId: ri.ingredientId,
             quantity: ri.quantityRequired,
@@ -288,27 +313,69 @@ export default function EditRecipe() {
                 <CardDescription>Basic information about your recipe</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Recipe Name</Label>
-                  <Input
-                    id="name"
-                    placeholder="e.g., Chicken Adobo"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </div>
-
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="sellingPrice">Selling Price (₱)</Label>
+                    <Label htmlFor="name">Recipe Name</Label>
+                    <Input
+                      id="name"
+                      placeholder="e.g., Chicken Adobo"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="yield">Yield (servings)</Label>
                     <NumberInput
-                      id="sellingPrice"
-                      value={formData.sellingPrice}
+                      id="yield"
+                      value={formData.yield}
+                      onChange={(value) => setFormData({ ...formData, yield: Math.max(1, value) })}
+                      placeholder="e.g., 10"
+                      min={1}
+                      allowDecimal={false}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      How many servings does this recipe make?
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="batchSellingPrice">Batch Selling Price (₱)</Label>
+                    <NumberInput
+                      id="batchSellingPrice"
+                      value={formData.batchSellingPrice}
                       onChange={handleSellingPriceChange}
                       placeholder="0.00"
                       min={0}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Total price for {recipeYield} servings
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="perServingPrice">Per Serving Selling Price (₱)</Label>
+                    <NumberInput
+                      id="perServingPrice"
+                      value={sellingPricePerServing}
+                      onChange={(value) => {
+                        const newBatchPrice = value * recipeYield;
+                        setFormData({ ...formData, batchSellingPrice: newBatchPrice });
+                        if (totalCost > 0 && value > 0) {
+                          const margin = ((value - totalCost) / value) * 100;
+                          setProfitMarginInput(margin.toFixed(2));
+                        } else {
+                          setProfitMarginInput('');
+                        }
+                      }}
+                      placeholder="0.00"
+                      min={0}
+                      disabled={recipeYield < 1}
+                    />
+                    <p className="text-xs text-muted-foreground">Price per individual serving</p>
                   </div>
 
                   <div className="space-y-2">
@@ -318,8 +385,8 @@ export default function EditRecipe() {
                       type="number"
                       min="0"
                       max="99"
-                      step="1"
-                      placeholder="e.g., 30"
+                      step="0.01"
+                      placeholder="e.g., 30 or 25.5"
                       value={profitMarginInput}
                       onChange={(e) => handleProfitMarginChange(e.target.value)}
                     />
@@ -516,115 +583,207 @@ export default function EditRecipe() {
           <div className="space-y-6">
             <Card className="sticky top-6">
               <CardHeader>
-                <CardTitle>Cost Breakdown</CardTitle>
-                <CardDescription>Real-time cost calculation</CardDescription>
+                <CardTitle>Recipe Economics</CardTitle>
+                <CardDescription>Cost and profit breakdown</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Material Cost</span>
-                    <span>{formatCurrency(materialCost)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      Labor Cost
-                      <span className="block text-xs">
-                        ({formData.prepTimeMinutes} min ×{' '}
-                        {formatCurrency(formData.laborRatePerHour)}/hr)
-                      </span>
-                    </span>
-                    <span>{formatCurrency(laborCost)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Overhead (15%)</span>
-                    <span>{formatCurrency(overheadAllocation)}</span>
-                  </div>
-                  <div className="border-t pt-3">
-                    <div className="flex justify-between font-semibold">
-                      <span>Total Cost</span>
-                      <span>{formatCurrency(totalCost)}</span>
-                    </div>
-                  </div>
+                {/* Tab Selector */}
+                <div className="flex gap-2 border-b">
+                  <button
+                    type="button"
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      costViewTab === 'batch'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => setCostViewTab('batch')}
+                  >
+                    Per Batch ({recipeYield})
+                  </button>
+                  <button
+                    type="button"
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      costViewTab === 'serving'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => setCostViewTab('serving')}
+                  >
+                    Per Serving
+                  </button>
                 </div>
 
-                <div className="border-t pt-4 space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Selling Price</span>
-                    <span>{formatCurrency(formData.sellingPrice)}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold">
-                    <span>Gross Profit</span>
-                    <span className={grossProfit >= 0 ? 'text-lightgreenz' : 'text-destructive'}>
-                      {formatCurrency(grossProfit)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between font-semibold">
-                    <span>Profit Margin</span>
-                    <span className={profitMargin >= 0 ? 'text-lightgreenz' : 'text-destructive'}>
-                      {profitMargin.toFixed(2)}%
-                    </span>
-                  </div>
-                </div>
+                {/* Batch View */}
+                {costViewTab === 'batch' && (
+                  <>
+                    <div className="space-y-3">
+                      <div className="text-xs font-medium text-muted-foreground uppercase">
+                        Batch Cost Breakdown
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Material Cost</span>
+                        <span>{formatCurrency(batchMaterialCost)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Labor Cost</span>
+                        <span>{formatCurrency(batchLaborCost)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Overhead (15%)</span>
+                        <span>{formatCurrency(batchOverhead)}</span>
+                      </div>
+                      <div className="border-t pt-3">
+                        <div className="flex justify-between font-semibold text-lg">
+                          <span>Total Batch Cost</span>
+                          <span>{formatCurrency(batchTotalCost)}</span>
+                        </div>
+                      </div>
+                    </div>
 
-                {/* Margin Indicator */}
-                <div className="pt-4">
-                  <div className="text-sm text-muted-foreground mb-2">Margin Status</div>
-                  {profitMargin >= 20 ? (
-                    <div className="flex items-center gap-2 text-lightgreenz">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span className="font-medium">Healthy margin</span>
+                    <div className="border-t pt-4 space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Batch Selling Price</span>
+                        <span className="text-lg font-semibold text-primary">
+                          {formatCurrency(formData.batchSellingPrice)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-semibold text-lg">
+                        <span>Batch Profit</span>
+                        <span
+                          className={
+                            formData.batchSellingPrice - batchTotalCost >= 0
+                              ? 'text-lightgreenz'
+                              : 'text-destructive'
+                          }
+                        >
+                          {formatCurrency(formData.batchSellingPrice - batchTotalCost)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-semibold">
+                        <span>Profit Margin</span>
+                        <span
+                          className={profitMargin >= 0 ? 'text-lightgreenz' : 'text-destructive'}
+                        >
+                          {profitMargin.toFixed(2)}%
+                        </span>
+                      </div>
                     </div>
-                  ) : profitMargin >= 0 ? (
-                    <div className="flex items-center gap-2 text-yellow-600">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                      </svg>
-                      <span className="font-medium">Low margin</span>
+                  </>
+                )}
+
+                {/* Per Serving View */}
+                {costViewTab === 'serving' && (
+                  <>
+                    <div className="space-y-3">
+                      <div className="text-xs font-medium text-muted-foreground uppercase">
+                        Per Serving Breakdown
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Material Cost</span>
+                        <span>{formatCurrency(materialCostPerUnit)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Labor Cost</span>
+                        <span>{formatCurrency(laborCostPerUnit)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Overhead (15%)</span>
+                        <span>{formatCurrency(overheadPerUnit)}</span>
+                      </div>
+                      <div className="border-t pt-3">
+                        <div className="flex justify-between font-semibold text-lg">
+                          <span>Cost per Serving</span>
+                          <span>{formatCurrency(totalCostPerUnit)}</span>
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-destructive">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span className="font-medium">Losing money!</span>
+
+                    <div className="border-t pt-4 space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Selling Price per Serving</span>
+                        <span className="text-lg font-semibold text-primary">
+                          {formatCurrency(sellingPricePerServing)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-semibold text-lg">
+                        <span>Profit per Serving</span>
+                        <span
+                          className={grossProfit >= 0 ? 'text-lightgreenz' : 'text-destructive'}
+                        >
+                          {formatCurrency(grossProfit)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-semibold">
+                        <span>Profit Margin</span>
+                        <span
+                          className={profitMargin >= 0 ? 'text-lightgreenz' : 'text-destructive'}
+                        >
+                          {profitMargin.toFixed(2)}%
+                        </span>
+                      </div>
                     </div>
-                  )}
-                </div>
+
+                    {/* Margin Indicator */}
+                    <div className="pt-4">
+                      <div className="text-sm text-muted-foreground mb-2">Margin Status</div>
+                      {profitMargin >= 20 ? (
+                        <div className="flex items-center gap-2 text-lightgreenz">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <span className="font-medium">Healthy margin</span>
+                        </div>
+                      ) : profitMargin >= 0 ? (
+                        <div className="flex items-center gap-2 text-yellow-600">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                          </svg>
+                          <span className="font-medium">Low margin</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-destructive">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <span className="font-medium">Losing money!</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 
