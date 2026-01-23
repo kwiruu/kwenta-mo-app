@@ -168,6 +168,28 @@ export default function NewRecipe() {
     }
   };
 
+  // Handle selling price change - update profit margin input
+  const handleSellingPriceChange = (value: number) => {
+    setFormData({ ...formData, sellingPrice: value });
+    if (totalCost > 0 && value > 0) {
+      const margin = ((value - totalCost) / value) * 100;
+      setProfitMarginInput(margin.toFixed(2));
+    } else {
+      setProfitMarginInput('');
+    }
+  };
+
+  // Handle profit margin change - calculate and update selling price
+  const handleProfitMarginChange = (marginPercent: string) => {
+    setProfitMarginInput(marginPercent);
+    const margin = parseFloat(marginPercent);
+    if (!isNaN(margin) && totalCost > 0 && margin < 100) {
+      // Formula: sellingPrice = totalCost / (1 - margin/100)
+      const calculatedPrice = totalCost / (1 - margin / 100);
+      setFormData({ ...formData, sellingPrice: Math.round(calculatedPrice * 100) / 100 });
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
