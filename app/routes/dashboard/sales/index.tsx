@@ -204,8 +204,8 @@ export default function SalesIndex() {
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Recipe</TableHead>
-                  <TableHead className="text-center">Qty</TableHead>
-                  <TableHead className="text-right">Unit Price</TableHead>
+                  <TableHead className="text-center">Yields</TableHead>
+                  <TableHead className="text-right">Price/Yield</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead className="text-right">Cost</TableHead>
                   <TableHead className="text-right">Profit</TableHead>

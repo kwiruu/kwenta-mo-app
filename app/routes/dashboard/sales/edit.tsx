@@ -173,7 +173,8 @@ export default function EditSale() {
                     <option value="">Select a recipe...</option>
                     {recipes.map((recipe) => (
                       <option key={recipe.id} value={recipe.id}>
-                        {recipe.name} - {formatCurrency(Number(recipe.sellingPrice))}
+                        {recipe.name} - {formatCurrency(Number(recipe.sellingPrice))}/serving
+                        (Yields {recipe.servings})
                       </option>
                     ))}
                   </select>
@@ -181,7 +182,7 @@ export default function EditSale() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantity Sold</Label>
+                    <Label htmlFor="quantity">Servings Sold</Label>
                     <Input
                       id="quantity"
                       type="number"
@@ -195,6 +196,12 @@ export default function EditSale() {
                       }
                       required
                     />
+                    {selectedRecipe && (
+                      <p className="text-xs text-muted-foreground">
+                        Recipe yields {selectedRecipe.servings} serving
+                        {selectedRecipe.servings > 1 ? 's' : ''} per batch
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -256,11 +263,11 @@ export default function EditSale() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between py-2 border-b">
-                  <span className="text-muted-foreground">Unit Price</span>
+                  <span className="text-muted-foreground">Price per Serving</span>
                   <span className="font-medium">{formatCurrency(unitPrice)}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b">
-                  <span className="text-muted-foreground">Quantity</span>
+                  <span className="text-muted-foreground">Yields</span>
                   <span className="font-medium">×{formData.quantitySold}</span>
                 </div>
                 <div className="flex justify-between py-2 text-lg">
