@@ -137,12 +137,15 @@ export const useAuthStore = create<AuthState>()(
           if (error) {
             // Provide user-friendly error messages
             let userMessage = error.message;
-            
+
             // Check for duplicate email
-            if (error.message.toLowerCase().includes('already registered') || 
-                error.message.toLowerCase().includes('user already exists') ||
-                error.message.toLowerCase().includes('email already in use')) {
-              userMessage = 'This email is already registered. Please sign in instead or use a different email.';
+            if (
+              error.message.toLowerCase().includes('already registered') ||
+              error.message.toLowerCase().includes('user already exists') ||
+              error.message.toLowerCase().includes('email already in use')
+            ) {
+              userMessage =
+                'This email is already registered. Please sign in instead or use a different email.';
             }
             // Check for invalid email format
             else if (error.message.toLowerCase().includes('invalid email')) {
@@ -152,7 +155,7 @@ export const useAuthStore = create<AuthState>()(
             else if (error.message.toLowerCase().includes('password')) {
               userMessage = 'Password must be at least 8 characters long.';
             }
-            
+
             set({ isLoading: false, error: userMessage });
             return { success: false, message: userMessage };
           }
