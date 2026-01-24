@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router';
 import {
   DollarSign,
@@ -264,7 +264,12 @@ export default function ReportsIndex() {
     }
   };
 
+  const [isExporting, setIsExporting] = React.useState(false);
+
   const handleExportExcel = async (type: 'sales' | 'expenses') => {
+    if (isExporting) return;
+
+    setIsExporting(true);
     try {
       const blob = await reportsApi.exportExcel(type, startDate, endDate);
       const url = window.URL.createObjectURL(blob);
@@ -276,6 +281,8 @@ export default function ReportsIndex() {
     } catch (error) {
       console.error('Failed to export Excel:', error);
       alert('Failed to export Excel. Please try again.');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -300,13 +307,23 @@ export default function ReportsIndex() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => handleExportExcel('sales')}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExportExcel('sales')}
+            disabled={isExporting}
+          >
             <Download className="h-4 w-4 mr-2" />
-            Export Sales
+            {isExporting ? 'Exporting...' : 'Export Sales'}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => handleExportExcel('expenses')}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExportExcel('expenses')}
+            disabled={isExporting}
+          >
             <Download className="h-4 w-4 mr-2" />
-            Export Expenses
+            {isExporting ? 'Exporting...' : 'Export Expenses'}
           </Button>
         </div>
       </div>
@@ -724,9 +741,14 @@ export default function ReportsIndex() {
               <Card className="md:col-span-2 border">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Category Breakdown</CardTitle>
-                  <Button variant="outline" size="sm" onClick={() => handleExportExcel('expenses')}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleExportExcel('expenses')}
+                    disabled={isExporting}
+                  >
                     <Download className="h-4 w-4 mr-2" />
-                    Export
+                    {isExporting ? 'Exporting...' : 'Export'}
                   </Button>
                 </CardHeader>
                 <CardContent>
@@ -881,8 +903,14 @@ export default function ReportsIndex() {
                       For period {startDate} to {endDate}
                     </CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => handleExportExcel('sales')}>
-                    <Download className="h-4 w-4 mr-2" /> Export
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleExportExcel('sales')}
+                    disabled={isExporting}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    {isExporting ? 'Exporting...' : 'Export'}
                   </Button>
                 </div>
               </CardHeader>

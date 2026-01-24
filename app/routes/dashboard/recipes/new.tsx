@@ -5,7 +5,7 @@ import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { NumberInput } from '~/components/ui/number-input';
-import { useCreateRecipe, usePurchases, useActivePeriod } from '~/hooks';
+import { useCreateRecipe, usePurchases, useActivePeriod, useUserProfile } from '~/hooks';
 
 interface RecipeIngredientInput {
   ingredientId: string;
@@ -23,14 +23,16 @@ export default function NewRecipe() {
   const { data: purchases = [] } = usePurchases({
     periodId: activePeriod?.id,
   });
+  const { data: profile } = useUserProfile();
+  const business = profile?.business;
 
   const [formData, setFormData] = useState({
     name: '',
-    batchSellingPrice: 0, // Total selling price for the entire batch
-    prepTimeMinutes: 0,
-    laborRatePerHour: 0,
+    batchSellingPrice: '', // Total selling price for the entire batch
+    prepTimeMinutes: '',
+    laborRatePerHour: '',
     isActive: true,
-    yield: 0, // Number of servings this recipe produces
+    yield: '', // Number of servings this recipe produces
   });
   const [profitMarginInput, setProfitMarginInput] = useState<string>('');
   const [costViewTab, setCostViewTab] = useState<'batch' | 'serving'>('batch');
@@ -120,9 +122,10 @@ export default function NewRecipe() {
   };
 
   // Batch Cost calculations
+  const overheadRate = business?.overheadRate ?? 0.15;
   const batchMaterialCost = recipeIngredients.reduce((sum, ri) => sum + ri.totalCost, 0);
   const batchLaborCost = (formData.prepTimeMinutes / 60) * formData.laborRatePerHour;
-  const batchOverhead = batchMaterialCost * 0.15;
+  const batchOverhead = batchMaterialCost * overheadRate;
   const batchTotalCost = batchMaterialCost + batchLaborCost + batchOverhead;
 
   // Per-Unit Cost calculations (divided by yield)
@@ -306,6 +309,7 @@ export default function NewRecipe() {
                       placeholder="0.00"
                       min={0}
                       disabled={recipeYield < 1}
+                      maxDecimals={2}
                     />
                     <p className="text-xs text-muted-foreground">Price per individual serving</p>
                   </div>
@@ -535,7 +539,9 @@ export default function NewRecipe() {
                         <span>{formatCurrency(batchLaborCost)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Overhead (15%)</span>
+                        <span className="text-muted-foreground">
+                          Overhead ({(overheadRate * 100).toFixed(0)}%)
+                        </span>
                         <span>{formatCurrency(batchOverhead)}</span>
                       </div>
                       <div className="border-t pt-3">
@@ -593,7 +599,9 @@ export default function NewRecipe() {
                         <span>{formatCurrency(laborCostPerUnit)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Overhead (15%)</span>
+                        <span className="text-muted-foreground">
+                          Overhead ({(overheadRate * 100).toFixed(0)}%)
+                        </span>
                         <span>{formatCurrency(overheadPerUnit)}</span>
                       </div>
                       <div className="border-t pt-3">
