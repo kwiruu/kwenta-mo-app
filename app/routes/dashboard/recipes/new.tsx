@@ -124,19 +124,19 @@ export default function NewRecipe() {
   // Batch Cost calculations
   const overheadRate = business?.overheadRate ?? 0.15;
   const batchMaterialCost = recipeIngredients.reduce((sum, ri) => sum + ri.totalCost, 0);
-  const batchLaborCost = (formData.prepTimeMinutes / 60) * formData.laborRatePerHour;
+  const batchLaborCost = (Number(formData.prepTimeMinutes) / 60) * Number(formData.laborRatePerHour);
   const batchOverhead = batchMaterialCost * overheadRate;
   const batchTotalCost = batchMaterialCost + batchLaborCost + batchOverhead;
 
   // Per-Unit Cost calculations (divided by yield)
-  const recipeYield = formData.yield || 1;
+  const recipeYield = Number(formData.yield) || 1;
   const materialCostPerUnit = batchMaterialCost / recipeYield;
   const laborCostPerUnit = batchLaborCost / recipeYield;
   const overheadPerUnit = batchOverhead / recipeYield;
   const totalCostPerUnit = batchTotalCost / recipeYield;
 
   // Calculate per-serving price from batch price
-  const sellingPricePerServing = formData.batchSellingPrice / recipeYield;
+  const sellingPricePerServing = Number(formData.batchSellingPrice) / recipeYield;
 
   // Profit calculations (per unit)
   const grossProfit = sellingPricePerServing - totalCostPerUnit;
@@ -149,7 +149,7 @@ export default function NewRecipe() {
 
   // Handle selling price change - update profit margin input
   const handleSellingPriceChange = (value: number) => {
-    setFormData({ ...formData, batchSellingPrice: value });
+    setFormData({ ...formData, batchSellingPrice: value.toString() });
     const perServingPrice = value / recipeYield;
     if (totalCost > 0 && perServingPrice > 0) {
       const margin = ((perServingPrice - totalCost) / perServingPrice) * 100;
@@ -167,7 +167,7 @@ export default function NewRecipe() {
       // Formula: sellingPrice = totalCost / (1 - margin/100)
       const calculatedPricePerServing = totalCost / (1 - margin / 100);
       const batchPrice = calculatedPricePerServing * recipeYield;
-      setFormData({ ...formData, batchSellingPrice: Math.round(batchPrice * 100) / 100 });
+      setFormData({ ...formData, batchSellingPrice: (Math.round(batchPrice * 100) / 100).toString() });
     }
   };
 
@@ -195,8 +195,8 @@ export default function NewRecipe() {
       {
         name: formData.name,
         sellingPrice: sellingPricePerServing, // Send per-serving price to API
-        preparationTime: formData.prepTimeMinutes,
-        servings: formData.yield,
+        preparationTime: Number(formData.prepTimeMinutes),
+        servings: Number(formData.yield),
         ingredients: recipeIngredients.map((ri) => ({
           ingredientId: ri.ingredientId,
           quantity: ri.quantityRequired,
@@ -265,7 +265,7 @@ export default function NewRecipe() {
                     <NumberInput
                       id="yield"
                       value={formData.yield}
-                      onChange={(value) => setFormData({ ...formData, yield: Math.max(1, value) })}
+                      onChange={(value) => setFormData({ ...formData, yield: Math.max(1, value).toString() })}
                       placeholder="e.g., 10"
                       min={1}
                       allowDecimal={false}
@@ -298,7 +298,7 @@ export default function NewRecipe() {
                       value={sellingPricePerServing}
                       onChange={(value) => {
                         const newBatchPrice = value * recipeYield;
-                        setFormData({ ...formData, batchSellingPrice: newBatchPrice });
+                        setFormData({ ...formData, batchSellingPrice: newBatchPrice.toString() });
                         if (totalCost > 0 && value > 0) {
                           const margin = ((value - totalCost) / value) * 100;
                           setProfitMarginInput(margin.toFixed(2));
@@ -343,7 +343,7 @@ export default function NewRecipe() {
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          prepTimeMinutes: parseInt(e.target.value) || 0,
+                          prepTimeMinutes: (parseInt(e.target.value) || 0).toString(),
                         })
                       }
                     />
@@ -357,7 +357,7 @@ export default function NewRecipe() {
                       onChange={(value) =>
                         setFormData({
                           ...formData,
-                          laborRatePerHour: value,
+                          laborRatePerHour: value.toString(),
                         })
                       }
                       placeholder="80.00"
@@ -556,19 +556,19 @@ export default function NewRecipe() {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Batch Selling Price</span>
                         <span className="text-lg font-semibold text-primary">
-                          {formatCurrency(formData.batchSellingPrice)}
+                          {formatCurrency(Number(formData.batchSellingPrice))}
                         </span>
                       </div>
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Batch Profit</span>
                         <span
                           className={
-                            formData.batchSellingPrice - batchTotalCost >= 0
+                            Number(formData.batchSellingPrice) - batchTotalCost >= 0
                               ? 'text-lightgreenz'
                               : 'text-destructive'
                           }
                         >
-                          {formatCurrency(formData.batchSellingPrice - batchTotalCost)}
+                          {formatCurrency(Number(formData.batchSellingPrice) - batchTotalCost)}
                         </span>
                       </div>
                       <div className="flex justify-between font-semibold">
