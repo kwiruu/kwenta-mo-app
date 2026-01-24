@@ -7,7 +7,7 @@ import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { NumberInput } from '~/components/ui/number-input';
-import { useRecipe, useUpdateRecipe, usePurchases, useActivePeriod } from '~/hooks';
+import { useRecipe, useUpdateRecipe, usePurchases, useActivePeriod, useUserProfile } from '~/hooks';
 
 interface RecipeIngredientInput {
   ingredientId: string;
@@ -29,6 +29,8 @@ export default function EditRecipe() {
   const { data: purchases = [] } = usePurchases({
     periodId: activePeriod?.id,
   });
+  const { data: profile } = useUserProfile();
+  const business = profile?.business;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -98,7 +100,8 @@ export default function EditRecipe() {
           return sum + Number(ri.quantity) * (Number(ri.purchase?.unitCost) || 0);
         }, 0);
         const laborCostFromRecipe = ((recipe.preparationTime || 0) / 60) * 80;
-        const overheadFromRecipe = materialCostFromRecipe * 0.15;
+        const overheadRate = business?.overheadRate ?? 0.15;
+        const overheadFromRecipe = materialCostFromRecipe * overheadRate;
         const totalCostFromRecipe =
           materialCostFromRecipe + laborCostFromRecipe + overheadFromRecipe;
         if (totalCostFromRecipe > 0) {
@@ -121,7 +124,7 @@ export default function EditRecipe() {
         );
       }
     }
-  }, [recipe]);
+  }, [recipe, business?.overheadRate]);
 
   const addIngredient = () => {
     if (!selectedIngredientId || ingredientQuantity <= 0) return;
@@ -170,9 +173,10 @@ export default function EditRecipe() {
   };
 
   // Batch Cost calculations
+  const overheadRate = business?.overheadRate ?? 0.15;
   const batchMaterialCost = recipeIngredients.reduce((sum, ri) => sum + ri.totalCost, 0);
   const batchLaborCost = (formData.prepTimeMinutes / 60) * formData.laborRatePerHour;
-  const batchOverhead = batchMaterialCost * 0.15;
+  const batchOverhead = batchMaterialCost * overheadRate;
   const batchTotalCost = batchMaterialCost + batchLaborCost + batchOverhead;
 
   // Per-Unit Cost calculations (divided by yield)
@@ -374,6 +378,7 @@ export default function EditRecipe() {
                       placeholder="0.00"
                       min={0}
                       disabled={recipeYield < 1}
+                      maxDecimals={2}
                     />
                     <p className="text-xs text-muted-foreground">Price per individual serving</p>
                   </div>
@@ -629,7 +634,9 @@ export default function EditRecipe() {
                         <span>{formatCurrency(batchLaborCost)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Overhead (15%)</span>
+                        <span className="text-muted-foreground">
+                          Overhead ({(overheadRate * 100).toFixed(0)}%)
+                        </span>
                         <span>{formatCurrency(batchOverhead)}</span>
                       </div>
                       <div className="border-t pt-3">
@@ -687,7 +694,9 @@ export default function EditRecipe() {
                         <span>{formatCurrency(laborCostPerUnit)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Overhead (15%)</span>
+                        <span className="text-muted-foreground">
+                          Overhead ({(overheadRate * 100).toFixed(0)}%)
+                        </span>
                         <span>{formatCurrency(overheadPerUnit)}</span>
                       </div>
                       <div className="border-t pt-3">

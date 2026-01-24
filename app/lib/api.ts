@@ -186,6 +186,7 @@ export interface Business {
   employeeCount?: number;
   avgMonthlySales?: number;
   rawMaterialSource?: string;
+  overheadRate: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -207,6 +208,7 @@ export interface UpdateBusinessDto {
   employeeCount?: number;
   avgMonthlySales?: number;
   rawMaterialSource?: string;
+  overheadRate?: number;
 }
 
 export const usersApi = {

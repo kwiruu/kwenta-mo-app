@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Building2, MapPin, Users, DollarSign, Package, Save, Edit, Lock } from 'lucide-react';
+import { MapPin, Users, DollarSign, Package, Save, Edit } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { NumberInput } from '~/components/ui/number-input';
@@ -13,9 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { CardContent } from '~/components/ui/card';
 import { useUserProfile, useUpdateBusiness } from '~/hooks/useBusiness';
-import { useBusinessStore } from '~/stores/businessStore';
 import { APP_CONFIG } from '~/config/app';
 import type { BusinessType } from '~/types';
 
@@ -60,6 +59,7 @@ export default function BusinessProfilePage() {
     employeeCount: '',
     avgMonthlySales: '',
     rawMaterialSource: '',
+    overheadRate: '',
   });
 
   // Initialize form data when profile loads
@@ -72,6 +72,7 @@ export default function BusinessProfilePage() {
         employeeCount: business.employeeCount?.toString() || '',
         avgMonthlySales: business.avgMonthlySales?.toString() || '',
         rawMaterialSource: business.rawMaterialSource || '',
+        overheadRate: ((business.overheadRate || 0.15) * 100).toString(),
       });
       setIsEditing(false);
     } else if (!isLoadingProfile) {
@@ -94,6 +95,7 @@ export default function BusinessProfilePage() {
       employeeCount: business?.employeeCount?.toString() || '',
       avgMonthlySales: business?.avgMonthlySales?.toString() || '',
       rawMaterialSource: business?.rawMaterialSource || '',
+      overheadRate: ((business?.overheadRate || 0.15) * 100).toString(),
     });
   };
 
@@ -102,13 +104,14 @@ export default function BusinessProfilePage() {
     setSuccess(false);
 
     try {
-      const result = await updateBusinessMutation.mutateAsync({
+      await updateBusinessMutation.mutateAsync({
         businessName: formData.name,
         businessType: formData.type,
         address: formData.location,
         employeeCount: parseInt(formData.employeeCount) || undefined,
         avgMonthlySales: parseFloat(formData.avgMonthlySales) || undefined,
         rawMaterialSource: formData.rawMaterialSource || undefined,
+        overheadRate: parseFloat(formData.overheadRate) / 100 || undefined,
       });
 
       setSuccess(true);
@@ -284,6 +287,27 @@ export default function BusinessProfilePage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Overhead Rate */}
+            <div className="space-y-2">
+              <Label htmlFor="overheadRate" className="text-gray-700">
+                Overhead Rate (%) *
+              </Label>
+              <NumberInput
+                id="overheadRate"
+                placeholder="e.g., 15"
+                value={formData.overheadRate}
+                onChange={(value) => setFormData({ ...formData, overheadRate: value.toString() })}
+                className="border-gray-200 focus:border-primary focus:ring-primary disabled:opacity-60 disabled:bg-black/5 disabled:cursor-not-allowed"
+                disabled={!isEditing}
+                min={0}
+                max={100}
+              />
+              <p className="text-xs text-gray-400">
+                Percentage of material cost allocated to overhead expenses (utilities, rent, etc.).
+                Default is 15%.
+              </p>
             </div>
           </CardContent>
         </div>

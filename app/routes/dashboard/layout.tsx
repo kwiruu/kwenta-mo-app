@@ -262,7 +262,9 @@ export default function DashboardLayout() {
               <span className="text-sm font-medium text-gray-900">
                 {business?.businessName || profile?.email || user?.email || 'My Business'}
               </span>
-              {business?.businessName && <p className="text-xs text-gray-500">{profile?.email || user?.email}</p>}
+              {business?.businessName && (
+                <p className="text-xs text-gray-500">{profile?.email || user?.email}</p>
+              )}
             </div>
           </div>
         </header>
