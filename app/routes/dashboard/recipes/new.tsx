@@ -124,7 +124,8 @@ export default function NewRecipe() {
   // Batch Cost calculations
   const overheadRate = business?.overheadRate ?? 0.15;
   const batchMaterialCost = recipeIngredients.reduce((sum, ri) => sum + ri.totalCost, 0);
-  const batchLaborCost = (Number(formData.prepTimeMinutes) / 60) * Number(formData.laborRatePerHour);
+  const batchLaborCost =
+    (Number(formData.prepTimeMinutes) / 60) * Number(formData.laborRatePerHour);
   const batchOverhead = batchMaterialCost * overheadRate;
   const batchTotalCost = batchMaterialCost + batchLaborCost + batchOverhead;
 
@@ -167,7 +168,10 @@ export default function NewRecipe() {
       // Formula: sellingPrice = totalCost / (1 - margin/100)
       const calculatedPricePerServing = totalCost / (1 - margin / 100);
       const batchPrice = calculatedPricePerServing * recipeYield;
-      setFormData({ ...formData, batchSellingPrice: (Math.round(batchPrice * 100) / 100).toString() });
+      setFormData({
+        ...formData,
+        batchSellingPrice: (Math.round(batchPrice * 100) / 100).toString(),
+      });
     }
   };
 
@@ -265,7 +269,9 @@ export default function NewRecipe() {
                     <NumberInput
                       id="yield"
                       value={formData.yield}
-                      onChange={(value) => setFormData({ ...formData, yield: Math.max(1, value).toString() })}
+                      onChange={(value) =>
+                        setFormData({ ...formData, yield: Math.max(1, value).toString() })
+                      }
                       placeholder="e.g., 10"
                       min={1}
                       allowDecimal={false}
