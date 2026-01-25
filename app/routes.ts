@@ -5,6 +5,8 @@ export default [
   index('routes/home.tsx'),
   route('login', 'routes/login.tsx'),
   route('register', 'routes/register.tsx'),
+  route('privacy', 'routes/privacy.tsx'),
+  route('terms', 'routes/terms.tsx'),
 
   // Protected routes (dashboard layout with /dashboard prefix)
   layout('routes/dashboard/layout.tsx', [
