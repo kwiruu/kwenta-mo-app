@@ -6,7 +6,12 @@ import { ArrowLeft } from 'lucide-react';
 export function meta(_args: Route.MetaArgs) {
   return [
     { title: `Terms of Service - ${APP_CONFIG.name}` },
-    { name: 'description', content: `Terms of Service for ${APP_CONFIG.name}` },
+    {
+      name: 'description',
+      content: `Read the terms and conditions for using ${APP_CONFIG.name}, a web-based costing assistant for small food businesses in the Philippines.`,
+    },
+    { name: 'robots', content: 'index, follow' },
+    { tagName: 'link', rel: 'canonical', href: `${APP_CONFIG.url}/terms` },
   ];
 }
 

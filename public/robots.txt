@@ -1,0 +1,10 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin and dashboard pages from public indexing
+Disallow: /dashboard/
+Disallow: /dashboard/admin/
+
+# Sitemap location
+Sitemap: https://kwentamo.tech/sitemap.xml

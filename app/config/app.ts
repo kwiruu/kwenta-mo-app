@@ -1,6 +1,22 @@
 export const APP_CONFIG = {
   name: 'KwentaMo',
   description: 'A Web-Based Costing Assistant for Small Food Business Owners',
+  tagline: 'Smart Costing Solutions for Filipino Food Businesses',
+  keywords: [
+    'food costing',
+    'recipe costing',
+    'food business',
+    'restaurant management',
+    'inventory management',
+    'profit calculator',
+    'Filipino food business',
+    'small business accounting',
+    'cost tracking',
+    'menu costing',
+  ],
+  url: 'https://kwentamo.tech',
+  ogImage: '/og-image.png',
+  twitterHandle: '@kwentamo',
   version: '1.0.0',
 
   // API Configuration (to be updated when backend is ready)

@@ -6,7 +6,12 @@ import { ArrowLeft } from 'lucide-react';
 export function meta(_args: Route.MetaArgs) {
   return [
     { title: `Privacy Policy - ${APP_CONFIG.name}` },
-    { name: 'description', content: `Privacy Policy for ${APP_CONFIG.name}` },
+    {
+      name: 'description',
+      content: `Learn how ${APP_CONFIG.name} protects your data, business information, and privacy. We are committed to keeping your food business data secure.`,
+    },
+    { name: 'robots', content: 'index, follow' },
+    { tagName: 'link', rel: 'canonical', href: `${APP_CONFIG.url}/privacy` },
   ];
 }
 

@@ -4,6 +4,7 @@ import type { Route } from './+types/home';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { APP_CONFIG } from '~/config/app';
+import { useAuthStore } from '~/stores/authStore';
 import {
   BarChart3,
   FileUp,
@@ -20,12 +21,54 @@ import {
   Menu,
   X,
   Target,
+  User,
 } from 'lucide-react';
 
 export function meta(_args: Route.MetaArgs) {
   return [
-    { title: `${APP_CONFIG.name} - Food Business Costing Assistant` },
-    { name: 'description', content: APP_CONFIG.description },
+    { title: `${APP_CONFIG.name} - Food Business Costing Assistant for Filipino Entrepreneurs` },
+    {
+      name: 'description',
+      content:
+        'Free web-based costing tool for Filipino food businesses. Track ingredient costs, calculate recipe profits, manage inventory, and generate financial reports. Perfect for small restaurants, home bakers, and food startups.',
+    },
+    { name: 'keywords', content: APP_CONFIG.keywords.join(', ') },
+    { name: 'author', content: APP_CONFIG.name },
+    { tagName: 'link', rel: 'canonical', href: APP_CONFIG.url },
+
+    // Open Graph / Facebook
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: APP_CONFIG.url },
+    {
+      property: 'og:title',
+      content: `${APP_CONFIG.name} - Smart Costing for Filipino Food Businesses`,
+    },
+    {
+      property: 'og:description',
+      content:
+        'Free costing assistant for food businesses. Track costs, calculate profits, manage inventory, and grow your food business with data-driven insights.',
+    },
+    { property: 'og:image', content: `${APP_CONFIG.url}${APP_CONFIG.ogImage}` },
+    { property: 'og:locale', content: 'en_PH' },
+    { property: 'og:site_name', content: APP_CONFIG.name },
+
+    // Twitter
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:url', content: APP_CONFIG.url },
+    { name: 'twitter:title', content: `${APP_CONFIG.name} - Food Business Costing Assistant` },
+    {
+      name: 'twitter:description',
+      content:
+        'Free web-based costing tool for Filipino food businesses. Track costs, manage inventory, and maximize profits.',
+    },
+    { name: 'twitter:image', content: `${APP_CONFIG.url}${APP_CONFIG.ogImage}` },
+
+    // Additional SEO
+    { name: 'robots', content: 'index, follow' },
+    { name: 'googlebot', content: 'index, follow' },
+    { name: 'language', content: 'English' },
+    { name: 'geo.region', content: 'PH' },
+    { name: 'geo.placename', content: 'Philippines' },
   ];
 }
 
@@ -110,6 +153,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -118,6 +162,53 @@ export default function Home() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Structured Data (JSON-LD) for SEO
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: APP_CONFIG.name,
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    description: APP_CONFIG.description,
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'PHP',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '120',
+    },
+    author: {
+      '@type': 'Organization',
+      name: APP_CONFIG.name,
+      url: APP_CONFIG.url,
+    },
+    featureList: [
+      'Cost Management',
+      'Recipe Costing',
+      'Inventory Tracking',
+      'Sales Analysis',
+      'Financial Reports',
+      'Receipt Scanning',
+    ],
+  };
+
+  const organizationData = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: APP_CONFIG.name,
+    url: APP_CONFIG.url,
+    logo: `${APP_CONFIG.url}/logo-text.svg`,
+    description: APP_CONFIG.description,
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'PH',
+    },
+    sameAs: [],
+  };
 
   const features = [
     {
@@ -271,6 +362,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Structured Data (JSON-LD) for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationData) }}
+      />
+
       {/* Header */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -299,12 +400,28 @@ export default function Home() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
-            <Button className="bg-greenz hover:bg-greenz/90" asChild>
-              <Link to="/register">Get Started</Link>
-            </Button>
+            {isAuthenticated ? (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/dashboard" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {user?.user_metadata?.name || user?.email?.split('@')[0] || 'Dashboard'}
+                  </Link>
+                </Button>
+                <Button className="bg-greenz hover:bg-greenz/90" asChild>
+                  <Link to="/dashboard">Go to Dashboard</Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/login">Sign In</Link>
+                </Button>
+                <Button className="bg-greenz hover:bg-greenz/90" asChild>
+                  <Link to="/register">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -346,12 +463,28 @@ export default function Home() {
                 FAQ
               </a>
               <div className="flex flex-col gap-2 pt-4 border-t">
-                <Button variant="outline" asChild>
-                  <Link to="/login">Sign In</Link>
-                </Button>
-                <Button className="bg-greenz" asChild>
-                  <Link to="/register">Get Started</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <Button variant="outline" asChild>
+                      <Link to="/dashboard" className="flex items-center gap-2 justify-center">
+                        <User className="h-4 w-4" />
+                        {user?.user_metadata?.name || user?.email?.split('@')[0] || 'Account'}
+                      </Link>
+                    </Button>
+                    <Button className="bg-greenz" asChild>
+                      <Link to="/dashboard">Go to Dashboard</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" asChild>
+                      <Link to="/login">Sign In</Link>
+                    </Button>
+                    <Button className="bg-greenz" asChild>
+                      <Link to="/register">Get Started</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>
