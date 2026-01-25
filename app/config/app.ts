@@ -15,8 +15,9 @@ export const APP_CONFIG = {
     'menu costing',
   ],
   url: 'https://kwentamo.tech',
-  ogImage: '/og-image.png',
+  ogImage: '/og-image.png?v=2',
   twitterHandle: '@kwentamo',
+  facebookAppId: import.meta.env.VITE_FACEBOOK_APP_ID || '',
   version: '1.0.0',
 
   // API Configuration (to be updated when backend is ready)
