@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
 import type { Route } from './+types/home';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
@@ -153,7 +153,8 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isAdmin, isLoading } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -162,6 +163,18 @@ export default function Home() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Redirect authenticated users to dashboard after OAuth login
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      // Check if user just logged in (session is fresh)
+      // This will auto-redirect Google OAuth users to dashboard
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.has('code') || window.location.hash.includes('access_token')) {
+        navigate(isAdmin ? '/dashboard/admin' : '/dashboard');
+      }
+    }
+  }, [isAuthenticated, isAdmin, isLoading, navigate]);
 
   // Structured Data (JSON-LD) for SEO
   const structuredData = {
