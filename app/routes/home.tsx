@@ -49,6 +49,7 @@ export function meta(_args: Route.MetaArgs) {
         'Free costing assistant for food businesses. Track costs, calculate profits, manage inventory, and grow your food business with data-driven insights.',
     },
     { property: 'og:image', content: `${APP_CONFIG.url}${APP_CONFIG.ogImage}` },
+    { property: 'og:image:secure_url', content: `${APP_CONFIG.url}${APP_CONFIG.ogImage}` },
     { property: 'og:image:width', content: '1200' },
     { property: 'og:image:height', content: '630' },
     { property: 'og:image:type', content: 'image/png' },
