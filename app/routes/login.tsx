@@ -18,7 +18,12 @@ import { useToast } from '~/hooks/use-toast';
 export function meta() {
   return [
     { title: `Login - ${APP_CONFIG.name}` },
-    { name: 'description', content: 'Login to your KwentaMo account' },
+    {
+      name: 'description',
+      content:
+        'Sign in to your KwentaMo account to access your food business costing tools, recipes, and financial reports.',
+    },
+    { name: 'robots', content: 'noindex, nofollow' },
   ];
 }
 

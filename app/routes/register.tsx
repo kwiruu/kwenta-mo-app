@@ -16,8 +16,13 @@ import { useAuthStore } from '~/stores/authStore';
 
 export function meta() {
   return [
-    { title: `Register - ${APP_CONFIG.name}` },
-    { name: 'description', content: 'Create a new KwentaMo account' },
+    { title: `Sign Up - ${APP_CONFIG.name}` },
+    {
+      name: 'description',
+      content:
+        'Create a free KwentaMo account to start managing your food business costs, track inventory, and maximize profits.',
+    },
+    { name: 'robots', content: 'index, follow' },
   ];
 }
 

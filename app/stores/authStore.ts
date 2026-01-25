@@ -74,7 +74,10 @@ export const useAuthStore = create<AuthState>()(
               const response = await authApi.syncUser(session.user.user_metadata?.name);
               adminStatus = response?.user?.isAdmin || false;
             } catch (syncError) {
-              console.warn('Failed to sync user with backend:', syncError);
+              // Silently fail sync in production - user can still use the app
+              if (import.meta.env.DEV) {
+                console.warn('Failed to sync user with backend:', syncError);
+              }
             }
 
             set({
@@ -107,7 +110,10 @@ export const useAuthStore = create<AuthState>()(
                 const response = await authApi.syncUser(session.user.user_metadata?.name);
                 set({ isAdmin: response?.user?.isAdmin || false });
               } catch (syncError) {
-                console.warn('Failed to sync user with backend:', syncError);
+                // Silently fail sync in production - user can still use the app
+                if (import.meta.env.DEV) {
+                  console.warn('Failed to sync user with backend:', syncError);
+                }
               }
             } else if (event === 'SIGNED_OUT') {
               set({
@@ -183,7 +189,10 @@ export const useAuthStore = create<AuthState>()(
               const response = await authApi.syncUser(name);
               set({ isAdmin: response?.user?.isAdmin || false });
             } catch (syncError) {
-              console.warn('Failed to sync user with backend:', syncError);
+              // Silently fail sync in production - user can still use the app
+              if (import.meta.env.DEV) {
+                console.warn('Failed to sync user with backend:', syncError);
+              }
             }
           }
 
@@ -213,7 +222,10 @@ export const useAuthStore = create<AuthState>()(
               const response = await authApi.syncUser(data.user?.user_metadata?.name);
               adminStatus = response?.user?.isAdmin || false;
             } catch (syncError) {
-              console.warn('Failed to sync user with backend:', syncError);
+              // Silently fail sync in production - user can still use the app
+              if (import.meta.env.DEV) {
+                console.warn('Failed to sync user with backend:', syncError);
+              }
             }
 
             set({
