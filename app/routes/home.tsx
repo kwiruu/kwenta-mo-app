@@ -164,15 +164,11 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Redirect authenticated users to dashboard after OAuth login
+  // Always redirect authenticated users to dashboard
+  // This handles both OAuth redirects and direct visits to home page when logged in
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      // Check if user just logged in (session is fresh)
-      // This will auto-redirect Google OAuth users to dashboard
-      const searchParams = new URLSearchParams(window.location.search);
-      if (searchParams.has('code') || window.location.hash.includes('access_token')) {
-        navigate(isAdmin ? '/dashboard/admin' : '/dashboard');
-      }
+      navigate(isAdmin ? '/dashboard/admin' : '/dashboard', { replace: true });
     }
   }, [isAuthenticated, isAdmin, isLoading, navigate]);
 
