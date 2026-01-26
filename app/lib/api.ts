@@ -564,14 +564,11 @@ export const reportsApi = {
     if (endDate) params.append('endDate', endDate);
 
     const token = await getAccessToken();
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/reports/export/excel?${params.toString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(`${API_URL}/reports/export/excel?${params.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!response.ok) {
       throw new Error('Failed to export Excel file');
